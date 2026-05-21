@@ -1,6 +1,139 @@
-/* Global styles and future shared classes */
+@layer base {
+  :root {
+    color-scheme: light;
+    color: #0f172a;
+    background-color: #f8fafc;
+  }
 
-:root {
-  color: #0f172a;
-  background-color: #f8fafc;
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+    min-height: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-[1.75rem] border bg-white p-6 shadow-soft backdrop-blur-sm;
+    border-color: rgba(226, 232, 240, 0.8);
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .card {
+    @apply rounded-[1.75rem] border bg-white p-6 shadow-soft;
+    border-color: rgba(226, 232, 240, 0.8);
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-2xl border px-4 py-3 text-sm font-semibold transition duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply border-transparent bg-slate-900 text-white hover:bg-slate-800 active:bg-slate-950;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-slate-900 border-slate-200 shadow-sm hover:bg-slate-50 active:bg-slate-100;
+  }
+
+  .btn-outline {
+    @apply bg-transparent text-slate-900 border-slate-300 hover:border-slate-400 hover:bg-slate-50;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-slate-700 hover:text-slate-900 hover:bg-slate-50 border-transparent;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 text-white border-transparent hover:bg-red-700 active:bg-red-800;
+  }
+
+  .form-input {
+    @apply w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition duration-200 focus:border-slate-900 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-100;
+  }
+
+  .input-error {
+    @apply border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-200;
+  }
+
+  .alert {
+    @apply rounded-[1.5rem] border px-4 py-4 shadow-sm transition duration-200;
+  }
+
+  .alert-success {
+    @apply border-emerald-100 bg-emerald-50 text-emerald-900;
+  }
+
+  .alert-error {
+    @apply border-red-100 bg-red-50 text-red-900;
+  }
+
+  .alert-warning {
+    @apply border-amber-100 bg-amber-50 text-amber-900;
+  }
+
+  .alert-info {
+    @apply border-sky-100 bg-sky-50 text-sky-900;
+  }
+
+  .alert-icon {
+    @apply mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl border bg-white text-xl text-current;
+    border-color: rgba(15, 23, 42, 0.15);
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+
+  .alert-close {
+    @apply ml-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900;
+  }
+
+  .table-shell {
+    @apply overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-soft;
+  }
+
+  .table-shell th,
+  .table-shell td {
+    @apply px-5 py-4;
+  }
+
+  .table-shell th {
+    @apply bg-slate-50 text-left text-xs uppercase tracking-[0.24em] text-slate-500;
+  }
+
+  .table-shell tr:nth-child(even) {
+    background-color: rgba(248, 250, 252, 0.8);
+  }
+
+  .table-shell tr:hover {
+    @apply bg-slate-50;
+  }
+
+  .section-title {
+    @apply text-3xl font-semibold tracking-tight text-slate-900;
+  }
+
+  .section-subtitle {
+    @apply max-w-3xl text-sm text-slate-500;
+  }
 }

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FormInput from './FormInput'
+import Button from '../ui/Button'
+import Alert from '../ui/Alert'
 import authService from '../../services/auth/authService'
 
 const LoginForm = () => {
@@ -71,9 +73,11 @@ const LoginForm = () => {
   return (
     <form className="space-y-6" onSubmit={handleSubmit} noValidate>
       {generalError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm transition duration-200">
-          {generalError}
-        </div>
+        <Alert
+          variant="error"
+          title="Authentication failed"
+          description={generalError}
+        />
       ) : null}
 
       <FormInput
@@ -111,22 +115,18 @@ const LoginForm = () => {
           />
           Remember session
         </label>
-        <a
-          href="#"
+        <button
+          type="button"
           onClick={(event) => event.preventDefault()}
           className="text-sm font-medium text-slate-700 transition hover:text-slate-900"
         >
           Forgot password?
-        </a>
+        </button>
       </div>
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-500"
-      >
+      <Button type="submit" loading={submitting} className="w-full">
         {submitting ? 'Signing in...' : 'Sign in'}
-      </button>
+      </Button>
     </form>
   )
 }
