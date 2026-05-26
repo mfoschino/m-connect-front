@@ -6,10 +6,16 @@ import Executions from '../../pages/executions/Executions'
 import Errors from '../../pages/errors/Errors'
 import Settings from '../../pages/settings/Settings'
 import LoginPage from '../../pages/auth/LoginPage'
+import ForgotPasswordPage from '../../pages/auth/ForgotPasswordPage'
+import ForgotPasswordSentPage from '../../pages/auth/ForgotPasswordSentPage'
+import ResetPasswordPage from '../../pages/auth/ResetPasswordPage'
 
 const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<LoginPage />} />
+    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <Route path="/forgot-password-sent" element={<ForgotPasswordSentPage />} />
+    <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/" element={<MainLayout />}>
       <Route index element={<Navigate to="/login" replace />} />
       <Route path="dashboard" element={<Dashboard />} />

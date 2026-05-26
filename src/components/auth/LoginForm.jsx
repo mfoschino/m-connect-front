@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import FormInput from './FormInput'
 import Button from '../ui/Button'
 import Alert from '../ui/Alert'
@@ -115,13 +115,12 @@ const LoginForm = () => {
           />
           Recordar sesión
         </label>
-        <button
-          type="button"
-          onClick={(event) => event.preventDefault()}
+        <Link
+          to="/forgot-password"
           className="text-sm font-medium text-slate-700 transition hover:text-slate-900"
         >
           Recuperar contraseña
-        </button>
+        </Link>
       </div>
 
       <Button type="submit" loading={submitting} className="w-full">
