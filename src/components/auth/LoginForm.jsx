@@ -21,15 +21,15 @@ const LoginForm = () => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
     if (!formData.email.trim()) {
-      nextErrors.email = 'Email is required.'
+      nextErrors.email = 'Email requerido.'
     } else if (!emailPattern.test(formData.email)) {
-      nextErrors.email = 'Enter a valid email address.'
+      nextErrors.email = 'Ingrese una dirección de email válida.'
     }
 
     if (!formData.password) {
-      nextErrors.password = 'Password is required.'
+      nextErrors.password = 'Contraseña requerida.'
     } else if (formData.password.length < 8) {
-      nextErrors.password = 'Password must be at least 8 characters.'
+      nextErrors.password = 'La contraseña debe tener al menos 8 caracteres.'
     }
 
     setErrors(nextErrors)
@@ -59,7 +59,7 @@ const LoginForm = () => {
       navigate('/dashboard')
     } catch (error) {
       if (error?.code === 'invalid_credentials') {
-        setGeneralError('Invalid credentials. Please check your email and password.')
+        setGeneralError('Credenciales inválidas. Por favor, verifique su correo electrónico y contraseña.')
       } else if (error?.code === 'blocked_account') {
         setGeneralError('Your account is blocked. Contact support for assistance.')
       } else {
@@ -87,19 +87,19 @@ const LoginForm = () => {
         name="email"
         value={formData.email}
         onChange={handleChange}
-        placeholder="you@company.com"
+        placeholder="tu@empresa.com"
         autoComplete="email"
         error={errors.email}
       />
 
       <FormInput
         id="login-password"
-        label="Password"
+        label="Contraseña"
         type="password"
         name="password"
         value={formData.password}
         onChange={handleChange}
-        placeholder="Enter your password"
+        placeholder="Ingrese contraseña"
         autoComplete="current-password"
         error={errors.password}
       />
@@ -113,19 +113,19 @@ const LoginForm = () => {
             onChange={handleChange}
             className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
           />
-          Remember session
+          Recordar sesión
         </label>
         <button
           type="button"
           onClick={(event) => event.preventDefault()}
           className="text-sm font-medium text-slate-700 transition hover:text-slate-900"
         >
-          Forgot password?
+          Recuperar contraseña
         </button>
       </div>
 
       <Button type="submit" loading={submitting} className="w-full">
-        {submitting ? 'Signing in...' : 'Sign in'}
+        {submitting ? 'Por favor aguarde...' : 'Iniciar sesión'}
       </Button>
     </form>
   )
