@@ -3,10 +3,12 @@ import { useNavigate, Link } from 'react-router-dom'
 import FormInput from './FormInput'
 import Button from '../ui/Button'
 import Alert from '../ui/Alert'
+import { useAuth } from '../../context/AuthContext'
 import authService from '../../services/auth/authService'
 
 const LoginForm = () => {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -55,7 +57,8 @@ const LoginForm = () => {
     setSubmitting(true)
 
     try {
-      await authService.login(formData)
+      const session = await authService.login(formData)
+      login(session)
       navigate('/dashboard')
     } catch (error) {
       if (error?.code === 'invalid_credentials') {
