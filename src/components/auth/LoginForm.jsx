@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import FormInput from './FormInput'
 import Button from '../ui/Button'
 import Alert from '../ui/Alert'
@@ -8,6 +8,7 @@ import authService from '../../services/auth/authService'
 
 const LoginForm = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const [formData, setFormData] = useState({
     email: '',
@@ -56,10 +57,12 @@ const LoginForm = () => {
 
     setSubmitting(true)
 
+    const destination = location.state?.from?.pathname || '/dashboard'
+
     try {
       const session = await authService.login(formData)
       login(session)
-      navigate('/dashboard')
+      navigate(destination, { replace: true })
     } catch (error) {
       if (error?.code === 'invalid_credentials') {
         setGeneralError('Credenciales inválidas. Por favor, verifique su correo electrónico y contraseña.')
