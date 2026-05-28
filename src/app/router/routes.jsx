@@ -9,6 +9,7 @@ import LoginPage from '../../pages/auth/LoginPage'
 import ForgotPasswordPage from '../../pages/auth/ForgotPasswordPage'
 import ForgotPasswordSentPage from '../../pages/auth/ForgotPasswordSentPage'
 import ResetPasswordPage from '../../pages/auth/ResetPasswordPage'
+import ProtectedRoute from '../../components/common/ProtectedRoute'
 
 const AppRoutes = () => (
   <Routes>
@@ -17,12 +18,54 @@ const AppRoutes = () => (
     <Route path="/forgot-password-sent" element={<ForgotPasswordSentPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/" element={<MainLayout />}>
-      <Route index element={<Navigate to="/login" replace />} />
-      <Route path="dashboard" element={<Dashboard />} />
-      <Route path="integrations" element={<Integrations />} />
-      <Route path="executions" element={<Executions />} />
-      <Route path="errors" element={<Errors />} />
-      <Route path="settings" element={<Settings />} />
+      <Route
+        index
+        element={
+          <ProtectedRoute>
+            <Navigate to="/dashboard" replace />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="integrations"
+        element={
+          <ProtectedRoute>
+            <Integrations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="executions"
+        element={
+          <ProtectedRoute>
+            <Executions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="errors"
+        element={
+          <ProtectedRoute>
+            <Errors />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
     </Route>
     <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes>
