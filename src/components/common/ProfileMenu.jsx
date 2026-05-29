@@ -27,6 +27,8 @@ const ProfileMenu = () => {
     .map((part) => part[0]?.toUpperCase())
     .join('')
 
+  const displaySubtitle = user?.email ? user.email : 'Cuenta'
+
   return (
     <div ref={menuRef} className="relative inline-block text-left">
       <button
@@ -41,7 +43,7 @@ const ProfileMenu = () => {
         </span>
         <span className="hidden text-left sm:block">
           <span className="block text-sm font-semibold text-slate-900">{displayName}</span>
-          <span className="block text-xs text-slate-500">Account</span>
+          <span className="block truncate text-xs text-slate-500">{displaySubtitle}</span>
         </span>
       </button>
 
@@ -51,7 +53,7 @@ const ProfileMenu = () => {
             type="button"
             onClick={() => {
               setIsOpen(false)
-              navigate('/settings')
+              navigate('/profile')
             }}
             className="w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
           >
@@ -61,7 +63,7 @@ const ProfileMenu = () => {
             type="button"
             onClick={() => {
               setIsOpen(false)
-              navigate('/settings')
+              navigate('/profile#security')
             }}
             className="w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
           >

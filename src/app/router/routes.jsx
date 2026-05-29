@@ -5,6 +5,7 @@ import Integrations from '../../pages/integrations/Integrations'
 import Executions from '../../pages/executions/Executions'
 import Errors from '../../pages/errors/Errors'
 import Settings from '../../pages/settings/Settings'
+import ProfilePage from '../../pages/profile/ProfilePage'
 import LoginPage from '../../pages/auth/LoginPage'
 import ForgotPasswordPage from '../../pages/auth/ForgotPasswordPage'
 import ForgotPasswordSentPage from '../../pages/auth/ForgotPasswordSentPage'
@@ -55,6 +56,14 @@ const AppRoutes = () => (
         element={
           <ProtectedRoute>
             <Errors />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />

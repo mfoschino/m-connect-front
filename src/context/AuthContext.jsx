@@ -52,8 +52,27 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  const updateUser = (userUpdates) => {
+    // Keep the user state and local storage session in sync after profile changes.
+    setUser((current) => {
+      const nextUser = { ...current, ...userUpdates }
+
+      try {
+        const savedSession = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ ...savedSession, user: nextUser }),
+        )
+      } catch (error) {
+        // Ignore storage errors in the browser session.
+      }
+
+      return nextUser
+    })
+  }
+
   const value = useMemo(
-    () => ({ user, token, login, logout }),
+    () => ({ user, token, login, logout, updateUser }),
     [user, token],
   )
 
