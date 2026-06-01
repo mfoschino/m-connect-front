@@ -4,7 +4,7 @@ import LoginForm from '../../components/auth/LoginForm'
 const LoginPage = () => {
   return (
     <AuthLayout
-      title="Inica sesion en M-Connect"
+      title="Inicia sesión en M-Connect"
       subtitle="Todo el monitoreo de tus integraciones, en un solo lugar."
     >
       <LoginForm />

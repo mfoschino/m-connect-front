@@ -8,7 +8,7 @@ const updateProfile = (profileData) =>
       const normalizedEmail = profileData.email?.trim().toLowerCase()
 
       if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-        return reject({ message: 'Ingrese un email válido.' })
+        return reject({ message: 'Ingrese un correo electrónico válido.' })
       }
 
       if (!profileData.name?.trim()) {

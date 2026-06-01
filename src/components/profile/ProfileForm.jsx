@@ -13,7 +13,7 @@ const ProfileForm = ({ profile, onChange, onSave, status }) => {
   }
 
   return (
-    <Card title="Información personal" description="Actualiza tu nombre, email y avatar de perfil.">
+    <Card title="Información personal" description="Actualiza tu nombre, correo electrónico y avatar de perfil.">
       <div className="space-y-6">
         <AvatarUploader
           avatarUrl={profile.avatarUrl}
@@ -34,7 +34,7 @@ const ProfileForm = ({ profile, onChange, onSave, status }) => {
           </label>
 
           <label className="block">
-            <span className="text-sm font-semibold text-slate-900">Email</span>
+            <span className="text-sm font-semibold text-slate-900">Correo electrónico</span>
             <input
               type="email"
               value={profile.email}

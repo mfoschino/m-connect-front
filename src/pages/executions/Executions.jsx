@@ -6,47 +6,47 @@ const Executions = () => {
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Executions</p>
-        <h2 className="section-title">Pipeline activity</h2>
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Ejecuciones</p>
+        <h2 className="section-title">Actividad de pipelines</h2>
         <p className="section-subtitle">
-          Track recent execution runs, identify slowdowns, and monitor status across your workflows.
+          Haz seguimiento de ejecuciones recientes, detecta lentitudes y monitorea el estado de tus flujos de trabajo.
         </p>
       </div>
 
-      <Card title="Recent execution runs" description="Latest pipelines and their current state.">
+      <Card title="Ejecuciones recientes" description="Pipelines más recientes y su estado actual.">
         <Table>
           <thead>
             <tr>
-              <th>Pipeline</th>
-              <th>Status</th>
-              <th>Duration</th>
-              <th>Started</th>
+              <th>Flujo</th>
+              <th>Estado</th>
+              <th>Duración</th>
+              <th>Inicio</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className="font-medium text-slate-900">Order sync</td>
-              <td><Badge variant="online">Success</Badge></td>
+              <td className="font-medium text-slate-900">Sincronización de pedidos</td>
+              <td><Badge variant="online">Éxito</Badge></td>
               <td>1m 12s</td>
-              <td>3 minutes ago</td>
+              <td>Hace 3 minutos</td>
             </tr>
             <tr>
-              <td className="font-medium text-slate-900">Invoice sync</td>
-              <td><Badge variant="failed">Failed</Badge></td>
+              <td className="font-medium text-slate-900">Sincronización de facturas</td>
+              <td><Badge variant="failed">Fallido</Badge></td>
               <td>45s</td>
-              <td>8 minutes ago</td>
+              <td>Hace 8 minutos</td>
             </tr>
             <tr>
-              <td className="font-medium text-slate-900">User import</td>
-              <td><Badge variant="processing">Processing</Badge></td>
+              <td className="font-medium text-slate-900">Importación de usuarios</td>
+              <td><Badge variant="processing">Procesando</Badge></td>
               <td>—</td>
-              <td>Just now</td>
+              <td>Justo ahora</td>
             </tr>
             <tr>
-              <td className="font-medium text-slate-900">Alert delivery</td>
-              <td><Badge variant="pending">Pending</Badge></td>
+              <td className="font-medium text-slate-900">Entrega de alertas</td>
+              <td><Badge variant="pending">Pendiente</Badge></td>
               <td>—</td>
-              <td>1 minute ago</td>
+              <td>Hace 1 minuto</td>
             </tr>
           </tbody>
         </Table>

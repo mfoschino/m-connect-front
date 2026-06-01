@@ -35,7 +35,7 @@ const AvatarUploader = ({ avatarUrl, displayName, onChange }) => {
       <div className="flex flex-wrap items-center gap-4">
         <div className="inline-flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-xl font-semibold text-slate-700 ring-1 ring-slate-200">
           {preview ? (
-            <img src={preview} alt="Avatar preview" className="h-full w-full object-cover" />
+            <img src={preview} alt="Vista previa del avatar" className="h-full w-full object-cover" />
           ) : (
             <span>{fallbackInitials}</span>
           )}

@@ -24,9 +24,9 @@ const LoginForm = () => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
     if (!formData.email.trim()) {
-      nextErrors.email = 'Email requerido.'
+      nextErrors.email = 'Correo electrónico requerido.'
     } else if (!emailPattern.test(formData.email)) {
-      nextErrors.email = 'Ingrese una dirección de email válida.'
+      nextErrors.email = 'Ingrese una dirección de correo electrónico válida.'
     }
 
     if (!formData.password) {
@@ -67,9 +67,9 @@ const LoginForm = () => {
       if (error?.code === 'invalid_credentials') {
         setGeneralError('Credenciales inválidas. Por favor, verifique su correo electrónico y contraseña.')
       } else if (error?.code === 'blocked_account') {
-        setGeneralError('Your account is blocked. Contact support for assistance.')
+        setGeneralError('Tu cuenta está bloqueada. Contacta con soporte para obtener ayuda.')
       } else {
-        setGeneralError('Unable to sign in. Please check your network connection and try again.')
+        setGeneralError('No se pudo iniciar sesión. Verifica tu conexión y vuelve a intentarlo.')
       }
     } finally {
       setSubmitting(false)
@@ -81,14 +81,14 @@ const LoginForm = () => {
       {generalError ? (
         <Alert
           variant="error"
-          title="Authentication failed"
+          title="Autenticación fallida"
           description={generalError}
         />
       ) : null}
 
       <FormInput
         id="login-email"
-        label="Email"
+        label="Correo electrónico"
         type="email"
         name="email"
         value={formData.email}

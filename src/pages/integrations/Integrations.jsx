@@ -6,49 +6,49 @@ const Integrations = () => {
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Integrations</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Integraciones</p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="section-title">Connected sources</h2>
-          <Badge variant="online">Network healthy</Badge>
+          <h2 className="section-title">Fuentes conectadas</h2>
+          <Badge variant="online">Red saludable</Badge>
         </div>
         <p className="section-subtitle">
-          View the status of your active integrations and keep your data flows stable across endpoints.
+          Consulta el estado de tus integraciones activas y mantén estables tus flujos de datos entre endpoints.
         </p>
       </div>
 
-      <Card title="Integration status" description="A live overview of connected systems and sync health.">
+      <Card title="Estado de integraciones" description="Una vista en vivo de los sistemas conectados y la salud de sincronización.">
         <Table>
           <thead>
             <tr>
-              <th>Integration</th>
-              <th>Status</th>
-              <th>Last synced</th>
-              <th>Latency</th>
+              <th>Integración</th>
+              <th>Estado</th>
+              <th>Última sincronización</th>
+              <th>Latencia</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className="font-medium text-slate-900">Payments API</td>
-              <td><Badge variant="online">Online</Badge></td>
-              <td>2 minutes ago</td>
+              <td className="font-medium text-slate-900">API de pagos</td>
+              <td><Badge variant="online">En línea</Badge></td>
+              <td>Hace 2 minutos</td>
               <td>320ms</td>
             </tr>
             <tr>
-              <td className="font-medium text-slate-900">CRM connector</td>
-              <td><Badge variant="offline">Offline</Badge></td>
-              <td>12 minutes ago</td>
+              <td className="font-medium text-slate-900">Conector CRM</td>
+              <td><Badge variant="offline">Fuera de línea</Badge></td>
+              <td>Hace 12 minutos</td>
               <td>—</td>
             </tr>
             <tr>
-              <td className="font-medium text-slate-900">Log collector</td>
-              <td><Badge variant="processing">Processing</Badge></td>
-              <td>Just now</td>
+              <td className="font-medium text-slate-900">Recolector de registros</td>
+              <td><Badge variant="processing">Procesando</Badge></td>
+              <td>Justo ahora</td>
               <td>520ms</td>
             </tr>
             <tr>
-              <td className="font-medium text-slate-900">Billing sync</td>
-              <td><Badge variant="retrying">Retrying</Badge></td>
-              <td>4 minutes ago</td>
+              <td className="font-medium text-slate-900">Sincronización de facturación</td>
+              <td><Badge variant="retrying">Reintentando</Badge></td>
+              <td>Hace 4 minutos</td>
               <td>1.1s</td>
             </tr>
           </tbody>

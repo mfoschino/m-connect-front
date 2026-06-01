@@ -17,17 +17,17 @@ const login = ({ email, password, remember }) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (email === 'network@error.com') {
-        return reject({ code: 'network_error', message: 'Network error. Please try again.' })
+        return reject({ code: 'network_error', message: 'Error de red. Por favor, inténtalo de nuevo.' })
       }
 
       const user = mockUsers.find((record) => record.email === email)
 
       if (!user || user.password !== password) {
-        return reject({ code: 'invalid_credentials', message: 'Invalid email or password.' })
+        return reject({ code: 'invalid_credentials', message: 'Correo electrónico o contraseña inválidos.' })
       }
 
       if (user.status === 'blocked') {
-        return reject({ code: 'blocked_account', message: 'Your account is blocked. Contact support.' })
+        return reject({ code: 'blocked_account', message: 'Tu cuenta está bloqueada. Contacta con soporte.' })
       }
 
       const session = {

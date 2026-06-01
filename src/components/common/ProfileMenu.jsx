@@ -19,7 +19,7 @@ const ProfileMenu = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const displayName = user?.name || user?.email || 'User'
+  const displayName = user?.name || user?.email || 'Usuario'
   const initials = displayName
     .split(' ')
     .filter(Boolean)
@@ -57,7 +57,7 @@ const ProfileMenu = () => {
             }}
             className="w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
           >
-            My Profile
+            Mi perfil
           </button>
           <button
             type="button"
@@ -67,7 +67,7 @@ const ProfileMenu = () => {
             }}
             className="w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
           >
-            Security
+            Seguridad
           </button>
           <div className="border-t border-slate-100" />
           <button
@@ -79,7 +79,7 @@ const ProfileMenu = () => {
             }}
             className="w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
           >
-            Logout
+            Cerrar sesión
           </button>
         </div>
       )}

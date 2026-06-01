@@ -13,7 +13,7 @@ const ProfileHeader = ({ avatarUrl, name, email }) => {
         <div className="flex items-center gap-4">
           <div className="inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-2xl font-semibold text-slate-700 ring-1 ring-slate-200">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="Profile avatar" className="h-full w-full object-cover" />
+              <img src={avatarUrl} alt="Avatar de perfil" className="h-full w-full object-cover" />
             ) : (
               <span>{initials || 'U'}</span>
             )}

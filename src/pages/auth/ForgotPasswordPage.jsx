@@ -22,12 +22,12 @@ const ForgotPasswordPage = () => {
     setError('')
 
     if (!email.trim()) {
-      setError('Email es requerido.')
+      setError('Correo electrónico es requerido.')
       return
     }
 
     if (!validateEmail(email)) {
-      setError('Ingrese una dirección de email válida.')
+      setError('Ingrese una dirección de correo electrónico válida.')
       return
     }
 
