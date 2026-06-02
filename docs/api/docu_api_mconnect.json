@@ -1,0 +1,2359 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "M-Connect API",
+    "description": "Middleware de integración M-Connect. Gestión de integraciones, perfiles de mapping, tablas de lookup y monitoreo del pipeline.",
+    "version": "2.0.0"
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Registrar un nuevo usuario",
+        "description": "Crea una nueva cuenta de usuario.\n\n- El email debe ser único en el sistema.\n- La contraseña se hashea con bcrypt antes de guardarse.\n- El usuario queda activo inmediatamente.\n\nPosibles errores:\n- 409 Conflict: si el email ya está registrado.\n- 422 Unprocessable Entity: si los datos no cumplen la validación.",
+        "operationId": "register_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Iniciar sesión y obtener tokens JWT",
+        "description": "Verifica las credenciales y retorna un par de tokens JWT.\n\nEl cliente debe guardar ambos tokens:\n- access_token: enviarlo en el header `Authorization: Bearer \u003Ctoken\u003E`\n  en cada request a endpoints protegidos. Expira en 30 minutos.\n- refresh_token: guardarlo de forma segura y usarlo en /auth/refresh\n  cuando el access_token expire. Expira en 7 días.\n\nPosibles errores:\n- 401 Unauthorized: si las credenciales son inválidas o la cuenta está desactivada.",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Renovar tokens usando el refresh token",
+        "description": "Emite un nuevo par de tokens usando un refresh token válido.\n\nEl refresh token también se renueva (rotación de tokens).\nEl viejo refresh token debería ser descartado por el cliente.\n\nNo necesita acceso a la BD: la validación es solo criptográfica.\n\nPosibles errores:\n- 401 Unauthorized: si el refresh token es inválido, expirado,\n  o si se envió un access token por error.",
+        "operationId": "refresh_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Obtener perfil del usuario autenticado",
+        "description": "Retorna el perfil del usuario autenticado.\n\nNo necesita ID en la URL: el usuario se identifica por su token.\nEl endpoint /me es una convención REST para \"el recurso del usuario actual\".\n\nRequiere: header `Authorization: Bearer \u003Caccess_token\u003E`",
+        "operationId": "get_me_users_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Actualizar perfil del usuario autenticado",
+        "description": "Actualiza el perfil del usuario autenticado.\n\nSolo se actualizan los campos enviados en el body.\nEnviar un body vacío {} es válido y no cambia nada.\n\nPosibles errores:\n- 409 Conflict: si el nuevo email ya lo tiene otro usuario.\n- 401 Unauthorized: si el token es inválido o expirado.",
+        "operationId": "update_me_users_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/users/me/change-password": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Cambiar contraseña del usuario autenticado",
+        "description": "Cambia la contraseña del usuario autenticado.\n\nRequiere la contraseña actual para verificar identidad.\nEsto previene que alguien que tomó control de una sesión activa\npueda cambiar la contraseña sin saber la original.\n\nPosibles errores:\n- 400 Bad Request: si la contraseña actual es incorrecta.\n- 422 Unprocessable Entity: si la nueva contraseña no cumple los requisitos.\n- 401 Unauthorized: si el token es inválido o expirado.",
+        "operationId": "change_user_password_users_me_change_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Change User Password Users Me Change Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Sistema"
+        ],
+        "summary": "Health Check",
+        "description": "Verifica que la API y la base de datos estén operativas.\n\nRealiza una query simple (SELECT 1) a PostgreSQL para confirmar\nque la conexión está activa y la BD responde.\n\nReturns:\n    dict con el estado de cada componente.\n    Ejemplo: {\"status\": \"ok\", \"database\": \"ok\", \"environment\": \"development\"}\n\nRaises:\n    500 Internal Server Error: si la BD no responde (SQLAlchemy lanza excepción).",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Health Check Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations": {
+      "get": {
+        "tags": [
+          "Integraciones"
+        ],
+        "summary": "Listar integraciones del tenant",
+        "description": "Lista todas las integraciones del tenant autenticado.\n\nIncluye integraciones activas e inactivas para que el administrador\npueda ver el historial completo.\n\nRequiere: cualquier rol con tenant asignado (VIEWER, OPERATOR, ADMIN).",
+        "operationId": "list_integrations_endpoint_integrations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationConfigResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Integrations Endpoint Integrations Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Integraciones"
+        ],
+        "summary": "Crear nueva integración",
+        "description": "Crea una nueva integración para el tenant.\n\nEl `tenant_id` se toma del JWT del usuario autenticado,\nnunca del body del request (garantiza aislamiento multi-tenant).\n\nRequiere: OPERATOR o ADMIN.",
+        "operationId": "create_integration_endpoint_integrations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationConfigCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationConfigResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/integrations/{integration_id}": {
+      "get": {
+        "tags": [
+          "Integraciones"
+        ],
+        "summary": "Obtener integración por ID",
+        "description": "Obtiene los detalles de una integración específica.\n\nRetorna 404 si la integración no existe o pertenece a otro tenant.\n\nRequiere: cualquier rol con tenant asignado.",
+        "operationId": "get_integration_endpoint_integrations__integration_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationConfigResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Integraciones"
+        ],
+        "summary": "Actualizar integración parcialmente",
+        "description": "Actualiza solo los campos enviados en el body (PATCH semántico).\n\nEnviar {} (body vacío) es válido y no modifica nada.\nEnviar {\"is_active\": false} desactiva la integración sin borrarla.\n\nRequiere: OPERATOR o ADMIN.",
+        "operationId": "update_integration_endpoint_integrations__integration_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationConfigUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationConfigResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Integraciones"
+        ],
+        "summary": "Eliminar integración",
+        "description": "Elimina permanentemente una integración.\n\nEsta operación es irreversible. Se recomienda desactivar la integración\n(PATCH con is_active=false) en vez de eliminarla, para conservar el\nhistorial de ejecuciones relacionado.\n\nRetorna 204 No Content si la eliminación fue exitosa.\n\nRequiere: ADMIN.",
+        "operationId": "delete_integration_endpoint_integrations__integration_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/{integration_id}/trigger": {
+      "post": {
+        "tags": [
+          "Integraciones"
+        ],
+        "summary": "Disparar pipeline manualmente",
+        "description": "Encola un mensaje en el pipeline de M-Connect para su procesamiento.\n\nÚtil para:\n- Probar una integración con datos de prueba\n- Reprocesar manualmente un mensaje fallido\n- Integraciones sin schedule automático (modo webhook/manual)\n\nEl pipeline es asíncrono: la respuesta devuelve un `trace_id` que\npuede usarse en GET /executions/{trace_id} para monitorear el estado.\n\nRetorna 202 Accepted: el mensaje fue encolado, no procesado aún.\n\nRequiere: OPERATOR o ADMIN.",
+        "operationId": "trigger_pipeline_endpoint_integrations__integration_id__trigger_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/integrations/{integration_id}/run": {
+      "post": {
+        "tags": [
+          "Integraciones"
+        ],
+        "summary": "Ejecutar conector de entrada (batch)",
+        "description": "Encola la ejecución del conector de entrada de esta integración.\n\nEl conector extrae todos los registros del sistema externo y los inyecta\nal pipeline de M-Connect. Cada registro genera un mensaje independiente\nen la cola de ingestion que pasa por transformación y delivery.\n\nSolo válido para connector_type='api' o 'db'.\nPara webhooks, el sistema externo llama directamente a POST /webhooks/{id}.\n\nRetorna 202 Accepted con el task_id para monitoreo via Celery/Flower.\nLos mensajes individuales se monitorean en GET /executions.\n\nRequiere: OPERATOR o ADMIN.",
+        "operationId": "run_integration_endpoint_integrations__integration_id__run_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profiles": {
+      "get": {
+        "tags": [
+          "Perfiles de Mapping"
+        ],
+        "summary": "Listar perfiles de mapping del tenant",
+        "description": "Lista todos los perfiles del tenant (activos e inactivos).\n\nIncluye perfiles desactivados para que el administrador pueda\nver cuáles existen y reactivarlos si es necesario.\n\nRequiere: cualquier rol con tenant asignado.",
+        "operationId": "list_profiles_endpoint_profiles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MappingProfileResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Profiles Endpoint Profiles Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Perfiles de Mapping"
+        ],
+        "summary": "Crear nuevo perfil de mapping",
+        "description": "Crea un nuevo perfil de mapping para el tenant.\n\nUn perfil define cómo transformar los campos del sistema fuente\nal modelo canónico de M-Connect. La combinación\n(source_system, entity, version) debe ser única por tenant.\n\nRequiere: OPERATOR o ADMIN.",
+        "operationId": "create_profile_endpoint_profiles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MappingProfileCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MappingProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/profiles/{profile_id}": {
+      "get": {
+        "tags": [
+          "Perfiles de Mapping"
+        ],
+        "summary": "Obtener perfil por ID",
+        "description": "Obtiene los detalles de un perfil específico.\n\nRetorna 404 si el perfil no existe o pertenece a otro tenant.\n\nRequiere: cualquier rol con tenant asignado.",
+        "operationId": "get_profile_endpoint_profiles__profile_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MappingProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Perfiles de Mapping"
+        ],
+        "summary": "Actualizar perfil parcialmente",
+        "description": "Actualiza los campos enviados en el body (PATCH semántico).\n\nPermite actualizar: config (lista de mappers), version, is_active.\nLos campos source_system y entity son inmutables.\n\nRequiere: OPERATOR o ADMIN.",
+        "operationId": "update_profile_endpoint_profiles__profile_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MappingProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MappingProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profiles/{profile_id}/deactivate": {
+      "post": {
+        "tags": [
+          "Perfiles de Mapping"
+        ],
+        "summary": "Desactivar perfil (borrado lógico)",
+        "description": "Marca el perfil como inactivo (is_active=False).\n\nEl perfil queda visible en el dashboard pero el pipeline no\nlo usa para nuevas transformaciones. Los logs históricos\nque lo referencian no se ven afectados.\n\nPara reactivar un perfil, usar PATCH con {\"is_active\": true}.\n\nRequiere: ADMIN.",
+        "operationId": "deactivate_profile_endpoint_profiles__profile_id__deactivate_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MappingProfileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lookup-tables": {
+      "get": {
+        "tags": [
+          "Tablas de Lookup"
+        ],
+        "summary": "Listar tablas de lookup del tenant",
+        "description": "Lista todas las tablas de lookup del tenant, ordenadas alfabéticamente.\n\nRequiere: cualquier rol con tenant asignado.",
+        "operationId": "list_lookups_endpoint_lookup_tables_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LookupTableResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Lookups Endpoint Lookup Tables Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Tablas de Lookup"
+        ],
+        "summary": "Crear tabla de lookup",
+        "description": "Crea una nueva tabla de lookup para el tenant.\n\nEl nombre de la tabla debe ser único dentro del tenant.\nLos perfiles de mapping referencian las tablas por este nombre.\n\nEjemplo de body:\n```json\n{\n  \"name\": \"VtexStatusMap\",\n  \"entries\": {\n    \"ready-for-handling\": \"confirmed\",\n    \"invoiced\": \"completed\",\n    \"canceled\": \"cancelled\"\n  }\n}\n```\n\nRequiere: OPERATOR o ADMIN.",
+        "operationId": "create_lookup_endpoint_lookup_tables_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LookupTableCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupTableResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/lookup-tables/{lookup_id}": {
+      "get": {
+        "tags": [
+          "Tablas de Lookup"
+        ],
+        "summary": "Obtener tabla de lookup por ID",
+        "description": "Obtiene los detalles de una tabla de lookup específica.\n\nRetorna 404 si la tabla no existe o pertenece a otro tenant.\n\nRequiere: cualquier rol con tenant asignado.",
+        "operationId": "get_lookup_endpoint_lookup_tables__lookup_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lookup_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lookup Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupTableResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Tablas de Lookup"
+        ],
+        "summary": "Actualizar tabla de lookup",
+        "description": "Actualiza el nombre o las entradas de una tabla de lookup.\n\nNOTA: actualizar `entries` reemplaza TODA la tabla, no hace merge.\nSi el cliente envía {\"entries\": {\"key\": \"val\"}}, esa es la nueva\ntabla completa, independientemente de las entradas anteriores.\n\nRequiere: OPERATOR o ADMIN.",
+        "operationId": "update_lookup_endpoint_lookup_tables__lookup_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lookup_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lookup Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LookupTableUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupTableResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tablas de Lookup"
+        ],
+        "summary": "Eliminar tabla de lookup",
+        "description": "Elimina permanentemente una tabla de lookup.\n\nAntes de eliminar, verificar que ningún perfil de mapping activo\nreferencie esta tabla (por nombre), ya que causaría un error\nen el pipeline al intentar cargar el lookup durante el procesamiento.\n\nRetorna 204 No Content si la eliminación fue exitosa.\n\nRequiere: ADMIN.",
+        "operationId": "delete_lookup_endpoint_lookup_tables__lookup_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lookup_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lookup Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/executions": {
+      "get": {
+        "tags": [
+          "Monitoreo"
+        ],
+        "summary": "Listar mensajes del tenant",
+        "description": "Lista los mensajes del tenant con filtros opcionales.\n\nPor defecto devuelve los 50 más recientes (ordenados por created_at DESC).\nÚtil para el dashboard de monitoreo en tiempo real.\n\nParámetros de query:\n- `status`: filtrar por estado del mensaje\n- `source_system`: filtrar por sistema de origen\n- `limit`: máximo de resultados (default 50, máximo 200)\n\nRequiere: cualquier rol con tenant asignado.",
+        "operationId": "list_executions_endpoint_executions_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por estado del mensaje: 'pending', 'processing', 'ok', 'error', 'retry'",
+              "title": "Status"
+            },
+            "description": "Filtrar por estado del mensaje: 'pending', 'processing', 'ok', 'error', 'retry'"
+          },
+          {
+            "name": "source_system",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por sistema de origen (ej: 'vtex', 'sap')",
+              "title": "Source System"
+            },
+            "description": "Filtrar por sistema de origen (ej: 'vtex', 'sap')"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "description": "Máximo de resultados (1-200)",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Máximo de resultados (1-200)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MessageStateResponse"
+                  },
+                  "title": "Response List Executions Endpoint Executions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/executions/{trace_id}": {
+      "get": {
+        "tags": [
+          "Monitoreo"
+        ],
+        "summary": "Obtener estado de un mensaje",
+        "description": "Obtiene el estado actual de un mensaje específico en el pipeline.\n\nEl trace_id se obtiene de:\n- La respuesta del endpoint POST /integrations/{id}/trigger\n- Los logs del sistema que originó el mensaje\n\nRetorna 404 si:\n- El trace_id no existe en la BD\n- El trace_id pertenece a un mensaje de otro tenant\n\nAmbos casos devuelven 404 (no 403) para no confirmar la existencia\nde mensajes de otros tenants.\n\nRequiere: cualquier rol con tenant asignado.",
+        "operationId": "get_execution_endpoint_executions__trace_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Trace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/executions/{trace_id}/logs": {
+      "get": {
+        "tags": [
+          "Monitoreo"
+        ],
+        "summary": "Obtener logs detallados de un mensaje",
+        "description": "Lista los eventos de log de un mensaje, ordenados cronológicamente.\n\nPermite ver el flujo completo del mensaje:\ningestion_received → profile_loaded → field_mapped (N veces)\n→ schema_validated → delivery_completed\n\nO en caso de error:\ningestion_received → profile_loaded → field_mapping_failed → ...\n\nParámetros de query:\n- `level`: filtrar por nivel (útil para ver solo errores)\n\nPrimero verifica que el trace_id pertenezca al tenant del usuario.\nRetorna 404 si no existe o pertenece a otro tenant.\n\nRequiere: cualquier rol con tenant asignado.",
+        "operationId": "get_execution_logs_endpoint_executions__trace_id__logs_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Trace Id"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por nivel de log: 'DEBUG', 'INFO', 'WARNING', 'ERROR'",
+              "title": "Level"
+            },
+            "description": "Filtrar por nivel de log: 'DEBUG', 'INFO', 'WARNING', 'ERROR'"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionLogResponse"
+                  },
+                  "title": "Response Get Execution Logs Endpoint Executions  Trace Id  Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/{integration_id}": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Recibir evento webhook de un sistema externo",
+        "description": "Endpoint público que recibe eventos push de sistemas externos.\n\nEl sistema externo (HubSpot, Shopify, etc.) llama a este endpoint cuando\nhay un cambio. M-Connect valida la firma, responde 200 inmediatamente y\nprocesa el mensaje en background.\n\nAutenticación:\n- Si la integración tiene \"secret\" en config: se valida HMAC del body.\n- Si no tiene \"secret\": se acepta sin autenticación (integraciones internas).\n\nRetorna 200 con el trace_id generado para correlacionar el mensaje.",
+        "operationId": "receive_webhook_webhooks__integration_id__post",
+        "parameters": [
+          {
+            "name": "integration_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Integration Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Receive Webhook Webhooks  Integration Id  Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Sistema"
+        ],
+        "summary": "Root",
+        "description": "Verificación básica de que la API está corriendo.\n\nPara un health check completo (incluyendo BD), usar GET /health.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChangePasswordRequest": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "title": "Current Password",
+            "description": "Contraseña actual para verificar identidad"
+          },
+          "new_password": {
+            "type": "string",
+            "minLength": 8,
+            "title": "New Password",
+            "description": "Nueva contraseña"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "ChangePasswordRequest",
+        "description": "Schema para el endpoint POST /users/me/change-password.\n\nRequiere la contraseña actual (para verificar identidad)\ny la nueva contraseña (con validación de fortaleza)."
+      },
+      "ExecutionLogResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "trace_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Trace Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "trace_id",
+          "timestamp",
+          "level",
+          "event",
+          "message",
+          "data"
+        ],
+        "title": "ExecutionLogResponse",
+        "description": "Un evento individual del log de procesamiento de un mensaje.\n\nHay N ExecutionLog por mensaje (uno por cada evento del pipeline:\ningestion_received, profile_loaded, field_mapped, schema_validated,\ndelivery_completed, etc.)\n\nLos logs se devuelven ordenados por timestamp ASC para ver\nel flujo del mensaje en orden cronológico."
+      },
+      "FieldMapperConfigSchema": {
+        "properties": {
+          "source_field": {
+            "type": "string",
+            "title": "Source Field",
+            "description": "Campo del sistema fuente (notación punto: 'address.city')"
+          },
+          "target_field": {
+            "type": "string",
+            "title": "Target Field",
+            "description": "Campo del modelo canónico destino"
+          },
+          "field_type": {
+            "type": "string",
+            "title": "Field Type",
+            "description": "Tipo de transformación: 'simple', 'constant', 'lookup', etc."
+          },
+          "on_error": {
+            "type": "string",
+            "title": "On Error",
+            "description": "Estrategia de error: 'fail' | 'skip' | 'default'",
+            "default": "fail"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "source_field",
+          "target_field",
+          "field_type"
+        ],
+        "title": "FieldMapperConfigSchema",
+        "description": "Configuración de un mapper de campo individual dentro de un perfil.\n\nEspejo del FieldMapperConfig de core/mappers/base.py, adaptado\npara recibir y validar datos del API.\n\nextra=\"allow\" porque cada FieldType tiene parámetros adicionales distintos:\n- DATETIME: source_format, target_format\n- EXPRESSION: expression\n- CONDITIONAL: condition, true_value, false_value\n- LOOKUP: lookup_table_name\n- TABLE: sub_mappings, filter_condition\netc."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IntegrationConfigCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Nombre descriptivo de la integración (ej: 'VTEX Pedidos Producción')"
+          },
+          "connector_type": {
+            "type": "string",
+            "title": "Connector Type",
+            "description": "Tipo de conector: 'api', 'db', 'file', 'webhook'"
+          },
+          "source_entity": {
+            "type": "string",
+            "title": "Source Entity",
+            "description": "Entidad canónica que produce: 'sales_order', 'customer', etc."
+          },
+          "config": {
+            "type": "object",
+            "title": "Config",
+            "description": "Configuración del conector (credenciales, URLs, etc.)"
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule",
+            "description": "Expresión cron para ejecución automática. None = solo manual."
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "connector_type",
+          "source_entity",
+          "config"
+        ],
+        "title": "IntegrationConfigCreate",
+        "description": "Schema para crear una nueva integración (POST /integrations).\n\nEl campo `config` acepta cualquier dict: el schema exacto depende\ndel connector_type y lo valida el conector en tiempo de ejecución."
+      },
+      "IntegrationConfigResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tenant Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "connector_type": {
+            "type": "string",
+            "title": "Connector Type"
+          },
+          "source_entity": {
+            "type": "string",
+            "title": "Source Entity"
+          },
+          "config": {
+            "type": "object",
+            "title": "Config"
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "last_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run At"
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run At"
+          },
+          "last_run_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run Status"
+          },
+          "last_run_stats": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Run Stats"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tenant_id",
+          "name",
+          "connector_type",
+          "source_entity",
+          "config",
+          "schedule",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "IntegrationConfigResponse",
+        "description": "Schema de respuesta para todos los endpoints de /integrations.\n\nfrom_attributes=True permite convertir el objeto SQLAlchemy directamente.\nEl campo `config` se deserializa de JSON string a dict antes de devolver."
+      },
+      "IntegrationConfigUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "connector_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connector Type"
+          },
+          "source_entity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Entity"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "title": "IntegrationConfigUpdate",
+        "description": "Schema para actualizar parcialmente una integración (PATCH /integrations/{id}).\n\nTodos los campos son opcionales. Solo se actualizan los que se envían.\nEnviar un body vacío {} es válido y no modifica nada."
+      },
+      "IntegrationRunResponse": {
+        "properties": {
+          "integration_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Integration Id"
+          },
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "running"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "integration_id",
+          "task_id",
+          "message"
+        ],
+        "title": "IntegrationRunResponse",
+        "description": "Respuesta del endpoint POST /integrations/{id}/run.\n\nIndica que el conector fue encolado para ejecución. El task_id de Celery\npermite monitorear el estado en la interfaz de Flower (si está activa).\nLos mensajes individuales se monitorean via GET /executions."
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Email del usuario registrado"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password",
+            "description": "Contraseña en texto plano"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "description": "Schema de REQUEST para POST /auth/login.\n\nEnviamos email+password como JSON (no como form-data).\n\n¿Por qué no usar OAuth2PasswordRequestForm?\nEse form usa los campos \"username\" y \"password\" en formato HTML form.\nUna API REST moderna usa JSON, y el campo debería llamarse \"email\", no \"username\".\nDefinimos nuestro propio schema para mayor claridad y consistencia."
+      },
+      "LookupTableCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Nombre único de la tabla dentro del tenant (ej: 'VtexStatusMap')"
+          },
+          "entries": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Entries",
+            "description": "Pares clave→valor de la tabla. Ambos deben ser strings."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "entries"
+        ],
+        "title": "LookupTableCreate",
+        "description": "Schema para crear una tabla de lookup (POST /lookup-tables)."
+      },
+      "LookupTableResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tenant Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "entries": {
+            "type": "object",
+            "title": "Entries"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tenant_id",
+          "name",
+          "entries",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LookupTableResponse",
+        "description": "Schema de respuesta para todos los endpoints de /lookup-tables.\n\nEl campo `entries` se devuelve como dict (deserializado desde\nel JSON string almacenado en la BD)."
+      },
+      "LookupTableUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "entries": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "title": "LookupTableUpdate",
+        "description": "Schema para actualizar una tabla de lookup (PATCH /lookup-tables/{id}).\n\nPermite actualizar el nombre o las entradas por separado.\nActualizar entries reemplaza TODA la tabla (no es merge parcial)."
+      },
+      "MappingProfileCreate": {
+        "properties": {
+          "source_system": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Source System",
+            "description": "Sistema de origen (ej: 'vtex', 'woocommerce', 'sap')"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity",
+            "description": "Entidad canónica que mapea este perfil"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Versión semver del perfil (permite múltiples versiones activas)",
+            "default": "1.0.0"
+          },
+          "config": {
+            "items": {
+              "$ref": "#/components/schemas/FieldMapperConfigSchema"
+            },
+            "type": "array",
+            "title": "Config",
+            "description": "Lista de mappers de campos del sistema fuente al canónico"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_system",
+          "entity",
+          "config"
+        ],
+        "title": "MappingProfileCreate",
+        "description": "Schema para crear un nuevo perfil de mapping (POST /profiles)."
+      },
+      "MappingProfileResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tenant Id"
+          },
+          "source_system": {
+            "type": "string",
+            "title": "Source System"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "config": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Config"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tenant_id",
+          "source_system",
+          "entity",
+          "version",
+          "config",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "MappingProfileResponse",
+        "description": "Schema de respuesta para todos los endpoints de /profiles.\n\nEl campo `config` se devuelve como lista de dicts (deserializado\ndesde el JSON string almacenado en la BD)."
+      },
+      "MappingProfileUpdate": {
+        "properties": {
+          "config": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FieldMapperConfigSchema"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "title": "MappingProfileUpdate",
+        "description": "Schema para actualizar un perfil (PATCH /profiles/{id}).\n\nSolo se permiten actualizar config, version e is_active.\nsource_system y entity son inmutables: cambiarlos implicaría\nreferenciar un perfil diferente, no editar el existente."
+      },
+      "MessageStateResponse": {
+        "properties": {
+          "trace_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Trace Id"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tenant Id"
+          },
+          "integration_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Integration Id"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "source_system": {
+            "type": "string",
+            "title": "Source System"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "retries": {
+            "type": "integer",
+            "title": "Retries"
+          },
+          "error_detail": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Detail"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trace_id",
+          "tenant_id",
+          "integration_id",
+          "entity",
+          "source_system",
+          "status",
+          "retries",
+          "error_detail",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "MessageStateResponse",
+        "description": "Estado actual de un mensaje en el pipeline de M-Connect.\n\nRepresenta la fila de la tabla 'message_states'. Hay exactamente\nUN MessageState por mensaje, y su status cambia a medida que\nel mensaje avanza: PENDING → PROCESSING → OK (o RETRY/ERROR)."
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token",
+            "description": "JWT de tipo refresh obtenido al hacer login"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest",
+        "description": "Schema de REQUEST para POST /auth/refresh.\n\nEl cliente envía su refresh_token para obtener un nuevo par de tokens.\nEl refresh_token es un JWT válido de tipo \"refresh\"."
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token"
+        ],
+        "title": "Token",
+        "description": "Schema de RESPUESTA para /auth/login y /auth/refresh.\n\nEl cliente recibe este objeto y debe:\n- Guardar access_token para enviarlo en cada request como:\n  Authorization: Bearer \u003Caccess_token\u003E\n- Guardar refresh_token para pedir uno nuevo cuando el access expire."
+      },
+      "TriggerRequest": {
+        "properties": {
+          "source_system": {
+            "type": "string",
+            "title": "Source System",
+            "description": "Sistema de origen del mensaje (ej: 'vtex', 'woocommerce')"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity",
+            "description": "Tipo de entidad a procesar (ej: 'sales_order')"
+          },
+          "raw_payload": {
+            "type": "object",
+            "title": "Raw Payload",
+            "description": "Payload crudo del sistema externo, tal como llegaría por webhook"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_system",
+          "entity",
+          "raw_payload"
+        ],
+        "title": "TriggerRequest",
+        "description": "Schema para disparar manualmente el pipeline (POST /integrations/{id}/trigger).\n\nPermite probar una integración enviando un payload crudo directamente,\nsin necesitar que el conector externo haga la llamada."
+      },
+      "TriggerResponse": {
+        "properties": {
+          "trace_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Trace Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "queued"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "trace_id",
+          "message"
+        ],
+        "title": "TriggerResponse",
+        "description": "Respuesta del endpoint de trigger: el trace_id para hacer seguimiento.\n\nEl cliente puede usar el trace_id para consultar GET /executions/{trace_id}\ny ver el estado del mensaje a medida que avanza por el pipeline."
+      },
+      "UserCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name",
+            "description": "Nombre completo del usuario (opcional)"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Password",
+            "description": "Contraseña en texto plano (se hasheará antes de guardar)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "UserCreate",
+        "description": "Schema para el endpoint POST /auth/register.\n\nAcepta: email, full_name (opcional), password.\nLa contraseña se valida aquí antes de llegar al servicio."
+      },
+      "UserResponse": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name",
+            "description": "Nombre completo del usuario (opcional)"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "id",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserResponse",
+        "description": "Schema para las respuestas que incluyen datos de un usuario.\n\nNUNCA incluye: password, hashed_password.\nSÍ incluye: id, is_active, timestamps.\n\nfrom_attributes=True es la clave: permite que Pydantic convierta\nun objeto SQLAlchemy (User) directamente a este schema.\nSin esta config, habría que construir el dict manualmente."
+      },
+      "UserUpdate": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email",
+            "description": "Nuevo email (debe ser único en el sistema)"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name",
+            "description": "Nuevo nombre completo"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdate",
+        "description": "Schema para el endpoint PUT /users/me.\n\nTODOS los campos son opcionales.\nEl cliente envía solo los campos que quiere modificar.\n\nEjemplo: {\"full_name\": \"Juan Nuevo\"} solo actualiza el nombre,\ndeja el email intacto.\n\n¿Por qué no hereda de UserBase?\nUserBase tiene email: EmailStr (requerido). Aquí necesitamos que sea opcional.\nRepetir los campos con Optional es más explícito que mezclar las herencias."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {
+
+            },
+            "tokenUrl": "/auth/login"
+          }
+        }
+      }
+    }
+  }
+}
