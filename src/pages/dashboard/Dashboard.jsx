@@ -46,9 +46,20 @@ const Dashboard = () => {
     }
   }, [])
 
+  const integrationMap = useMemo(() => {
+    return integrations.reduce((map, item) => {
+      if (item?.id) {
+        map[item.id] = item.name || item.source_entity || item.id
+      }
+      return map
+    }, {})
+  }, [integrations])
+
+  const activeFlows = useMemo(() => integrations.filter((i) => i.is_active !== false), [integrations])
+
   const stats = useMemo(() => {
     const totalIntegrations = integrations.length
-    const activeIntegrations = integrations.filter((i) => i.is_active !== false).length
+    const activeIntegrations = activeFlows.length
     const inactiveIntegrations = totalIntegrations - activeIntegrations
     const totalExecutions = executions.length
     const successes = executions.filter((e) => String(e.status).toLowerCase() === 'success').length
@@ -58,23 +69,23 @@ const Dashboard = () => {
     const alerts = executions
       .filter((e) => String(e.status).toLowerCase() === 'failed' || (e.retries && e.retries > 0))
       .map((e) => ({
-        id: e.trace_id || e.id || Math.random().toString(36).slice(2),
+        id: e.trace_id || Math.random().toString(36).slice(2),
         severity: String(e.status).toLowerCase() === 'failed' ? 'error' : 'warning',
-        title: e.integration?.name || e.integration || 'Ejecución fallida',
-        description: e.error_message || `Trace ${e.trace_id || '—'}`,
-        timestamp: e.timestamp || e.created_at || new Date().toISOString(),
+        title: integrationMap[e.integration_id] || `Integración ${e.integration_id || 'desconocida'}`,
+        description: e.error_detail ? JSON.stringify(e.error_detail) : `Trace ${e.trace_id || '—'} • Retries ${e.retries ?? 0}`,
+        timestamp: e.created_at || new Date().toISOString(),
       }))
 
     return { totalIntegrations, activeIntegrations, inactiveIntegrations, totalExecutions, successRate, errorRate, alerts }
-  }, [integrations, executions])
+  }, [integrations, executions, activeFlows, integrationMap])
 
   const filteredExecutions = useMemo(() => {
     return executions.filter((e) => {
-      if (filters.integration && String(e.integration?.id || e.integration) !== String(filters.integration)) return false
+      if (filters.integration && String(e.integration_id) !== String(filters.integration)) return false
       if (filters.source && String(e.source_system) !== String(filters.source)) return false
       // date filter (basic ISO compare)
-      if (filters.from && new Date(e.timestamp || e.created_at) < new Date(filters.from)) return false
-      if (filters.to && new Date(e.timestamp || e.created_at) > new Date(filters.to)) return false
+      if (filters.from && new Date(e.created_at) < new Date(filters.from)) return false
+      if (filters.to && new Date(e.created_at) > new Date(filters.to)) return false
       return true
     })
   }, [executions, filters])
@@ -106,6 +117,26 @@ const Dashboard = () => {
         <Card title="Ejecuciones totales" description="Mensajes procesados por el pipeline.">
           <p className="text-4xl font-semibold text-slate-900">{stats.totalExecutions}</p>
           <p className="mt-3 text-sm text-slate-500">Últimas 50 mostradas en la tabla de ejecuciones.</p>
+        </Card>
+      </div>
+
+      <div className="grid gap-6">
+        <Card title="Active Flows" description="Integraciones activas que pueden procesar mensajes.">
+          {activeFlows.length > 0 ? (
+            <div className="space-y-3">
+              {activeFlows.slice(0, 6).map((flow) => (
+                <div key={flow.id} className="rounded border border-slate-200 bg-slate-50 p-3">
+                  <p className="font-medium text-slate-900">{flow.name || flow.source_entity || flow.id}</p>
+                  <p className="text-sm text-slate-500">{flow.connector_type || 'Flujo activo'}</p>
+                </div>
+              ))}
+              {activeFlows.length > 6 ? (
+                <p className="text-sm text-slate-500">+{activeFlows.length - 6} más integraciones activas.</p>
+              ) : null}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">No hay flujos activos disponibles.</p>
+          )}
         </Card>
       </div>
 
@@ -179,14 +210,14 @@ const Dashboard = () => {
           </thead>
           <tbody>
             {filteredExecutions.slice(0, 50).map((row) => (
-              <tr key={row.trace_id || row.id}>
+              <tr key={row.trace_id}>
                 <td className="font-mono text-xs">{row.trace_id || '—'}</td>
-                <td className="font-medium text-slate-900">{row.integration?.name || row.integration || '—'}</td>
+                <td className="font-medium text-slate-900">{integrationMap[row.integration_id] || row.integration_id || '—'}</td>
                 <td>{row.source_system || '—'}</td>
-                <td>{row.entity || row.entity_name || '—'}</td>
+                <td>{row.entity || '—'}</td>
                 <td><Badge variant={variantForStatus(row.status)}>{String(row.status || '—')}</Badge></td>
                 <td>{row.retries ?? 0}</td>
-                <td>{row.timestamp ? new Date(row.timestamp).toLocaleString() : (row.created_at ? new Date(row.created_at).toLocaleString() : '—')}</td>
+                <td>{row.created_at ? new Date(row.created_at).toLocaleString() : '—'}</td>
               </tr>
             ))}
           </tbody>
