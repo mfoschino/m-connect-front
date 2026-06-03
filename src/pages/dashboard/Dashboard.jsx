@@ -165,13 +165,17 @@ const Dashboard = () => {
           description="Filtra ejecuciones por flujo, sistema origen y rango de fechas."
           actions={<>
             <select
-              className="form-input"
+              className="form-input min-w-[180px]"
               value={filters.integration}
               onChange={(e) => setFilters((s) => ({ ...s, integration: e.target.value }))}
             >
-              <option value="">Todos los flujos</option>
+              <option value="" className="text-slate-900">Todos los flujos</option>
+              <option value="" className="text-slate-900">Todos los flujos</option>
+              <option value="" className="text-slate-900">Todos los flujos</option>
+              <option value="" className="text-slate-900">Todos los flujos</option>
+
               {integrations.map((it) => (
-                <option key={it.id} value={it.id}>{it.name}</option>
+                <option key={it.id} value={it.id} className="text-slate-900">{it.name}</option>
               ))}
             </select>
             <Input id="source" label="Sistema origen" value={filters.source} onChange={(e) => setFilters((s) => ({ ...s, source: e.target.value }))} />

@@ -3,6 +3,7 @@ import MainLayout from '../../layouts/MainLayout'
 import Dashboard from '../../pages/dashboard/Dashboard'
 import Integrations from '../../pages/integrations/Integrations'
 import Executions from '../../pages/executions/Executions'
+import ExecutionDetail from '../../pages/executions/ExecutionDetail'
 import Errors from '../../pages/errors/Errors'
 import Settings from '../../pages/settings/Settings'
 import ProfilePage from '../../pages/profile/ProfilePage'
@@ -48,6 +49,14 @@ const AppRoutes = () => (
         element={
           <ProtectedRoute>
             <Executions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="executions/:traceId"
+        element={
+          <ProtectedRoute>
+            <ExecutionDetail />
           </ProtectedRoute>
         }
       />
