@@ -154,7 +154,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       },
@@ -199,7 +199,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       }
@@ -247,7 +247,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       }
@@ -268,6 +268,247 @@
                 "schema": {
                   "type": "object",
                   "title": "Response Health Check Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenants": {
+      "get": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Listar todos los tenants",
+        "description": "Lista todos los tenants registrados en la plataforma.\n\nRequiere: superadmin de plataforma.",
+        "operationId": "list_tenants_endpoint_tenants_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TenantResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Tenants Endpoint Tenants Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Crear nuevo tenant",
+        "description": "Crea un nuevo tenant (organización cliente) en la plataforma.\n\nRequiere: superadmin de plataforma (tenant_id=NULL, role='admin').",
+        "operationId": "create_tenant_endpoint_tenants_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/tenants/{tenant_id}": {
+      "get": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Ver detalle de un tenant",
+        "description": "Obtiene el detalle de un tenant.\n\n- El superadmin puede ver cualquier tenant.\n- El admin de tenant solo puede ver el suyo (devuelve 404 para los demás).\n\nRequiere: superadmin o admin del propio tenant.",
+        "operationId": "get_tenant_endpoint_tenants__tenant_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Actualizar tenant",
+        "description": "Actualiza parcialmente un tenant.\n\n- El superadmin puede cambiar nombre, plan, estado y config.\n- El admin del tenant puede cambiar nombre y config (no el plan).\n\nRequiere: superadmin o admin del propio tenant.",
+        "operationId": "update_tenant_endpoint_tenants__tenant_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenants/{tenant_id}/assign-user": {
+      "post": {
+        "tags": [
+          "Tenants"
+        ],
+        "summary": "Asignar usuario registrado al tenant",
+        "description": "Asigna un usuario ya registrado a un tenant, definiendo su rol.\n\nEl usuario debe haberse registrado previamente via POST /auth/register.\nSi ya pertenecía a otro tenant, este endpoint lo mueve al nuevo.\n\nFlujo típico de onboarding:\n1. POST /auth/register → usuario sin tenant\n2. POST /tenants → crea el tenant\n3. POST /tenants/{id}/assign-user → asigna el usuario\n\nRequiere: superadmin de plataforma.",
+        "operationId": "assign_user_endpoint_tenants__tenant_id__assign_user_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignUserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -301,7 +542,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       },
@@ -346,7 +587,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       }
@@ -361,7 +602,7 @@
         "operationId": "get_integration_endpoint_integrations__integration_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -408,7 +649,7 @@
         "operationId": "update_integration_endpoint_integrations__integration_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -465,7 +706,7 @@
         "operationId": "delete_integration_endpoint_integrations__integration_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -507,7 +748,7 @@
         "operationId": "trigger_pipeline_endpoint_integrations__integration_id__trigger_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -566,7 +807,7 @@
         "operationId": "run_integration_endpoint_integrations__integration_id__run_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -631,7 +872,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       },
@@ -676,7 +917,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       }
@@ -691,7 +932,7 @@
         "operationId": "get_profile_endpoint_profiles__profile_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -738,7 +979,7 @@
         "operationId": "update_profile_endpoint_profiles__profile_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -797,7 +1038,7 @@
         "operationId": "deactivate_profile_endpoint_profiles__profile_id__deactivate_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -862,7 +1103,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       },
@@ -907,7 +1148,7 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ]
       }
@@ -922,7 +1163,7 @@
         "operationId": "get_lookup_endpoint_lookup_tables__lookup_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -969,7 +1210,7 @@
         "operationId": "update_lookup_endpoint_lookup_tables__lookup_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -1026,7 +1267,7 @@
         "operationId": "delete_lookup_endpoint_lookup_tables__lookup_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -1068,7 +1309,7 @@
         "operationId": "list_executions_endpoint_executions_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -1161,7 +1402,7 @@
         "operationId": "get_execution_endpoint_executions__trace_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -1210,7 +1451,7 @@
         "operationId": "get_execution_logs_endpoint_executions__trace_id__logs_get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -1345,6 +1586,63 @@
   },
   "components": {
     "schemas": {
+      "AssignUserRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Email del usuario registrado a asignar."
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "Rol del usuario dentro del tenant: 'admin', 'operator', 'viewer'.",
+            "default": "operator"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "AssignUserRequest",
+        "description": "Body para POST /tenants/{id}/assign-user.\n\nEl usuario debe estar registrado en el sistema. Si ya tiene un tenant,\neste endpoint lo mueve al nuevo tenant y actualiza su rol."
+      },
+      "AssignUserResponse": {
+        "properties": {
+          "user_email": {
+            "type": "string",
+            "title": "User Email"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tenant Id"
+          },
+          "tenant_name": {
+            "type": "string",
+            "title": "Tenant Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_email",
+          "tenant_id",
+          "tenant_name",
+          "role",
+          "message"
+        ],
+        "title": "AssignUserResponse",
+        "description": "Respuesta de POST /tenants/{id}/assign-user."
+      },
       "ChangePasswordRequest": {
         "properties": {
           "current_password": {
@@ -2113,6 +2411,134 @@
         "title": "RefreshRequest",
         "description": "Schema de REQUEST para POST /auth/refresh.\n\nEl cliente envía su refresh_token para obtener un nuevo par de tokens.\nEl refresh_token es un JWT válido de tipo \"refresh\"."
       },
+      "TenantCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "description": "Nombre único de la organización cliente."
+          },
+          "plan": {
+            "type": "string",
+            "title": "Plan",
+            "description": "Plan de suscripción: 'free', 'starter', 'enterprise'.",
+            "default": "free"
+          },
+          "config": {
+            "type": "object",
+            "title": "Config",
+            "description": "Configuración adicional del tenant (timezone, límites, etc.)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "TenantCreate",
+        "description": "Body para POST /tenants. Solo el superadmin puede llamar este endpoint."
+      },
+      "TenantResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "plan": {
+            "type": "string",
+            "title": "Plan"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "plan",
+          "is_active",
+          "created_at"
+        ],
+        "title": "TenantResponse",
+        "description": "Respuesta de los endpoints de /tenants.\n\nEl campo `config` se deserializa de JSON string a dict antes de devolver."
+      },
+      "TenantUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "config": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config"
+          }
+        },
+        "type": "object",
+        "title": "TenantUpdate",
+        "description": "Body para PATCH /tenants/{id}. Todos los campos son opcionales."
+      },
       "Token": {
         "properties": {
           "access_token": {
@@ -2253,6 +2679,29 @@
             "type": "boolean",
             "title": "Is Active"
           },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -2343,16 +2792,9 @@
       }
     },
     "securitySchemes": {
-      "OAuth2PasswordBearer": {
-        "type": "oauth2",
-        "flows": {
-          "password": {
-            "scopes": {
-
-            },
-            "tokenUrl": "/auth/login"
-          }
-        }
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }
