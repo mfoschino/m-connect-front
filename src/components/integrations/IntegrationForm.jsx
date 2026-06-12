@@ -1,77 +1,158 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
-import Badge from '../../components/ui/Badge'
+import Card from '../../components/ui/Card'
 import ConnectorConfigForm from './ConnectorConfigForm'
-import ScheduleEditor from './ScheduleEditor'
+import FieldMappingBuilder from './FieldMappingBuilder'
+import ScheduleBuilder from './ScheduleBuilder'
+import { SYSTEM_CATALOG, ENTITY_CATALOG, DESTINATION_SYSTEMS, getSystem, getEntity, getConnectorSchema } from '../../constants/connectors'
+import { getScheduleDescription } from '../../utils/scheduleUtils'
 
-const connectorOptions = ['api', 'db', 'file', 'webhook']
+/**
+ * Business-oriented integration wizard
+ * Translates user-friendly inputs to backend API contract
+ * 
+ * Wizard flow:
+ * 1. Integration information (name, description)
+ * 2. Source system selection
+ * 3. Entity to sync
+ * 4. Destination system
+ * 5. Connection configuration (connector-specific forms)
+ * 6. Field mapping (business-friendly mappings)
+ * 7. Schedule (friendly presets, hide cron by default)
+ * 8. Review and publish
+ * 
+ * TODO: Phase 2 - Add lookup table attachment step
+ * TODO: Phase 2 - Add orchestration/trigger configuration
+ */
+
 const stepTitles = [
-  'Información básica',
-  'Tipo de conector',
-  'Configuración del conector',
-  'Programación',
-  'Revisión',
+  'Integration Info',
+  'Source System',
+  'Entity to Sync',
+  'Destination',
+  'Connection Setup',
+  'Field Mapping',
+  'Schedule',
+  'Review',
 ]
 
 const IntegrationForm = ({ mode = 'create', defaultValues = {}, onSubmit, onCancel, loading, errorMessage }) => {
   const [currentStep, setCurrentStep] = useState(1)
+
+  // Step 1: Integration Info
   const [name, setName] = useState(defaultValues.name || '')
-  const [sourceEntity, setSourceEntity] = useState(defaultValues.source_entity || '')
-  const [connectorType, setConnectorType] = useState(defaultValues.connector_type || '')
-  const [configText, setConfigText] = useState(defaultValues.config ? JSON.stringify(defaultValues.config, null, 2) : '{}')
-  const [scheduleMode, setScheduleMode] = useState(defaultValues.schedule ? 'cron' : 'manual')
-  const [cron, setCron] = useState(defaultValues.schedule || '')
+  const [description, setDescription] = useState(defaultValues.description || '')
+
+  // Step 2: Source System
+  const [sourceSystemId, setSourceSystemId] = useState(
+    defaultValues.source_system_id || (defaultValues.connector_type ? SYSTEM_CATALOG.find((s) => s.connectorType === defaultValues.connector_type)?.id : '')
+  )
+
+  // Step 3: Entity
+  const [entityId, setEntityId] = useState(defaultValues.entity_id || defaultValues.source_entity || '')
+
+  // Step 4: Destination System
+  const [destinationSystemId, setDestinationSystemId] = useState(defaultValues.destination_system_id || DESTINATION_SYSTEMS[0].id)
+
+  // Step 5: Connection Configuration
+  const [connectorConfig, setConnectorConfig] = useState(defaultValues.config || {})
+
+  // Step 6: Field Mapping
+  const [fieldMappings, setFieldMappings] = useState(defaultValues.config?.field_mappings || [])
+
+  // Step 7: Schedule
+  const [schedule, setSchedule] = useState(defaultValues.schedule || null)
+
+  // UI state
   const [stepError, setStepError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
 
-  const parsedConfig = useMemo(() => {
-    try {
-      return JSON.parse(configText || '{}')
-    } catch {
-      return null
-    }
-  }, [configText])
+  const sourceSystem = useMemo(() => getSystem(sourceSystemId), [sourceSystemId])
+  const entity = useMemo(() => getEntity(entityId), [entityId])
+  const destinationSystem = useMemo(() => DESTINATION_SYSTEMS.find((s) => s.id === destinationSystemId), [destinationSystemId])
+  const connectorSchema = useMemo(() => getConnectorSchema(sourceSystem?.connectorType), [sourceSystem])
+
+  useEffect(() => {
+    setConnectorConfig({})
+  }, [sourceSystemId])
+
+  useEffect(() => {
+    setFieldMappings([])
+  }, [entityId])
 
   const validateStep = (stepToValidate) => {
     setStepError('')
     setFieldErrors({})
+    const errors = {}
 
     if (stepToValidate === 1) {
-      const errors = {}
-      if (!name.trim()) errors.name = 'Nombre es obligatorio.'
-      if (!sourceEntity.trim()) errors.sourceEntity = 'Entidad fuente es obligatoria.'
+      if (!name.trim()) errors.name = 'Integration name is required'
       setFieldErrors(errors)
-      if (Object.keys(errors).length > 0) {
-        setStepError('Completa los campos requeridos para continuar.')
-        return false
-      }
+      return Object.keys(errors).length === 0
     }
 
     if (stepToValidate === 2) {
-      if (!connectorType) {
-        setStepError('Selecciona un tipo de conector.')
+      if (!sourceSystemId) {
+        setStepError('Please select a source system')
         return false
       }
     }
 
     if (stepToValidate === 3) {
-      if (!configText.trim()) {
-        setStepError('Ingresa la configuración del conector en formato JSON.')
-        return false
-      }
-      if (parsedConfig === null || typeof parsedConfig !== 'object' || Array.isArray(parsedConfig)) {
-        setStepError('El JSON no es válido. Debe ser un objeto.')
+      if (!entityId) {
+        setStepError('Please select an entity to sync')
         return false
       }
     }
 
-    if (stepToValidate === 4 && scheduleMode === 'cron') {
-      if (!cron.trim()) {
-        setStepError('Ingresa una expresión cron o selecciona ejecución manual.')
+    if (stepToValidate === 4) {
+      if (!destinationSystemId) {
+        setStepError('Please select a destination system')
         return false
       }
     }
+
+    if (stepToValidate === 5) {
+      if (!connectorSchema) {
+        setStepError('Please select a source system to configure')
+        return false
+      }
+
+      const missingField = connectorSchema.fields.find((field) => {
+        if (!field.required) return false
+        const value = connectorConfig[field.id]
+        const dependsOn = field.dependsOn
+        if (dependsOn) {
+          const dependencyValue = connectorConfig[dependsOn.field]
+          if (dependencyValue !== dependsOn.value) return false
+        }
+        return value === undefined || value === '' || value === null
+      })
+
+      if (missingField) {
+        setStepError(`Please complete the required field: ${missingField.label}`)
+        return false
+      }
+    }
+
+    if (stepToValidate === 6) {
+      const invalidMapping = fieldMappings.find((mapping) => {
+        if (!mapping.target_field) return true
+        if (mapping.field_type === 'constant') {
+          return !mapping.constant_value
+        }
+        return !mapping.source_field
+      })
+
+      if (invalidMapping) {
+        setStepError('Please finish or remove incomplete field mappings before continuing.')
+        return false
+      }
+    }
+
+    // Step 7 validation is handled by ScheduleBuilder
+    // Step 8 is review only
 
     return true
   }
@@ -96,15 +177,32 @@ const IntegrationForm = ({ mode = 'create', defaultValues = {}, onSubmit, onCanc
     setCurrentStep((step) => Math.max(step - 1, 1))
   }
 
+  /**
+   * Build API payload compatible with backend
+   * Translates business-friendly inputs to technical format
+   */
   const buildPayload = () => {
-    const schedule = scheduleMode === 'cron' ? cron.trim() || null : null
-    const config = parsedConfig === null ? {} : parsedConfig
+    const payloadConfig = { ...connectorConfig }
+
+    if (fieldMappings.length > 0) {
+      payloadConfig.field_mappings = fieldMappings.map((mapping) => ({
+        source_field: mapping.source_field,
+        target_field: mapping.target_field,
+        field_type: mapping.field_type,
+        constant_value: mapping.constant_value,
+        on_error: mapping.on_error || 'fail',
+      }))
+    }
 
     return {
       name: name.trim(),
-      source_entity: sourceEntity.trim(),
-      connector_type: connectorType,
-      config,
+      // Use source_entity to maintain API compatibility
+      source_entity: entity?.id || entityId,
+      // Map system selection to connector_type for API
+      connector_type: sourceSystem?.connectorType,
+      // Pass connector config as-is (already built by ConnectorConfigForm)
+      config: payloadConfig,
+      // Pass schedule as cron string or null
       schedule,
     }
   }
@@ -135,120 +233,210 @@ const IntegrationForm = ({ mode = 'create', defaultValues = {}, onSubmit, onCanc
 
       {errorMessage ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{errorMessage}</p> : null}
       {stepError ? <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">{stepError}</p> : null}
-
       {currentStep === 1 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            id="integration-name"
-            label="Nombre"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            error={fieldErrors.name}
-            placeholder="Por ejemplo: VTEX Pedidos Producción"
-          />
-          <Input
-            id="integration-source-entity"
-            label="Entidad fuente"
-            value={sourceEntity}
-            onChange={(event) => setSourceEntity(event.target.value)}
-            error={fieldErrors.sourceEntity}
-            placeholder="Por ejemplo: sales_order"
-          />
+        <div className="space-y-4">
+          <div>
+            <Input
+              id="integration-name"
+              label="Integration Name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              error={fieldErrors.name}
+              placeholder="e.g., Sync Salesforce Orders"
+              required
+            />
+          </div>
+          <div>
+            <Input
+              id="integration-description"
+              label="Description (Optional)"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="What does this integration do?"
+            />
+          </div>
         </div>
       ) : null}
 
+      {/* Step 2: Source System Selection */}
       {currentStep === 2 ? (
         <div className="space-y-4">
-          <p className="text-sm font-semibold text-slate-900">Selecciona el tipo de conector</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {connectorOptions.map((option) => (
+          <p className="text-sm font-semibold text-slate-900">Select the source system</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {SYSTEM_CATALOG.map((system) => (
               <button
-                key={option}
+                key={system.id}
                 type="button"
-                onClick={() => setConnectorType(option)}
-                className={`rounded-3xl border p-4 text-left transition ${connectorType === option ? 'border-sky-600 bg-sky-50 text-slate-900' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'}`}
+                onClick={() => setSourceSystemId(system.id)}
+                className={`rounded-2xl border-2 p-4 text-left transition ${
+                  sourceSystemId === system.id
+                    ? 'border-sky-600 bg-sky-50'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
               >
-                <span className="block text-sm font-semibold uppercase tracking-[0.18em] text-slate-900">{option}</span>
-                <p className="mt-2 text-sm text-slate-500">
-                  {option === 'api' && 'Conector REST/API.'}
-                  {option === 'db' && 'Conector a base de datos.'}
-                  {option === 'file' && 'Conector de archivos.'}
-                  {option === 'webhook' && 'Recepción de eventos webhook.'}
-                </p>
+                <div className="text-2xl">{system.icon}</div>
+                <p className="mt-2 font-semibold text-slate-900">{system.name}</p>
+                <p className="mt-1 text-sm text-slate-600">{system.description}</p>
               </button>
             ))}
           </div>
         </div>
       ) : null}
 
+      {/* Step 3: Entity Selection */}
       {currentStep === 3 ? (
-        <ConnectorConfigForm
-          connectorType={connectorType}
-          configText={configText}
-          setConfigText={setConfigText}
-          error={stepError && currentStep === 3 ? stepError : undefined}
-        />
+        <div className="space-y-4">
+          <p className="text-sm font-semibold text-slate-900">What do you want to sync?</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {ENTITY_CATALOG.map((ent) => (
+              <button
+                key={ent.id}
+                type="button"
+                onClick={() => setEntityId(ent.id)}
+                className={`rounded-2xl border-2 p-4 text-left transition ${
+                  entityId === ent.id ? 'border-sky-600 bg-sky-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <p className="font-semibold text-slate-900">{ent.name}</p>
+                <p className="mt-1 text-sm text-slate-600">{ent.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
       ) : null}
 
+      {/* Step 4: Destination System */}
       {currentStep === 4 ? (
-        <ScheduleEditor
-          scheduleMode={scheduleMode}
-          setScheduleMode={setScheduleMode}
-          cron={cron}
-          setCron={setCron}
-          error={stepError && currentStep === 4 ? stepError : undefined}
+        <div className="space-y-4">
+          <p className="text-sm font-semibold text-slate-900">Where should the data go?</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {DESTINATION_SYSTEMS.map((dest) => (
+              <button
+                key={dest.id}
+                type="button"
+                onClick={() => setDestinationSystemId(dest.id)}
+                className={`rounded-2xl border-2 p-4 text-left transition ${
+                  destinationSystemId === dest.id
+                    ? 'border-sky-600 bg-sky-50'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="text-2xl">{dest.icon}</div>
+                <p className="mt-2 font-semibold text-slate-900">{dest.name}</p>
+                <p className="mt-1 text-sm text-slate-600">{dest.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Step 5: Connection Configuration */}
+      {currentStep === 5 ? (
+        <ConnectorConfigForm
+          connectorType={sourceSystem?.connectorType}
+          sourceSystemName={sourceSystem?.name}
+          config={connectorConfig}
+          setConfig={setConnectorConfig}
+          error={stepError}
         />
       ) : null}
 
-      {currentStep === 5 ? (
-        <div className="space-y-6">
+      {/* Step 6: Field Mapping */}
+      {currentStep === 6 ? (
+        <FieldMappingBuilder entityId={entityId} fieldMappings={fieldMappings} setFieldMappings={setFieldMappings} />
+      ) : null}
+
+      {/* Step 7: Schedule */}
+      {currentStep === 7 ? (
+        <ScheduleBuilder schedule={schedule} setSchedule={setSchedule} error={stepError} />
+      ) : null}
+
+      {/* Step 8: Review */}
+      {currentStep === 8 ? (
+        <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm font-semibold text-slate-900">Información básica</p>
-              <p className="mt-3 text-sm text-slate-600">Nombre</p>
-              <p className="mt-1 text-sm text-slate-900">{name || '—'}</p>
-              <p className="mt-3 text-sm text-slate-600">Entidad fuente</p>
-              <p className="mt-1 text-sm text-slate-900">{sourceEntity || '—'}</p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm font-semibold text-slate-900">Conector</p>
-              <p className="mt-3 text-sm text-slate-600">Tipo</p>
-              <p className="mt-1 text-sm text-slate-900">{connectorType || '—'}</p>
-              <p className="mt-3 text-sm text-slate-600">Programación</p>
-              <p className="mt-1 text-sm text-slate-900">{scheduleMode === 'cron' ? cron || '—' : 'Manual'}</p>
-            </div>
+            <Card className="p-5">
+              <p className="text-sm font-semibold text-slate-900">Integration Name</p>
+              <p className="mt-2 text-sm text-slate-600">{name}</p>
+            </Card>
+            <Card className="p-5">
+              <p className="text-sm font-semibold text-slate-900">Source System</p>
+              <p className="mt-2 text-sm text-slate-600">{sourceSystem?.name}</p>
+            </Card>
+            <Card className="p-5">
+              <p className="text-sm font-semibold text-slate-900">Entity</p>
+              <p className="mt-2 text-sm text-slate-600">{entity?.name}</p>
+            </Card>
+            <Card className="p-5">
+              <p className="text-sm font-semibold text-slate-900">Destination</p>
+              <p className="mt-2 text-sm text-slate-600">{destinationSystem?.name}</p>
+            </Card>
+            <Card className="p-5 sm:col-span-2">
+              <p className="text-sm font-semibold text-slate-900">Schedule</p>
+              <p className="mt-2 text-sm text-slate-600">{getScheduleDescription(schedule)}</p>
+            </Card>
+            {fieldMappings.length > 0 ? (
+              <Card className="p-5 sm:col-span-2">
+                <p className="text-sm font-semibold text-slate-900">Field Mapping</p>
+                <div className="mt-2 space-y-2 text-sm text-slate-600">
+                  {fieldMappings.map((mapping, index) => (
+                    <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <p className="font-medium text-slate-900">{mapping.target_field || 'Target field'}</p>
+                      <p>
+                        {mapping.field_type === 'constant'
+                          ? `Constant: ${mapping.constant_value || '—'}`
+                          : `Source: ${mapping.source_field || '—'}`}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ) : null}
           </div>
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-sm font-semibold text-slate-900">Configuración del conector</p>
-              {connectorType ? <Badge variant="pending">{connectorType}</Badge> : null}
+
+          <details className="rounded-2xl border border-slate-200 p-4">
+            <summary className="cursor-pointer font-semibold text-slate-900">Technical Details</summary>
+            <div className="mt-3 space-y-2 text-sm text-slate-600">
+              <p>
+                <strong>Connector Type:</strong> {sourceSystem?.connectorType}
+              </p>
+              <p>
+                <strong>Entity ID:</strong> {entityId}
+              </p>
+              {Object.keys(connectorConfig).length > 0 ? (
+                <details>
+                  <summary className="cursor-pointer text-slate-700">Configuration Object</summary>
+                  <pre className="mt-2 overflow-x-auto rounded bg-slate-50 p-2 text-xs">
+                    {JSON.stringify(connectorConfig, null, 2)}
+                  </pre>
+                </details>
+              ) : null}
             </div>
-            <pre className="mt-3 overflow-x-auto rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-700">{configText || '{}'}</pre>
-          </div>
+          </details>
         </div>
       ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div className="text-sm text-slate-500">
-          Paso {currentStep} de {stepTitles.length}
+          Step {currentStep} of {stepTitles.length}
         </div>
         <div className="flex flex-wrap gap-3">
           {currentStep > 1 ? (
             <Button variant="outline" onClick={handleBack} disabled={loading}>
-              Atrás
+              Back
             </Button>
           ) : null}
           {currentStep < stepTitles.length ? (
             <Button onClick={handleNext} loading={loading}>
-              Siguiente
+              Next
             </Button>
           ) : (
             <Button onClick={handleSubmit} loading={loading}>
-              {mode === 'create' ? 'Crear integración' : 'Guardar cambios'}
+              {mode === 'create' ? 'Create Integration' : 'Save Changes'}
             </Button>
           )}
           <Button variant="ghost" onClick={onCancel} disabled={loading}>
-            Cancelar
+            Cancel
           </Button>
         </div>
       </div>
