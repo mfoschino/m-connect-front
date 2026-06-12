@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { getEntityFieldSpec } from '../../constants/connectors'
@@ -8,29 +8,44 @@ const FIELD_TYPE_OPTIONS = [
   { value: 'constant', label: 'Constant value' },
 ]
 
+const normalize = (s = '') => String(s).replace(/[\s_\-]+/g, '').toLowerCase()
+
 const FieldMappingBuilder = ({ entityId, fieldMappings, setFieldMappings }) => {
   const entitySpec = useMemo(() => getEntityFieldSpec(entityId), [entityId])
   const { sourceFields = [], destinationFields = [] } = entitySpec || {}
 
-  const handleAddMapping = () => {
-    setFieldMappings([
-      ...fieldMappings,
-      {
-        target_field: '',
-        source_field: '',
+  // Auto-generate mappings when entity changes and no mappings provided
+  useEffect(() => {
+    if (!entityId) return
+    // If already have mappings for this entity, do not overwrite
+    if (fieldMappings && fieldMappings.length > 0) return
+
+    const initial = sourceFields.map((s) => {
+      // Attempt to find destination by label/id
+      let match = destinationFields.find((d) => d.id === s.id)
+      if (!match) match = destinationFields.find((d) => d.label === s.label)
+      if (!match) match = destinationFields.find((d) => d.label.toLowerCase() === String(s.label).toLowerCase())
+      if (!match) match = destinationFields.find((d) => normalize(d.label) === normalize(s.label))
+
+      return {
+        source_field: s.id,
+        source_label: s.label,
+        target_field: match ? match.id : '',
+        target_label: match ? match.label : '',
         field_type: 'simple',
         constant_value: '',
         on_error: 'fail',
-      },
-    ])
-  }
+        auto_mapped: Boolean(match),
+        required: match?.required === true,
+      }
+    })
 
-  const handleRemoveMapping = (index) => {
-    setFieldMappings(fieldMappings.filter((_, rowIndex) => rowIndex !== index))
-  }
+    setFieldMappings(initial)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityId])
 
   const handleUpdateMapping = (index, key, value) => {
-    const updated = [...fieldMappings]
+    const updated = [...(fieldMappings || [])]
     updated[index] = {
       ...updated[index],
       [key]: value,
@@ -38,6 +53,10 @@ const FieldMappingBuilder = ({ entityId, fieldMappings, setFieldMappings }) => {
       ...(key === 'field_type' && value === 'constant' ? { source_field: '' } : {}),
     }
     setFieldMappings(updated)
+  }
+
+  const handleRemoveMapping = (index) => {
+    setFieldMappings((fieldMappings || []).filter((_, rowIndex) => rowIndex !== index))
   }
 
   if (!entityId) {
@@ -49,144 +68,108 @@ const FieldMappingBuilder = ({ entityId, fieldMappings, setFieldMappings }) => {
     )
   }
 
-  if (destinationFields.length === 0) {
+  if (!sourceFields || sourceFields.length === 0) {
     return (
       <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-        <p className="text-sm font-semibold text-slate-900">Mapping fields not available</p>
-        <p className="mt-1 text-sm text-slate-600">This entity does not have a preconfigured mapping catalog yet.</p>
+        <p className="text-sm font-semibold text-slate-900">No source fields available</p>
+        <p className="mt-1 text-sm text-slate-600">This entity does not expose any source fields.</p>
       </div>
     )
   }
+
+  const mappings = fieldMappings || []
+
+  const autoMappedCount = mappings.filter((m) => m.auto_mapped).length
+  const needsAttentionCount = mappings.filter((m) => !m.target_field || (m.field_type === 'constant' && !m.constant_value) || (m.field_type !== 'constant' && !m.source_field)).length
+
+  // Destination required fields not mapped (if destination metadata provides `required` flag)
+  const requiredUnmapped = destinationFields.filter((d) => d.required === true && !mappings.find((m) => m.target_field === d.id))
 
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-sm font-semibold text-slate-900">Map your data fields</h3>
-        <p className="mt-1 text-sm text-slate-600">Select which source fields should populate your canonical destination fields.</p>
+        <p className="mt-1 text-sm text-slate-600">System generated mappings are shown below — adjust any row as needed.</p>
       </div>
 
-      {fieldMappings.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-          No mappings have been added yet. Click "Add mapping" to choose a destination field and connect it to a source field or constant value.
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between">
+        <div className="text-sm text-slate-700">
+          <strong className="text-slate-900">{autoMappedCount} mapped automatically</strong>
+          <span className="ml-3">{needsAttentionCount > 0 ? `⚠ ${needsAttentionCount} need attention` : '✓ All rows valid'}</span>
+        </div>
+        <div className="text-sm text-slate-600">
+          <Button variant="outline" onClick={() => setFieldMappings([])}>Reset mappings</Button>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full table-fixed text-sm">
+          <thead>
+            <tr className="text-left text-slate-700">
+              <th className="w-1/3 py-2">Source Field</th>
+              <th className="w-1/3 py-2">Destination Field</th>
+              <th className="w-1/6 py-2">Type</th>
+              <th className="w-1/12 py-2">Required</th>
+              <th className="w-1/6 py-2">Transform</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mappings.map((mapping, index) => {
+              const srcLabel = mapping.source_label || (sourceFields.find((s) => s.id === mapping.source_field)?.label || mapping.source_field)
+              const isUnmapped = !mapping.target_field
+              const destRequired = mapping.required === true
+
+              return (
+                <tr key={index} className={`${isUnmapped ? 'bg-amber-50' : ''}`}>
+                  <td className="py-3 pr-4">{srcLabel}</td>
+                  <td className="py-3 pr-4">
+                    <select
+                      value={mapping.target_field}
+                      onChange={(e) => handleUpdateMapping(index, 'target_field', e.target.value)}
+                      className="form-input w-full"
+                    >
+                      <option value="">Unmapped</option>
+                      {destinationFields.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.label}{d.required ? ' *' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="py-3 pr-4">
+                    <select value={mapping.field_type} onChange={(e) => handleUpdateMapping(index, 'field_type', e.target.value)} className="form-input w-full">
+                      {FIELD_TYPE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="py-3 pr-4 text-center">
+                    <input type="checkbox" checked={!!mapping.required} onChange={(e) => handleUpdateMapping(index, 'required', e.target.checked)} />
+                  </td>
+                  <td className="py-3 pr-4">
+                    {mapping.field_type === 'constant' ? (
+                      <Input value={mapping.constant_value || ''} onChange={(e) => handleUpdateMapping(index, 'constant_value', e.target.value)} placeholder="Constant value" />
+                    ) : (
+                      <div className="text-slate-500">—</div>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {requiredUnmapped.length > 0 ? (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          <strong>Required fields not mapped:</strong>
+          <ul className="mt-2 list-disc pl-5">
+            {requiredUnmapped.map((d) => (<li key={d.id}>{d.label}</li>))}
+          </ul>
         </div>
       ) : null}
 
-      <div className="space-y-4">
-        {fieldMappings.map((mapping, index) => (
-          <div key={index} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div>
-                <label htmlFor={`mapping-target-${index}`} className="block text-sm font-medium text-slate-900">
-                  Destination field
-                </label>
-                <select
-                  id={`mapping-target-${index}`}
-                  value={mapping.target_field}
-                  onChange={(e) => handleUpdateMapping(index, 'target_field', e.target.value)}
-                  className="form-input mt-2 w-full"
-                >
-                  <option value="">Select destination field</option>
-                  {destinationFields.map((field) => (
-                    <option key={field.id} value={field.id}>
-                      {field.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor={`mapping-type-${index}`} className="block text-sm font-medium text-slate-900">
-                  Mapping type
-                </label>
-                <select
-                  id={`mapping-type-${index}`}
-                  value={mapping.field_type}
-                  onChange={(e) => handleUpdateMapping(index, 'field_type', e.target.value)}
-                  className="form-input mt-2 w-full"
-                >
-                  {FIELD_TYPE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-end justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleRemoveMapping(index)}
-                  className="text-sm font-medium text-rose-600 hover:text-rose-700"
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 mt-4">
-              {mapping.field_type === 'constant' ? (
-                <div className="sm:col-span-2">
-                  <Input
-                    id={`mapping-constant-${index}`}
-                    label="Constant value"
-                    value={mapping.constant_value || ''}
-                    onChange={(e) => handleUpdateMapping(index, 'constant_value', e.target.value)}
-                    placeholder="Enter a fixed value"
-                  />
-                </div>
-              ) : (
-                <div className="sm:col-span-2">
-                  <label htmlFor={`mapping-source-${index}`} className="block text-sm font-medium text-slate-900">
-                    Source field
-                  </label>
-                  <select
-                    id={`mapping-source-${index}`}
-                    value={mapping.source_field}
-                    onChange={(e) => handleUpdateMapping(index, 'source_field', e.target.value)}
-                    className="form-input mt-2 w-full"
-                  >
-                    <option value="">Select source field</option>
-                    {sourceFields.map((field) => (
-                      <option key={field.id} value={field.id}>
-                        {field.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Button variant="outline" onClick={handleAddMapping}>
-          Add mapping
-        </Button>
-        <p className="text-sm text-slate-500">Create as many field mappings as needed for the selected entity.</p>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-        <p className="font-semibold text-slate-900">Suggested fields</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
-            <p className="text-sm font-medium text-slate-900">Source fields</p>
-            <ul className="mt-2 list-disc pl-5 text-slate-600">
-              {sourceFields.slice(0, 5).map((field) => (
-                <li key={field.id}>{field.label}</li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-900">Destination fields</p>
-            <ul className="mt-2 list-disc pl-5 text-slate-600">
-              {destinationFields.slice(0, 5).map((field) => (
-                <li key={field.id}>{field.label}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
+      <div className="text-sm text-slate-600">Tip: You can edit any row. Transformations and lookups are supported in a future iteration.</div>
     </div>
   )
 }
