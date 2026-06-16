@@ -788,7 +788,7 @@ const Integrations = () => {
         </Card>
       )}
 
-      <Modal open={integrationModalOpen} title={integrationModalMode === 'create' ? 'Crear nueva integración' : 'Editar integración'} onClose={closeIntegrationModal} footer={null}>
+      <Modal open={integrationModalOpen} size="large" title={integrationModalMode === 'create' ? 'Crear nueva integración' : 'Editar integración'} subtitle={integrationModalMode === 'create' ? 'Set up a new integration in just a few steps' : 'Update your integration configuration'} onClose={closeIntegrationModal} footer={null}>
         {integrationModalLoading && integrationModalMode === 'edit' && !selectedIntegration ? (
           <div className="py-20 text-center text-slate-600">Cargando integración...</div>
         ) : (

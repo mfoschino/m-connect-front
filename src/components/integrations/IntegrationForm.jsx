@@ -216,53 +216,92 @@ const IntegrationForm = ({ mode = 'create', defaultValues = {}, onSubmit, onCanc
     onSubmit(buildPayload())
   }
 
+  // Determine step description for subtitle
+  const stepDescriptions = {
+    1: 'Give your integration a name and description',
+    2: 'Choose where your data comes from',
+    3: 'Select the business entity to sync',
+    4: 'Choose where data should be delivered',
+    5: 'Configure the connection details',
+    6: 'Map source fields to destination fields',
+    7: 'Set up automatic scheduling',
+    8: 'Review all settings before creating',
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-        <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-600">
-          {stepTitles.map((title, index) => (
-            <span
-              key={title}
-              className={`rounded-full px-3 py-1 transition ${currentStep === index + 1 ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}
-            >
-              {index + 1}. {title}
-            </span>
-          ))}
+    <div className="space-y-8 flex flex-col h-full">
+      {/* Header Subtitle */}
+      <div className="-m-8 mb-0 border-b border-slate-200 px-8 py-6 bg-gradient-to-r from-slate-50 to-transparent">
+        <p className="text-sm text-slate-600">{stepDescriptions[currentStep]}</p>
+      </div>
+
+      {/* Stepper */}
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="flex flex-wrap items-center gap-4 text-base font-medium">
+            {stepTitles.map((title, index) => {
+              const isActive = currentStep === index + 1
+              const isComplete = currentStep > index + 1
+              return (
+                <div key={title} className="flex items-center gap-4">
+                  <span
+                    className={`flex h-10 w-10 items-center justify-center rounded-full font-semibold transition ${
+                      isActive
+                        ? 'bg-sky-600 text-white shadow-lg'
+                        : isComplete
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-slate-200 text-slate-600'
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <div className="hidden sm:block">
+                    <p className={isActive ? 'font-semibold text-slate-900' : isComplete ? 'font-medium text-slate-700' : 'text-slate-600'}>
+                      {title}
+                    </p>
+                  </div>
+                  {index < stepTitles.length - 1 && <div className="hidden lg:block h-px w-6 bg-slate-300" />}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
 
-      {errorMessage ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{errorMessage}</p> : null}
-      {stepError ? <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">{stepError}</p> : null}
-      {currentStep === 1 ? (
-        <div className="space-y-4">
-          <div>
-            <Input
-              id="integration-name"
-              label="Integration Name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              error={fieldErrors.name}
-              placeholder="e.g., Sync Salesforce Orders"
-              required
-            />
-          </div>
-          <div>
-            <Input
-              id="integration-description"
-              label="Description (Optional)"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="What does this integration do?"
-            />
-          </div>
-        </div>
-      ) : null}
+      {/* Main Content Area */}
+      <div className="flex-1">
 
-      {/* Step 2: Source System Selection */}
-      {currentStep === 2 ? (
-        <div className="space-y-4">
-          <p className="text-sm font-semibold text-slate-900">Select the source system</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {errorMessage ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{errorMessage}</p> : null}
+        {stepError ? <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">{stepError}</p> : null}
+        {currentStep === 1 ? (
+          <div className="max-w-2xl space-y-6">
+            <div>
+              <Input
+                id="integration-name"
+                label="Integration Name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                error={fieldErrors.name}
+                placeholder="e.g., Sync Salesforce Orders"
+                required
+              />
+            </div>
+            <div>
+              <Input
+                id="integration-description"
+                label="Description (Optional)"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="What does this integration do?"
+              />
+            </div>
+          </div>
+        ) : null}
+
+        {/* Step 2: Source System Selection */}
+        {currentStep === 2 ? (
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {SYSTEM_CATALOG.map((system) => (
               <button
                 key={system.id}
@@ -280,14 +319,13 @@ const IntegrationForm = ({ mode = 'create', defaultValues = {}, onSubmit, onCanc
               </button>
             ))}
           </div>
-        </div>
-      ) : null}
+          </div>
+        ) : null}
 
-      {/* Step 3: Entity Selection */}
-      {currentStep === 3 ? (
-        <div className="space-y-4">
-          <p className="text-sm font-semibold text-slate-900">What do you want to sync?</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+        {/* Step 3: Entity Selection */}
+        {currentStep === 3 ? (
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {ENTITY_CATALOG.map((ent) => (
               <button
                 key={ent.id}
@@ -301,15 +339,14 @@ const IntegrationForm = ({ mode = 'create', defaultValues = {}, onSubmit, onCanc
                 <p className="mt-1 text-sm text-slate-600">{ent.description}</p>
               </button>
             ))}
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {/* Step 4: Destination System */}
-      {currentStep === 4 ? (
-        <div className="space-y-4">
-          <p className="text-sm font-semibold text-slate-900">Where should the data go?</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+        {/* Step 4: Destination System */}
+        {currentStep === 4 ? (
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {DESTINATION_SYSTEMS.map((dest) => (
               <button
                 key={dest.id}
@@ -326,35 +363,35 @@ const IntegrationForm = ({ mode = 'create', defaultValues = {}, onSubmit, onCanc
                 <p className="mt-1 text-sm text-slate-600">{dest.description}</p>
               </button>
             ))}
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {/* Step 5: Connection Configuration */}
-      {currentStep === 5 ? (
-        <ConnectorConfigForm
-          connectorType={sourceSystem?.connectorType}
-          sourceSystemName={sourceSystem?.name}
-          config={connectorConfig}
-          setConfig={setConnectorConfig}
-          error={stepError}
-        />
-      ) : null}
+        {/* Step 5: Connection Configuration */}
+        {currentStep === 5 ? (
+          <ConnectorConfigForm
+            connectorType={sourceSystem?.connectorType}
+            sourceSystemName={sourceSystem?.name}
+            config={connectorConfig}
+            setConfig={setConnectorConfig}
+            error={stepError}
+          />
+        ) : null}
 
-      {/* Step 6: Field Mapping */}
-      {currentStep === 6 ? (
-        <FieldMappingBuilder entityId={entityId} fieldMappings={fieldMappings} setFieldMappings={setFieldMappings} />
-      ) : null}
+        {/* Step 6: Field Mapping */}
+        {currentStep === 6 ? (
+          <FieldMappingBuilder entityId={entityId} fieldMappings={fieldMappings} setFieldMappings={setFieldMappings} />
+        ) : null}
 
-      {/* Step 7: Schedule */}
-      {currentStep === 7 ? (
-        <ScheduleBuilder schedule={schedule} setSchedule={setSchedule} error={stepError} />
-      ) : null}
+        {/* Step 7: Schedule */}
+        {currentStep === 7 ? (
+          <ScheduleBuilder schedule={schedule} setSchedule={setSchedule} error={stepError} />
+        ) : null}
 
-      {/* Step 8: Review */}
-      {currentStep === 8 ? (
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        {/* Step 8: Review */}
+        {currentStep === 8 ? (
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="p-5">
               <p className="text-sm font-semibold text-slate-900">Integration Name</p>
               <p className="mt-2 text-sm text-slate-600">{name}</p>
@@ -415,29 +452,33 @@ const IntegrationForm = ({ mode = 'create', defaultValues = {}, onSubmit, onCanc
           </details>
         </div>
       ) : null}
+      </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-        <div className="text-sm text-slate-500">
-          Step {currentStep} of {stepTitles.length}
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {currentStep > 1 ? (
-            <Button variant="outline" onClick={handleBack} disabled={loading}>
-              Back
+      {/* Footer with Navigation */}
+      <div className="border-t border-slate-200 bg-slate-50 px-8 py-6 mt-auto">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium text-slate-600">
+            Step {currentStep} of {stepTitles.length}
+          </div>
+          <div className="flex items-center gap-3">
+            {currentStep > 1 ? (
+              <Button variant="outline" onClick={handleBack} disabled={loading}>
+                ← Back
+              </Button>
+            ) : null}
+            {currentStep < stepTitles.length ? (
+              <Button onClick={handleNext} loading={loading}>
+                Next →
+              </Button>
+            ) : (
+              <Button onClick={handleSubmit} loading={loading}>
+                {mode === 'create' ? '✓ Create Integration' : '✓ Save Changes'}
+              </Button>
+            )}
+            <Button variant="ghost" onClick={onCancel} disabled={loading}>
+              Cancel
             </Button>
-          ) : null}
-          {currentStep < stepTitles.length ? (
-            <Button onClick={handleNext} loading={loading}>
-              Next
-            </Button>
-          ) : (
-            <Button onClick={handleSubmit} loading={loading}>
-              {mode === 'create' ? 'Create Integration' : 'Save Changes'}
-            </Button>
-          )}
-          <Button variant="ghost" onClick={onCancel} disabled={loading}>
-            Cancel
-          </Button>
+          </div>
         </div>
       </div>
     </div>
