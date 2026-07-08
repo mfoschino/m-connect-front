@@ -1,4 +1,6 @@
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { normalizeRole } from '../../services/api/userAdminService'
 
 const links = [
   { label: 'Panel', to: '/dashboard' },
@@ -6,9 +8,14 @@ const links = [
   { label: 'Ejecuciones', to: '/executions' },
   { label: 'Incidentes', to: '/errors' },
   { label: 'Configuración', to: '/settings' },
+  { label: 'Usuarios', to: '/settings/users', roles: ['admin'] },
 ]
 
 const Sidebar = () => {
+  const { user } = useAuth()
+  const userRole = normalizeRole(user?.role)
+  const visibleLinks = links.filter((link) => !link.roles || link.roles.includes(userRole))
+
   return (
     <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-slate-950 px-5 py-6 text-sm text-slate-300 shadow-soft lg:block">
       <div className="mb-8">
@@ -16,7 +23,7 @@ const Sidebar = () => {
         <h2 className="mt-3 text-xl font-semibold text-white">M-Connect</h2>
       </div>
       <nav className="space-y-2">
-        {links.map((link) => (
+        {visibleLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}

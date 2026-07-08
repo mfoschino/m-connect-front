@@ -1,0 +1,30 @@
+src/pages/dashboard/Dashboard.jsx:          apiClient.get('/integrations'),
+src/pages/dashboard/Dashboard.jsx:          apiClient.get('/executions'),
+src/services/api/client.js:apiClient.interceptors.request.use((config) => {
+src/services/api/executionService.js:const listExecutions = () => apiClient.get('/executions')
+src/services/api/executionService.js:const getExecution = (traceId) => apiClient.get(`/executions/${traceId}`)
+src/services/api/executionService.js:const getExecutionLogs = (traceId) => apiClient.get(`/executions/${traceId}/logs`)
+src/services/api/executionService.js:const listIntegrations = () => apiClient.get('/integrations')
+src/services/api/integrationService.js:const listIntegrations = () => apiClient.get('/integrations')
+src/services/api/integrationService.js:const getIntegration = (integrationId) => apiClient.get(`/integrations/${integrationId}`)
+src/services/api/integrationService.js:const createIntegration = (payload) => apiClient.post('/integrations', payload)
+src/services/api/integrationService.js:const updateIntegration = (integrationId, payload) => apiClient.patch(`/integrations/${integrationId}`, payload)
+src/services/api/integrationService.js:const runIntegration = (integrationId) => apiClient.post(`/integrations/${integrationId}/run`)
+src/services/api/integrationService.js:const triggerIntegration = (integrationId, payload) => apiClient.post(`/integrations/${integrationId}/trigger`, payload)
+src/services/api/lookupService.js:const listLookupTables = () => apiClient.get('/lookup-tables')
+src/services/api/lookupService.js:const getLookupTable = (lookupId) => apiClient.get(`/lookup-tables/${lookupId}`)
+src/services/api/lookupService.js:const createLookupTable = (payload) => apiClient.post('/lookup-tables', payload)
+src/services/api/lookupService.js:const updateLookupTable = (lookupId, payload) => apiClient.patch(`/lookup-tables/${lookupId}`, payload)
+src/services/api/lookupService.js:const deleteLookupTable = (lookupId) => apiClient.delete(`/lookup-tables/${lookupId}`)
+src/services/api/notificationService.js:  apiClient.get('/notifications', {
+src/services/api/notificationService.js:const getUnreadCount = () => apiClient.get('/notifications/unread-count')
+src/services/api/notificationService.js:const markAsRead = (notificationId) => apiClient.patch(`/notifications/${notificationId}/read`)
+src/services/api/profileService.js:const listProfiles = () => apiClient.get('/profiles')
+src/services/api/profileService.js:const getProfile = (profileId) => apiClient.get(`/profiles/${profileId}`)
+src/services/api/profileService.js:const createProfile = (payload) => apiClient.post('/profiles', payload)
+src/services/api/profileService.js:const updateProfile = (profileId, payload) => apiClient.patch(`/profiles/${profileId}`, payload)
+src/services/api/userAdminService.js:  apiClient.get('/users/', {
+src/services/api/userAdminService.js:const getUser = (userId) => apiClient.get(`/users/${userId}`)
+src/services/api/userAdminService.js:const createUser = (payload) => apiClient.post('/users/', payload)
+src/services/api/userAdminService.js:const updateUser = (userId, payload) => apiClient.patch(`/users/${userId}`, payload)
+src/services/api/userAdminService.js:const deactivateUser = (userId) => apiClient.delete(`/users/${userId}`)

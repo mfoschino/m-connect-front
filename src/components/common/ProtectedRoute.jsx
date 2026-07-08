@@ -1,7 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { normalizeRole } from '../../services/api/userAdminService'
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth()
   const location = useLocation()
 
@@ -13,6 +14,15 @@ const ProtectedRoute = ({ children }) => {
         state={{ from: location }}
       />
     )
+  }
+
+  if (allowedRoles?.length) {
+    const userRole = normalizeRole(user.role)
+    const allowed = allowedRoles.map(normalizeRole)
+
+    if (!allowed.includes(userRole)) {
+      return <Navigate to="/dashboard" replace />
+    }
   }
 
   return children

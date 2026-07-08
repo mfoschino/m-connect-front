@@ -5,11 +5,17 @@ const mockUsers = [
     email: 'admin@mconnect.com',
     password: 'Password123',
     status: 'active',
+    role: 'admin',
+    id: 'mock-admin-user',
+    tenant_id: 'mock-tenant',
   },
   {
     email: 'blocked@mconnect.com',
     password: 'Password123',
     status: 'blocked',
+    role: 'viewer',
+    id: 'mock-blocked-user',
+    tenant_id: 'mock-tenant',
   },
 ]
 
@@ -33,14 +39,17 @@ const login = ({ email, password, remember }) => {
       const session = {
         token: 'mock-session-token',
         user: {
+          id: user.id,
           email: user.email,
+          role: user.role,
+          tenant_id: user.tenant_id,
         },
         remember,
       }
 
       try {
         localStorage.setItem('mconnect_session', JSON.stringify(session))
-      } catch (error) {
+      } catch {
         // ignore storage errors in mock environment
       }
 

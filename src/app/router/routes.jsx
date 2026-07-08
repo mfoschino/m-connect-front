@@ -6,6 +6,7 @@ import Executions from '../../pages/executions/Executions'
 import ExecutionDetail from '../../pages/executions/ExecutionDetail'
 import Errors from '../../pages/errors/Errors'
 import Settings from '../../pages/settings/Settings'
+import UserAdminPage from '../../pages/users/UserAdminPage'
 import ProfilePage from '../../pages/profile/ProfilePage'
 import LoginPage from '../../pages/auth/LoginPage'
 import ForgotPasswordPage from '../../pages/auth/ForgotPasswordPage'
@@ -81,6 +82,14 @@ const AppRoutes = () => (
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="settings/users"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <UserAdminPage />
           </ProtectedRoute>
         }
       />
