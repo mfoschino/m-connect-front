@@ -26,5 +26,5 @@ src/services/api/profileService.js:const updateProfile = (profileId, payload) =>
 src/services/api/userAdminService.js:  apiClient.get('/users/', {
 src/services/api/userAdminService.js:const getUser = (userId) => apiClient.get(`/users/${userId}`)
 src/services/api/userAdminService.js:const createUser = (payload) => apiClient.post('/users/', payload)
-src/services/api/userAdminService.js:const updateUser = (userId, payload) => apiClient.patch(`/users/${userId}`, payload)
+src/services/api/userAdminService.js:const updateUser = (userId, payload) => apiClient.put(`/users/${userId}`, payload)
 src/services/api/userAdminService.js:const deactivateUser = (userId) => apiClient.delete(`/users/${userId}`)

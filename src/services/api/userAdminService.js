@@ -20,7 +20,7 @@ const getUser = (userId) => apiClient.get(`/users/${userId}`)
 
 const createUser = (payload) => apiClient.post('/users/', payload)
 
-const updateUser = (userId, payload) => apiClient.patch(`/users/${userId}`, payload)
+const updateUser = (userId, payload) => apiClient.put(`/users/${userId}`, payload)
 
 const deactivateUser = (userId) => apiClient.delete(`/users/${userId}`)
 
