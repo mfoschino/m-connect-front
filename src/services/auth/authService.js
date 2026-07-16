@@ -1,61 +1,136 @@
-const AUTH_DELAY_MS = 900
+import axios from 'axios'
+import apiClient from '../api/client'
 
-const mockUsers = [
-  {
-    email: 'admin@mconnect.com',
-    password: 'Password123',
-    status: 'active',
-    role: 'admin',
-    id: 'mock-admin-user',
-    tenant_id: 'mock-tenant',
+const STORAGE_KEY = 'mconnect_session'
+
+const authClient = axios.create({
+  baseURL: apiClient.defaults.baseURL,
+  headers: {
+    'Content-Type': 'application/json',
   },
-  {
-    email: 'blocked@mconnect.com',
-    password: 'Password123',
-    status: 'blocked',
-    role: 'viewer',
-    id: 'mock-blocked-user',
-    tenant_id: 'mock-tenant',
-  },
-]
+  timeout: apiClient.defaults.timeout,
+})
 
-const login = ({ email, password, remember }) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (email === 'network@error.com') {
-        return reject({ code: 'network_error', message: 'Error de red. Por favor, inténtalo de nuevo.' })
-      }
+const getDetailMessage = (data) => {
+  const detail = data?.detail
 
-      const user = mockUsers.find((record) => record.email === email)
+  if (typeof detail === 'string') {
+    return detail
+  }
 
-      if (!user || user.password !== password) {
-        return reject({ code: 'invalid_credentials', message: 'Correo electrónico o contraseña inválidos.' })
-      }
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => item?.msg)
+      .filter(Boolean)
+      .join(' ')
+  }
 
-      if (user.status === 'blocked') {
-        return reject({ code: 'blocked_account', message: 'Tu cuenta está bloqueada. Contacta con soporte.' })
-      }
+  if (typeof data?.message === 'string') {
+    return data.message
+  }
 
-      const session = {
-        token: 'mock-session-token',
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          tenant_id: user.tenant_id,
-        },
-        remember,
-      }
+  return ''
+}
 
-      try {
-        localStorage.setItem('mconnect_session', JSON.stringify(session))
-      } catch {
-        // ignore storage errors in mock environment
-      }
+const buildAuthError = (error) => {
+  if (error?.code) {
+    return error
+  }
 
-      resolve(session)
-    }, AUTH_DELAY_MS)
+  if (!axios.isAxiosError(error)) {
+    return {
+      code: 'network_error',
+      message: 'No se pudo conectar con el servidor de autenticacion.',
+    }
+  }
+
+  const status = error.response?.status
+  const message = getDetailMessage(error.response?.data)
+  const normalizedMessage = message.toLowerCase()
+
+  if (status === 401 || status === 400 || status === 422) {
+    return {
+      code: 'invalid_credentials',
+      message: message || 'Correo electronico o contrasena invalidos.',
+    }
+  }
+
+  if (
+    status === 403 &&
+    (normalizedMessage.includes('bloque') ||
+      normalizedMessage.includes('block') ||
+      normalizedMessage.includes('inactiv') ||
+      normalizedMessage.includes('disabled') ||
+      normalizedMessage.includes('deshabilit'))
+  ) {
+    return {
+      code: 'blocked_account',
+      message: message || 'Tu cuenta esta bloqueada. Contacta con soporte.',
+    }
+  }
+
+  if (status === 403) {
+    return {
+      code: 'invalid_credentials',
+      message: message || 'No se pudo validar la cuenta con esas credenciales.',
+    }
+  }
+
+  return {
+    code: 'network_error',
+    message: message || 'No se pudo iniciar sesion. Intentalo nuevamente.',
+  }
+}
+
+const saveSession = (session) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+  } catch {
+    // Ignore storage errors in the browser session.
+  }
+}
+
+const getCurrentUser = async (token) => {
+  const response = await authClient.get('/users/me', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   })
+
+  return response.data
+}
+
+const login = async ({ email, password, remember }) => {
+  try {
+    const response = await authClient.post('/auth/login', {
+      email,
+      password,
+    })
+    const data = response.data
+
+    if (!data?.access_token) {
+      throw {
+        code: 'invalid_response',
+        message: 'El servidor no devolvio un token de acceso.',
+      }
+    }
+
+    const user = await getCurrentUser(data.access_token)
+    const session = {
+      token: data.access_token,
+      refreshToken: data.refresh_token,
+      tokenType: data.token_type,
+      expiresIn: data.expires_in,
+      user,
+      remember,
+    }
+
+    saveSession(session)
+
+    return session
+  } catch (error) {
+    throw buildAuthError(error)
+  }
 }
 
 export default {
