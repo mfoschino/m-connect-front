@@ -3,7 +3,7 @@
  * Maps business-friendly system names to technical connector types
  * This configuration bridges the gap between business UX and backend technical model
  * 
- * TODO: Replace with backend-driven catalog when available
+ * External-system labels and visual configuration remain local until backend metadata exposes them.
  */
 
 export const CONNECTOR_TYPES = {
@@ -117,18 +117,6 @@ export const SYSTEM_CATALOG = [
     connectorType: CONNECTOR_TYPES.WEBHOOK,
     icon: '🔔',
   },
-]
-
-export const ENTITY_CATALOG = [
-  // Common business entities
-  { id: 'sales_order', name: 'Orders', description: 'Customer sales orders' },
-  { id: 'customer', name: 'Customers', description: 'Customer records' },
-  { id: 'product', name: 'Products', description: 'Product catalog' },
-  { id: 'invoice', name: 'Invoices', description: 'Invoices and billing' },
-  { id: 'inventory', name: 'Inventory', description: 'Stock and inventory' },
-  { id: 'payment', name: 'Payments', description: 'Payment transactions' },
-  { id: 'user', name: 'Users', description: 'User accounts' },
-  { id: 'contact', name: 'Contacts', description: 'Contact information' },
 ]
 
 export const DESTINATION_SYSTEMS = [
@@ -481,18 +469,4 @@ export const CONNECTOR_CONFIG_SCHEMAS = {
  */
 export const getConnectorSchema = (connectorType) => {
   return CONNECTOR_CONFIG_SCHEMAS[connectorType] || null
-}
-
-/**
- * Get system by ID
- */
-export const getSystem = (systemId) => {
-  return SYSTEM_CATALOG.find((s) => s.id === systemId)
-}
-
-/**
- * Get entity by ID
- */
-export const getEntity = (entityId) => {
-  return ENTITY_CATALOG.find((e) => e.id === entityId)
 }

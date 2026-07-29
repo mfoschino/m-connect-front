@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "ddc7a3af-baf4-42e1-bffd-c18cc313718b",
+    "_postman_id": "ae08b099-5681-4ab0-8e72-fc3d06ce1e10",
     "name": "M-Connect API",
     "description": "Middleware de integración M-Connect. Gestión de integraciones, perfiles de mapping, tablas de lookup y monitoreo del pipeline.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "55615637",
-    "_collection_link": "https://go.postman.co/collection/55615637-ddc7a3af-baf4-42e1-bffd-c18cc313718b?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/55615637-ae08b099-5681-4ab0-8e72-fc3d06ce1e10?source=collection_link"
   },
   "item": [
     {
@@ -30,7 +30,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"zpy8MrUYxHOJrF@TbfNJv.zsfs\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\"\n}",
+                  "raw": "{\n  \"email\": \"LOmkxMYYrzHNgy@DNCJqqQsJhhiYanSwiUvRLo.zj\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -67,7 +67,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"zpy8MrUYxHOJrF@TbfNJv.zsfs\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"LOmkxMYYrzHNgy@DNCJqqQsJhhiYanSwiUvRLo.zj\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -114,7 +114,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"zpy8MrUYxHOJrF@TbfNJv.zsfs\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"LOmkxMYYrzHNgy@DNCJqqQsJhhiYanSwiUvRLo.zj\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -143,7 +143,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -168,7 +168,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"gp2B49yohqebV@ytmMhOLvuSBJLYACOiUPNcJdP.owxd\",\n  \"code\": \"string\"\n}",
+                  "raw": "{\n  \"email\": \"3qL@ytjBPuFwfGMoGqbGvTORoezT.chlg\",\n  \"code\": \"string\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -205,7 +205,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"gp2B49yohqebV@ytmMhOLvuSBJLYACOiUPNcJdP.owxd\",\n  \"code\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"3qL@ytjBPuFwfGMoGqbGvTORoezT.chlg\",\n  \"code\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -252,7 +252,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"gp2B49yohqebV@ytmMhOLvuSBJLYACOiUPNcJdP.owxd\",\n  \"code\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"3qL@ytjBPuFwfGMoGqbGvTORoezT.chlg\",\n  \"code\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -281,7 +281,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -306,7 +306,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"hgomezmoya@morganatec.com\"\n}",
+                  "raw": "{\n  \"email\": \"u8Gfnuj4@LpjTsFfXXVEaTdJdILEWwIGB.rymj\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -343,7 +343,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"P0Eb4@xuHHYUxQTQwSOfrcM.em\"\n}",
+                      "raw": "{\n  \"email\": \"u8Gfnuj4@LpjTsFfXXVEaTdJdILEWwIGB.rymj\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -390,7 +390,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"P0Eb4@xuHHYUxQTQwSOfrcM.em\"\n}",
+                      "raw": "{\n  \"email\": \"u8Gfnuj4@LpjTsFfXXVEaTdJdILEWwIGB.rymj\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -419,7 +419,283 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "forgot-password",
+          "item": [
+            {
+              "name": "Solicitar código de recuperación de contraseña",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"rhU2Xu7P@DrRaSQWkBaoUtTxqCTkSsuIymjkGimPgr.tp\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/forgot-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "forgot-password"
+                  ]
+                },
+                "description": "Genera y envía un código de 6 dígitos para recuperar la contraseña.\n\nSiempre responde con el mismo mensaje genérico independientemente de si\nel email existe (no revela la existencia del usuario ni el rate limit)."
+              },
+              "response": [
+                {
+                  "name": "Successful Response",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"email\": \"rhU2Xu7P@DrRaSQWkBaoUtTxqCTkSsuIymjkGimPgr.tp\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/auth/forgot-password",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "auth",
+                        "forgot-password"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"message\": \"string\"\n}"
+                },
+                {
+                  "name": "Validation Error",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"email\": \"rhU2Xu7P@DrRaSQWkBaoUtTxqCTkSsuIymjkGimPgr.tp\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/auth/forgot-password",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "auth",
+                        "forgot-password"
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "reset-password",
+          "item": [
+            {
+              "name": "Restablecer contraseña con el código recibido por email",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"FFP@JUGABBBQ.iir\",\n  \"code\": \"string\",\n  \"new_password\": \"stringstring\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/reset-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "reset-password"
+                  ]
+                },
+                "description": "Valida el código de recuperación y actualiza la contraseña.\n\nSiempre responde con el mismo mensaje genérico si el código es\nincorrecto, expirado o el email no existe."
+              },
+              "response": [
+                {
+                  "name": "Successful Response",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"email\": \"FFP@JUGABBBQ.iir\",\n  \"code\": \"string\",\n  \"new_password\": \"stringstring\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/auth/reset-password",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "auth",
+                        "reset-password"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"message\": \"string\"\n}"
+                },
+                {
+                  "name": "Validation Error",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"email\": \"FFP@JUGABBBQ.iir\",\n  \"code\": \"string\",\n  \"new_password\": \"stringstring\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/auth/reset-password",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "auth",
+                        "reset-password"
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -444,7 +720,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"AE3jum1@AcXEPVuPVhNSHESHWpsMxLCFXdBdlNAN.af\",\n  \"password\": \"string\"\n}",
+                  "raw": "{\n  //\"email\": \"servicios@morganatec.com\",\n  //\"password\": \"Mconnect055\"\n  \"email\": \"hgomezmoya@morganatec.com\",\n  \"password\": \"Mconnect055\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -481,7 +757,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"AE3jum1@AcXEPVuPVhNSHESHWpsMxLCFXdBdlNAN.af\",\n  \"password\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"rufZY@FEQDWDZchQMpKBDvPkyuYWvPrgCzq.mgdu\",\n  \"password\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -528,7 +804,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"AE3jum1@AcXEPVuPVhNSHESHWpsMxLCFXdBdlNAN.af\",\n  \"password\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"rufZY@FEQDWDZchQMpKBDvPkyuYWvPrgCzq.mgdu\",\n  \"password\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -557,7 +833,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -695,7 +971,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -864,7 +1140,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                     }
                   ]
                 }
@@ -939,7 +1215,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"email\": \"pmwdz94@VerjHFDiUnlpvQl.ds\",\n  \"id\": \"6ebbfa80-887e-91fa-0a43-998dec63e60b\",\n  \"is_active\": true,\n  \"created_at\": \"1953-10-21T08:21:24.127Z\",\n  \"updated_at\": \"1955-01-06T22:42:04.236Z\",\n  \"full_name\": null,\n  \"is_verified\": false,\n  \"last_login\": \"1986-06-24T09:38:15.518Z\",\n  \"tenant_id\": \"14a7d6f5-2ece-83eb-0452-b266292ec4c6\",\n  \"role\": null\n}"
+                  "body": "{\n  \"email\": \"tSgYTQYHz3h6W@GWSIfqsDQLCZjERjEMjrdRHAbuSalBQJi.uvd\",\n  \"id\": \"623482cb-c990-79a2-080d-f6168e4fb115\",\n  \"is_active\": true,\n  \"created_at\": \"2019-11-14T14:20:25.710Z\",\n  \"updated_at\": \"2019-12-08T04:43:53.958Z\",\n  \"full_name\": \"string\",\n  \"is_verified\": false,\n  \"last_login\": \"2006-06-25T19:21:52.150Z\",\n  \"tenant_id\": \"0e8449bd-e474-d5b5-c212-d6bab8f25215\",\n  \"role\": null\n}"
                 }
               ]
             },
@@ -1040,7 +1316,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"email\": \"pmwdz94@VerjHFDiUnlpvQl.ds\",\n  \"id\": \"6ebbfa80-887e-91fa-0a43-998dec63e60b\",\n  \"is_active\": true,\n  \"created_at\": \"1953-10-21T08:21:24.127Z\",\n  \"updated_at\": \"1955-01-06T22:42:04.236Z\",\n  \"full_name\": null,\n  \"is_verified\": false,\n  \"last_login\": \"1986-06-24T09:38:15.518Z\",\n  \"tenant_id\": \"14a7d6f5-2ece-83eb-0452-b266292ec4c6\",\n  \"role\": null\n}"
+                  "body": "{\n  \"email\": \"tSgYTQYHz3h6W@GWSIfqsDQLCZjERjEMjrdRHAbuSalBQJi.uvd\",\n  \"id\": \"623482cb-c990-79a2-080d-f6168e4fb115\",\n  \"is_active\": true,\n  \"created_at\": \"2019-11-14T14:20:25.710Z\",\n  \"updated_at\": \"2019-12-08T04:43:53.958Z\",\n  \"full_name\": \"string\",\n  \"is_verified\": false,\n  \"last_login\": \"2006-06-25T19:21:52.150Z\",\n  \"tenant_id\": \"0e8449bd-e474-d5b5-c212-d6bab8f25215\",\n  \"role\": null\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -1092,7 +1368,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -1133,7 +1409,7 @@
                   "variable": [
                     {
                       "key": "user_id",
-                      "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                      "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                     }
                   ]
                 },
@@ -1167,7 +1443,7 @@
                       "variable": [
                         {
                           "key": "user_id",
-                          "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                          "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                         }
                       ]
                     }
@@ -1182,7 +1458,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"email\": \"1gjkBvGI4w@Aak.hmk\",\n  \"id\": \"373d2acd-b704-e3d9-70f2-0f2295aa0e4d\",\n  \"is_active\": false,\n  \"created_at\": \"2025-11-04T11:36:05.817Z\",\n  \"updated_at\": \"2000-09-16T04:25:14.316Z\",\n  \"full_name\": \"string\",\n  \"is_verified\": false,\n  \"last_login\": \"1967-06-22T16:02:20.808Z\",\n  \"tenant_id\": \"3bf4ff64-5ff1-03f7-6946-b7160f361817\",\n  \"role\": \"string\"\n}"
+                  "body": "{\n  \"email\": \"Ufb@CtLKR.tyqj\",\n  \"id\": \"8e878948-d621-f855-00ae-0acc18891e84\",\n  \"is_active\": false,\n  \"created_at\": \"1988-10-18T05:45:25.806Z\",\n  \"updated_at\": \"2001-11-15T17:29:42.699Z\",\n  \"full_name\": \"string\",\n  \"is_verified\": false,\n  \"last_login\": \"1993-03-23T02:05:31.754Z\",\n  \"tenant_id\": \"b5da3c1a-0376-98bb-68f7-6af8180a6635\",\n  \"role\": \"string\"\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -1211,7 +1487,7 @@
                       "variable": [
                         {
                           "key": "user_id",
-                          "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                          "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                         }
                       ]
                     }
@@ -1226,7 +1502,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -1256,7 +1532,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"full_name\": \"string\",\n  \"role\": null,\n  \"is_active\": null\n}",
+                  "raw": "{\n  \"full_name\": null,\n  \"role\": \"string\",\n  \"is_active\": false\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -1276,7 +1552,7 @@
                   "variable": [
                     {
                       "key": "user_id",
-                      "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                      "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                     }
                   ]
                 },
@@ -1304,7 +1580,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"full_name\": \"string\",\n  \"role\": null,\n  \"is_active\": null\n}",
+                      "raw": "{\n  \"full_name\": null,\n  \"role\": \"string\",\n  \"is_active\": false\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1324,7 +1600,7 @@
                       "variable": [
                         {
                           "key": "user_id",
-                          "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                          "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                         }
                       ]
                     }
@@ -1339,7 +1615,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"email\": \"1gjkBvGI4w@Aak.hmk\",\n  \"id\": \"373d2acd-b704-e3d9-70f2-0f2295aa0e4d\",\n  \"is_active\": false,\n  \"created_at\": \"2025-11-04T11:36:05.817Z\",\n  \"updated_at\": \"2000-09-16T04:25:14.316Z\",\n  \"full_name\": \"string\",\n  \"is_verified\": false,\n  \"last_login\": \"1967-06-22T16:02:20.808Z\",\n  \"tenant_id\": \"3bf4ff64-5ff1-03f7-6946-b7160f361817\",\n  \"role\": \"string\"\n}"
+                  "body": "{\n  \"email\": \"Ufb@CtLKR.tyqj\",\n  \"id\": \"8e878948-d621-f855-00ae-0acc18891e84\",\n  \"is_active\": false,\n  \"created_at\": \"1988-10-18T05:45:25.806Z\",\n  \"updated_at\": \"2001-11-15T17:29:42.699Z\",\n  \"full_name\": \"string\",\n  \"is_verified\": false,\n  \"last_login\": \"1993-03-23T02:05:31.754Z\",\n  \"tenant_id\": \"b5da3c1a-0376-98bb-68f7-6af8180a6635\",\n  \"role\": \"string\"\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -1362,7 +1638,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"full_name\": \"string\",\n  \"role\": null,\n  \"is_active\": null\n}",
+                      "raw": "{\n  \"full_name\": null,\n  \"role\": \"string\",\n  \"is_active\": false\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1382,7 +1658,7 @@
                       "variable": [
                         {
                           "key": "user_id",
-                          "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                          "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                         }
                       ]
                     }
@@ -1397,7 +1673,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -1433,7 +1709,7 @@
                   "variable": [
                     {
                       "key": "user_id",
-                      "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                      "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                     }
                   ]
                 },
@@ -1463,7 +1739,7 @@
                       "variable": [
                         {
                           "key": "user_id",
-                          "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                          "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                         }
                       ]
                     }
@@ -1473,7 +1749,7 @@
                   "_postman_previewlanguage": "text",
                   "header": [],
                   "cookie": [],
-                  "body": null
+                  "body": ""
                 },
                 {
                   "name": "Validation Error",
@@ -1502,7 +1778,7 @@
                       "variable": [
                         {
                           "key": "user_id",
-                          "value": "17eee71b-8f95-d9e1-f95a-7af742fbfbb1"
+                          "value": "4893694d-230e-8af1-0657-13c597b8fc07"
                         }
                       ]
                     }
@@ -1517,7 +1793,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -1549,7 +1825,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"K5U2JGxmz0k9@rDGsAILqdUFjpkRdedKiFUTmFWPG.zw\",\n  \"password\": \"stringstring\",\n  \"full_name\": null,\n  \"role\": \"operator\"\n}",
+              "raw": "{\n  \"email\": \"GDMjokpCPRcj9A@ZYkyeku.kl\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\",\n  \"role\": \"operator\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -1591,7 +1867,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"K5U2JGxmz0k9@rDGsAILqdUFjpkRdedKiFUTmFWPG.zw\",\n  \"password\": \"stringstring\",\n  \"full_name\": null,\n  \"role\": \"operator\"\n}",
+                  "raw": "{\n  \"email\": \"GDMjokpCPRcj9A@ZYkyeku.kl\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\",\n  \"role\": \"operator\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -1620,7 +1896,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"email\": \"pmwdz94@VerjHFDiUnlpvQl.ds\",\n  \"id\": \"6ebbfa80-887e-91fa-0a43-998dec63e60b\",\n  \"is_active\": true,\n  \"created_at\": \"1953-10-21T08:21:24.127Z\",\n  \"updated_at\": \"1955-01-06T22:42:04.236Z\",\n  \"full_name\": null,\n  \"is_verified\": false,\n  \"last_login\": \"1986-06-24T09:38:15.518Z\",\n  \"tenant_id\": \"14a7d6f5-2ece-83eb-0452-b266292ec4c6\",\n  \"role\": null\n}"
+              "body": "{\n  \"email\": \"tSgYTQYHz3h6W@GWSIfqsDQLCZjERjEMjrdRHAbuSalBQJi.uvd\",\n  \"id\": \"623482cb-c990-79a2-080d-f6168e4fb115\",\n  \"is_active\": true,\n  \"created_at\": \"2019-11-14T14:20:25.710Z\",\n  \"updated_at\": \"2019-12-08T04:43:53.958Z\",\n  \"full_name\": \"string\",\n  \"is_verified\": false,\n  \"last_login\": \"2006-06-25T19:21:52.150Z\",\n  \"tenant_id\": \"0e8449bd-e474-d5b5-c212-d6bab8f25215\",\n  \"role\": null\n}"
             },
             {
               "name": "Validation Error",
@@ -1643,7 +1919,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"K5U2JGxmz0k9@rDGsAILqdUFjpkRdedKiFUTmFWPG.zw\",\n  \"password\": \"stringstring\",\n  \"full_name\": null,\n  \"role\": \"operator\"\n}",
+                  "raw": "{\n  \"email\": \"GDMjokpCPRcj9A@ZYkyeku.kl\",\n  \"password\": \"stringstring\",\n  \"full_name\": \"string\",\n  \"role\": \"operator\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -1672,7 +1948,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -1765,7 +2041,7 @@
                 }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"email\": \"lbGnDs5ni7ldEr@baFkKQvzacqBRaCcLFOcSAaEiCmEuuc.gq\",\n    \"id\": \"ea56a58b-907e-53f0-8286-566306d7507a\",\n    \"is_active\": false,\n    \"created_at\": \"1964-08-17T22:34:07.246Z\",\n    \"updated_at\": \"2018-12-25T14:51:27.483Z\",\n    \"full_name\": \"string\",\n    \"is_verified\": false,\n    \"last_login\": \"1982-07-28T22:54:22.403Z\",\n    \"tenant_id\": \"478164ff-bdbe-6f23-1778-c1f0da02afd3\",\n    \"role\": \"string\"\n  },\n  {\n    \"email\": \"y5-C@EuxbLuZTulmvCqpybU.yw\",\n    \"id\": \"1a8a7908-369f-0b76-a702-3dfa94569bdd\",\n    \"is_active\": false,\n    \"created_at\": \"1962-09-05T16:22:36.488Z\",\n    \"updated_at\": \"1974-07-21T20:16:05.850Z\",\n    \"full_name\": \"string\",\n    \"is_verified\": false,\n    \"last_login\": \"1980-01-06T06:33:44.385Z\",\n    \"tenant_id\": \"f18042f6-d288-59f6-0247-3a3593db374f\",\n    \"role\": \"string\"\n  }\n]"
+              "body": "[\n  {\n    \"email\": \"v4h30i@DolPrrSCQfAtXiZRsZAVJKAo.wmb\",\n    \"id\": \"720c506b-ba2f-16f7-dff4-001953769765\",\n    \"is_active\": true,\n    \"created_at\": \"1992-05-08T22:15:49.004Z\",\n    \"updated_at\": \"2013-06-08T13:09:12.606Z\",\n    \"full_name\": \"string\",\n    \"is_verified\": false,\n    \"last_login\": \"1988-05-20T03:55:58.928Z\",\n    \"tenant_id\": \"1cc995c6-aa02-26ad-bd06-3a167fb4ada8\",\n    \"role\": \"string\"\n  },\n  {\n    \"email\": \"w5QmxIFQ6TEGq2M@jHxawOIPTBWLfZZfdUtNcJJaFUyM.ojj\",\n    \"id\": \"fd9ba761-0946-8aa6-054e-da2ca0ed443c\",\n    \"is_active\": false,\n    \"created_at\": \"1957-02-24T03:41:53.051Z\",\n    \"updated_at\": \"1996-08-23T09:44:01.982Z\",\n    \"full_name\": \"string\",\n    \"is_verified\": false,\n    \"last_login\": \"1990-06-21T22:45:53.679Z\",\n    \"tenant_id\": \"3041c7fb-1181-5f87-6a77-bac0c406b37f\",\n    \"role\": \"string\"\n  }\n]"
             },
             {
               "name": "Validation Error",
@@ -1813,7 +2089,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
             }
           ]
         }
@@ -1915,7 +2191,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"wkI0w@niKSE.skzb\",\n  \"role\": \"operator\"\n}",
+                      "raw": "{\n  \"email\": \"PD7xnNz@HpXdfVcSevIGvjXzPGsqPYnpXcwvWVT.lj\",\n  \"role\": \"operator\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1936,7 +2212,7 @@
                       "variable": [
                         {
                           "key": "tenant_id",
-                          "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                          "value": "30866248-1388-a3b4-4856-26feaf21f187"
                         }
                       ]
                     },
@@ -1964,7 +2240,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"email\": \"wkI0w@niKSE.skzb\",\n  \"role\": \"operator\"\n}",
+                          "raw": "{\n  \"email\": \"PD7xnNz@HpXdfVcSevIGvjXzPGsqPYnpXcwvWVT.lj\",\n  \"role\": \"operator\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -1985,7 +2261,7 @@
                           "variable": [
                             {
                               "key": "tenant_id",
-                              "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                              "value": "30866248-1388-a3b4-4856-26feaf21f187"
                             }
                           ]
                         }
@@ -2000,7 +2276,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"user_email\": \"string\",\n  \"tenant_id\": \"2c6515dc-3a02-bd82-175c-6b9aeeef5abf\",\n  \"tenant_name\": \"string\",\n  \"role\": \"string\",\n  \"message\": \"string\"\n}"
+                      "body": "{\n  \"user_email\": \"string\",\n  \"tenant_id\": \"94373136-1df6-152d-d48b-fcb679220b9a\",\n  \"tenant_name\": \"string\",\n  \"role\": \"string\",\n  \"message\": \"string\"\n}"
                     },
                     {
                       "name": "Validation Error",
@@ -2023,7 +2299,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"email\": \"wkI0w@niKSE.skzb\",\n  \"role\": \"operator\"\n}",
+                          "raw": "{\n  \"email\": \"PD7xnNz@HpXdfVcSevIGvjXzPGsqPYnpXcwvWVT.lj\",\n  \"role\": \"operator\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -2044,7 +2320,7 @@
                           "variable": [
                             {
                               "key": "tenant_id",
-                              "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                              "value": "30866248-1388-a3b4-4856-26feaf21f187"
                             }
                           ]
                         }
@@ -2059,7 +2335,316 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "finnegans-credentials",
+              "item": [
+                {
+                  "name": "Setear credenciales Finnegans del tenant (write-only)",
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{bearerToken}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"client_id\": \"string\",\n  \"client_secret\": \"string\",\n  \"base_url\": \"string\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/tenants/:tenant_id/finnegans-credentials",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "tenants",
+                        ":tenant_id",
+                        "finnegans-credentials"
+                      ],
+                      "variable": [
+                        {
+                          "key": "tenant_id",
+                          "value": "30866248-1388-a3b4-4856-26feaf21f187"
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Successful Response",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          },
+                          {
+                            "description": "Added as a part of security scheme: bearer",
+                            "key": "Authorization",
+                            "value": "Bearer <token>"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"client_id\": \"string\",\n  \"client_secret\": \"string\",\n  \"base_url\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/tenants/:tenant_id/finnegans-credentials",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "tenants",
+                            ":tenant_id",
+                            "finnegans-credentials"
+                          ],
+                          "variable": [
+                            {
+                              "key": "tenant_id",
+                              "value": "30866248-1388-a3b4-4856-26feaf21f187"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"has_credentials\": false,\n  \"client_id\": \"string\",\n  \"base_url\": \"string\"\n}"
+                    },
+                    {
+                      "name": "Validation Error",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          },
+                          {
+                            "description": "Added as a part of security scheme: bearer",
+                            "key": "Authorization",
+                            "value": "Bearer <token>"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"client_id\": \"string\",\n  \"client_secret\": \"string\",\n  \"base_url\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/tenants/:tenant_id/finnegans-credentials",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "tenants",
+                            ":tenant_id",
+                            "finnegans-credentials"
+                          ],
+                          "variable": [
+                            {
+                              "key": "tenant_id",
+                              "value": "30866248-1388-a3b4-4856-26feaf21f187"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                      "code": 422,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                    }
+                  ]
+                },
+                {
+                  "name": "Estado de las credenciales Finnegans del tenant (sin secret)",
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{bearerToken}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/tenants/:tenant_id/finnegans-credentials",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "tenants",
+                        ":tenant_id",
+                        "finnegans-credentials"
+                      ],
+                      "variable": [
+                        {
+                          "key": "tenant_id",
+                          "value": "30866248-1388-a3b4-4856-26feaf21f187"
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Successful Response",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          },
+                          {
+                            "description": "Added as a part of security scheme: bearer",
+                            "key": "Authorization",
+                            "value": "Bearer <token>"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/tenants/:tenant_id/finnegans-credentials",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "tenants",
+                            ":tenant_id",
+                            "finnegans-credentials"
+                          ],
+                          "variable": [
+                            {
+                              "key": "tenant_id",
+                              "value": "30866248-1388-a3b4-4856-26feaf21f187"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"has_credentials\": false,\n  \"client_id\": \"string\",\n  \"base_url\": \"string\"\n}"
+                    },
+                    {
+                      "name": "Validation Error",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          },
+                          {
+                            "description": "Added as a part of security scheme: bearer",
+                            "key": "Authorization",
+                            "value": "Bearer <token>"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/tenants/:tenant_id/finnegans-credentials",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "tenants",
+                            ":tenant_id",
+                            "finnegans-credentials"
+                          ],
+                          "variable": [
+                            {
+                              "key": "tenant_id",
+                              "value": "30866248-1388-a3b4-4856-26feaf21f187"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                      "code": 422,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                     }
                   ]
                 }
@@ -2097,7 +2682,7 @@
                   "variable": [
                     {
                       "key": "tenant_id",
-                      "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                      "value": "30866248-1388-a3b4-4856-26feaf21f187"
                     }
                   ]
                 },
@@ -2131,7 +2716,7 @@
                       "variable": [
                         {
                           "key": "tenant_id",
-                          "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                          "value": "30866248-1388-a3b4-4856-26feaf21f187"
                         }
                       ]
                     }
@@ -2146,7 +2731,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"66b23652-6dad-4235-c581-4cbd8d184f60\",\n  \"name\": \"string\",\n  \"plan\": \"string\",\n  \"is_active\": true,\n  \"created_at\": \"1973-07-30T22:29:23.959Z\",\n  \"config\": {}\n}"
+                  "body": "{\n  \"id\": \"b83ef2b1-40ff-5ec4-0959-5f4f3a15279e\",\n  \"name\": \"string\",\n  \"plan\": \"string\",\n  \"is_active\": true,\n  \"created_at\": \"1961-07-10T20:37:31.016Z\",\n  \"config\": {}\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -2175,7 +2760,7 @@
                       "variable": [
                         {
                           "key": "tenant_id",
-                          "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                          "value": "30866248-1388-a3b4-4856-26feaf21f187"
                         }
                       ]
                     }
@@ -2190,7 +2775,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -2220,7 +2805,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"string\",\n  \"plan\": null,\n  \"is_active\": null,\n  \"config\": {}\n}",
+                  "raw": "{\n  \"name\": \"string\",\n  \"plan\": null,\n  \"is_active\": null,\n  \"config\": null\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -2240,7 +2825,7 @@
                   "variable": [
                     {
                       "key": "tenant_id",
-                      "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                      "value": "30866248-1388-a3b4-4856-26feaf21f187"
                     }
                   ]
                 },
@@ -2268,7 +2853,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"name\": \"string\",\n  \"plan\": null,\n  \"is_active\": null,\n  \"config\": {}\n}",
+                      "raw": "{\n  \"name\": \"string\",\n  \"plan\": null,\n  \"is_active\": null,\n  \"config\": null\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -2288,7 +2873,7 @@
                       "variable": [
                         {
                           "key": "tenant_id",
-                          "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                          "value": "30866248-1388-a3b4-4856-26feaf21f187"
                         }
                       ]
                     }
@@ -2303,7 +2888,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"66b23652-6dad-4235-c581-4cbd8d184f60\",\n  \"name\": \"string\",\n  \"plan\": \"string\",\n  \"is_active\": true,\n  \"created_at\": \"1973-07-30T22:29:23.959Z\",\n  \"config\": {}\n}"
+                  "body": "{\n  \"id\": \"b83ef2b1-40ff-5ec4-0959-5f4f3a15279e\",\n  \"name\": \"string\",\n  \"plan\": \"string\",\n  \"is_active\": true,\n  \"created_at\": \"1961-07-10T20:37:31.016Z\",\n  \"config\": {}\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -2326,7 +2911,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"name\": \"string\",\n  \"plan\": null,\n  \"is_active\": null,\n  \"config\": {}\n}",
+                      "raw": "{\n  \"name\": \"string\",\n  \"plan\": null,\n  \"is_active\": null,\n  \"config\": null\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -2346,7 +2931,7 @@
                       "variable": [
                         {
                           "key": "tenant_id",
-                          "value": "e60d1299-38f6-e98c-6398-4974d6b87d51"
+                          "value": "30866248-1388-a3b4-4856-26feaf21f187"
                         }
                       ]
                     }
@@ -2361,7 +2946,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -2434,7 +3019,7 @@
                 }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"id\": \"b87c20ea-f685-ddf1-2ffe-5c6323f39b66\",\n    \"name\": \"string\",\n    \"plan\": \"string\",\n    \"is_active\": false,\n    \"created_at\": \"1981-06-06T02:05:38.650Z\",\n    \"config\": {}\n  },\n  {\n    \"id\": \"07e01678-2ce4-f874-d1aa-d6fa86784ac7\",\n    \"name\": \"string\",\n    \"plan\": \"string\",\n    \"is_active\": false,\n    \"created_at\": \"1964-07-29T22:02:25.179Z\",\n    \"config\": {}\n  }\n]"
+              "body": "[\n  {\n    \"id\": \"79305686-7639-dd04-f407-8b5fa4354fed\",\n    \"name\": \"string\",\n    \"plan\": \"string\",\n    \"is_active\": true,\n    \"created_at\": \"1950-11-27T23:45:54.365Z\",\n    \"config\": {}\n  },\n  {\n    \"id\": \"ab1e84d7-f527-e2eb-6197-2c01dba72b35\",\n    \"name\": \"string\",\n    \"plan\": \"string\",\n    \"is_active\": true,\n    \"created_at\": \"1961-05-07T22:24:46.222Z\",\n    \"config\": {}\n  }\n]"
             }
           ]
         },
@@ -2533,7 +3118,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"id\": \"66b23652-6dad-4235-c581-4cbd8d184f60\",\n  \"name\": \"string\",\n  \"plan\": \"string\",\n  \"is_active\": true,\n  \"created_at\": \"1973-07-30T22:29:23.959Z\",\n  \"config\": {}\n}"
+              "body": "{\n  \"id\": \"b83ef2b1-40ff-5ec4-0959-5f4f3a15279e\",\n  \"name\": \"string\",\n  \"plan\": \"string\",\n  \"is_active\": true,\n  \"created_at\": \"1961-07-10T20:37:31.016Z\",\n  \"config\": {}\n}"
             },
             {
               "name": "Validation Error",
@@ -2584,7 +3169,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
             }
           ]
         }
@@ -2646,7 +3231,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     },
@@ -2695,7 +3280,7 @@
                           "variable": [
                             {
                               "key": "integration_id",
-                              "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                              "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                             }
                           ]
                         }
@@ -2710,7 +3295,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"trace_id\": \"c2c04d0d-d987-23c7-8a43-4bc2f134ddc1\",\n  \"message\": \"string\",\n  \"status\": \"queued\"\n}"
+                      "body": "{\n  \"trace_id\": \"971180d7-7498-d9c1-4324-f520cc85094e\",\n  \"message\": \"string\",\n  \"status\": \"queued\"\n}"
                     },
                     {
                       "name": "Validation Error",
@@ -2754,7 +3339,7 @@
                           "variable": [
                             {
                               "key": "integration_id",
-                              "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                              "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                             }
                           ]
                         }
@@ -2769,7 +3354,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                     }
                   ]
                 }
@@ -2811,7 +3396,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     },
@@ -2846,7 +3431,7 @@
                           "variable": [
                             {
                               "key": "integration_id",
-                              "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                              "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                             }
                           ]
                         }
@@ -2861,7 +3446,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"integration_id\": \"23251466-31af-b8f3-f330-3ede74df1150\",\n  \"task_id\": \"string\",\n  \"message\": \"string\",\n  \"status\": \"running\"\n}"
+                      "body": "{\n  \"integration_id\": \"fa68b2e3-bcf5-d20c-5fc0-e6cc7382eb9a\",\n  \"task_id\": \"string\",\n  \"message\": \"string\",\n  \"status\": \"running\"\n}"
                     },
                     {
                       "name": "Validation Error",
@@ -2891,7 +3476,7 @@
                           "variable": [
                             {
                               "key": "integration_id",
-                              "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                              "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                             }
                           ]
                         }
@@ -2906,7 +3491,185 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "finnegans-credentials",
+              "item": [
+                {
+                  "name": "Setear credenciales Finnegans de una integración (write-only)",
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{bearerToken}}",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"client_id\": \"string\",\n  \"client_secret\": \"string\",\n  \"base_url\": \"string\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/integrations/:integration_id/finnegans-credentials",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "integrations",
+                        ":integration_id",
+                        "finnegans-credentials"
+                      ],
+                      "variable": [
+                        {
+                          "key": "integration_id",
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Successful Response",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          },
+                          {
+                            "description": "Added as a part of security scheme: bearer",
+                            "key": "Authorization",
+                            "value": "Bearer <token>"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"client_id\": \"string\",\n  \"client_secret\": \"string\",\n  \"base_url\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/integrations/:integration_id/finnegans-credentials",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "integrations",
+                            ":integration_id",
+                            "finnegans-credentials"
+                          ],
+                          "variable": [
+                            {
+                              "key": "integration_id",
+                              "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"has_credentials\": false,\n  \"client_id\": \"string\",\n  \"base_url\": \"string\"\n}"
+                    },
+                    {
+                      "name": "Validation Error",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          },
+                          {
+                            "description": "Added as a part of security scheme: bearer",
+                            "key": "Authorization",
+                            "value": "Bearer <token>"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"client_id\": \"string\",\n  \"client_secret\": \"string\",\n  \"base_url\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/integrations/:integration_id/finnegans-credentials",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "integrations",
+                            ":integration_id",
+                            "finnegans-credentials"
+                          ],
+                          "variable": [
+                            {
+                              "key": "integration_id",
+                              "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                      "code": 422,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                     }
                   ]
                 }
@@ -2944,7 +3707,7 @@
                   "variable": [
                     {
                       "key": "integration_id",
-                      "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                      "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                     }
                   ]
                 },
@@ -2978,7 +3741,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     }
@@ -2993,7 +3756,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"0fcb7894-f5ce-ee4f-e0de-5b39317215ac\",\n  \"tenant_id\": \"b22c7991-4c46-549f-aca2-8b76aab0be4a\",\n  \"name\": \"string\",\n  \"connector_type\": \"string\",\n  \"source_entity\": \"string\",\n  \"config\": {},\n  \"schedule\": \"string\",\n  \"is_active\": false,\n  \"created_at\": \"1954-09-26T10:40:24.702Z\",\n  \"updated_at\": \"1978-05-09T01:22:49.642Z\",\n  \"last_run_at\": \"1950-06-16T07:37:09.718Z\",\n  \"next_run_at\": \"2016-02-01T10:18:09.437Z\",\n  \"last_run_status\": \"string\",\n  \"last_run_stats\": {}\n}"
+                  "body": "{\n  \"id\": \"c169fe05-b026-f159-241e-e40e6b4da2e9\",\n  \"tenant_id\": \"f8459362-df75-b34d-c6da-728a64fc71fe\",\n  \"name\": \"string\",\n  \"connector_type\": \"string\",\n  \"source_entity\": \"string\",\n  \"config\": {},\n  \"schedule\": \"string\",\n  \"is_active\": false,\n  \"created_at\": \"2000-06-21T20:05:51.948Z\",\n  \"updated_at\": \"1988-12-09T05:29:01.927Z\",\n  \"last_run_at\": \"1955-07-05T19:03:00.585Z\",\n  \"next_run_at\": \"2013-09-12T02:23:59.992Z\",\n  \"last_run_status\": \"string\",\n  \"last_run_stats\": {}\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -3022,7 +3785,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     }
@@ -3037,7 +3800,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -3067,7 +3830,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": null,\n  \"connector_type\": \"string\",\n  \"source_entity\": null,\n  \"config\": null,\n  \"schedule\": null,\n  \"is_active\": null\n}",
+                  "raw": "{\n  \"name\": \"string\",\n  \"connector_type\": null,\n  \"source_entity\": null,\n  \"config\": null,\n  \"schedule\": null,\n  \"is_active\": null\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -3087,7 +3850,7 @@
                   "variable": [
                     {
                       "key": "integration_id",
-                      "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                      "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                     }
                   ]
                 },
@@ -3115,7 +3878,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"name\": null,\n  \"connector_type\": \"string\",\n  \"source_entity\": null,\n  \"config\": null,\n  \"schedule\": null,\n  \"is_active\": null\n}",
+                      "raw": "{\n  \"name\": \"string\",\n  \"connector_type\": null,\n  \"source_entity\": null,\n  \"config\": null,\n  \"schedule\": null,\n  \"is_active\": null\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -3135,7 +3898,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     }
@@ -3150,7 +3913,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"0fcb7894-f5ce-ee4f-e0de-5b39317215ac\",\n  \"tenant_id\": \"b22c7991-4c46-549f-aca2-8b76aab0be4a\",\n  \"name\": \"string\",\n  \"connector_type\": \"string\",\n  \"source_entity\": \"string\",\n  \"config\": {},\n  \"schedule\": \"string\",\n  \"is_active\": false,\n  \"created_at\": \"1954-09-26T10:40:24.702Z\",\n  \"updated_at\": \"1978-05-09T01:22:49.642Z\",\n  \"last_run_at\": \"1950-06-16T07:37:09.718Z\",\n  \"next_run_at\": \"2016-02-01T10:18:09.437Z\",\n  \"last_run_status\": \"string\",\n  \"last_run_stats\": {}\n}"
+                  "body": "{\n  \"id\": \"c169fe05-b026-f159-241e-e40e6b4da2e9\",\n  \"tenant_id\": \"f8459362-df75-b34d-c6da-728a64fc71fe\",\n  \"name\": \"string\",\n  \"connector_type\": \"string\",\n  \"source_entity\": \"string\",\n  \"config\": {},\n  \"schedule\": \"string\",\n  \"is_active\": false,\n  \"created_at\": \"2000-06-21T20:05:51.948Z\",\n  \"updated_at\": \"1988-12-09T05:29:01.927Z\",\n  \"last_run_at\": \"1955-07-05T19:03:00.585Z\",\n  \"next_run_at\": \"2013-09-12T02:23:59.992Z\",\n  \"last_run_status\": \"string\",\n  \"last_run_stats\": {}\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -3173,7 +3936,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"name\": null,\n  \"connector_type\": \"string\",\n  \"source_entity\": null,\n  \"config\": null,\n  \"schedule\": null,\n  \"is_active\": null\n}",
+                      "raw": "{\n  \"name\": \"string\",\n  \"connector_type\": null,\n  \"source_entity\": null,\n  \"config\": null,\n  \"schedule\": null,\n  \"is_active\": null\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -3193,7 +3956,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     }
@@ -3208,7 +3971,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -3244,7 +4007,7 @@
                   "variable": [
                     {
                       "key": "integration_id",
-                      "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                      "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                     }
                   ]
                 },
@@ -3274,7 +4037,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     }
@@ -3284,7 +4047,7 @@
                   "_postman_previewlanguage": "text",
                   "header": [],
                   "cookie": [],
-                  "body": null
+                  "body": ""
                 },
                 {
                   "name": "Validation Error",
@@ -3313,7 +4076,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     }
@@ -3328,7 +4091,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -3401,7 +4164,7 @@
                 }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"id\": \"83b12c10-4fa6-4293-e47a-bb3bac601519\",\n    \"tenant_id\": \"a26cf3ed-27fd-803a-da2e-8fc649f91e8d\",\n    \"name\": \"string\",\n    \"connector_type\": \"string\",\n    \"source_entity\": \"string\",\n    \"config\": {},\n    \"schedule\": \"string\",\n    \"is_active\": true,\n    \"created_at\": \"1981-06-17T12:58:44.140Z\",\n    \"updated_at\": \"1994-11-03T13:31:50.947Z\",\n    \"last_run_at\": \"1988-08-01T15:55:56.501Z\",\n    \"next_run_at\": \"1958-09-15T11:32:18.600Z\",\n    \"last_run_status\": \"string\",\n    \"last_run_stats\": {}\n  },\n  {\n    \"id\": \"dbab7faf-1571-3a29-3b67-0b9b486fe692\",\n    \"tenant_id\": \"e389a55c-aba9-b7ce-de44-7250b9620f8c\",\n    \"name\": \"string\",\n    \"connector_type\": \"string\",\n    \"source_entity\": \"string\",\n    \"config\": {},\n    \"schedule\": \"string\",\n    \"is_active\": true,\n    \"created_at\": \"1991-11-07T20:56:59.242Z\",\n    \"updated_at\": \"2007-04-25T05:34:24.943Z\",\n    \"last_run_at\": \"1975-03-13T07:13:51.929Z\",\n    \"next_run_at\": \"2021-02-05T04:11:06.928Z\",\n    \"last_run_status\": \"string\",\n    \"last_run_stats\": {}\n  }\n]"
+              "body": "[\n  {\n    \"id\": \"b204a06d-2ec0-bcc8-4615-1f0d10f67fab\",\n    \"tenant_id\": \"3ead8cea-24ed-0e4a-0f1a-0ad762454cdf\",\n    \"name\": \"string\",\n    \"connector_type\": \"string\",\n    \"source_entity\": \"string\",\n    \"config\": {},\n    \"schedule\": \"string\",\n    \"is_active\": false,\n    \"created_at\": \"1958-07-05T08:23:09.634Z\",\n    \"updated_at\": \"1970-05-07T21:47:41.036Z\",\n    \"last_run_at\": \"2010-12-26T19:59:20.265Z\",\n    \"next_run_at\": \"1970-06-26T01:28:18.842Z\",\n    \"last_run_status\": \"string\",\n    \"last_run_stats\": {}\n  },\n  {\n    \"id\": \"22996483-6f92-c1a1-e781-536b7d0ee130\",\n    \"tenant_id\": \"ffc5238a-802e-e6d0-2822-0cef3e5ce0db\",\n    \"name\": \"string\",\n    \"connector_type\": \"string\",\n    \"source_entity\": \"string\",\n    \"config\": {},\n    \"schedule\": \"string\",\n    \"is_active\": false,\n    \"created_at\": \"1987-10-21T15:55:43.148Z\",\n    \"updated_at\": \"1978-12-03T05:18:18.128Z\",\n    \"last_run_at\": \"1984-09-25T12:10:17.623Z\",\n    \"next_run_at\": \"1971-02-14T00:45:06.300Z\",\n    \"last_run_status\": \"string\",\n    \"last_run_stats\": {}\n  }\n]"
             }
           ]
         },
@@ -3500,7 +4263,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"id\": \"0fcb7894-f5ce-ee4f-e0de-5b39317215ac\",\n  \"tenant_id\": \"b22c7991-4c46-549f-aca2-8b76aab0be4a\",\n  \"name\": \"string\",\n  \"connector_type\": \"string\",\n  \"source_entity\": \"string\",\n  \"config\": {},\n  \"schedule\": \"string\",\n  \"is_active\": false,\n  \"created_at\": \"1954-09-26T10:40:24.702Z\",\n  \"updated_at\": \"1978-05-09T01:22:49.642Z\",\n  \"last_run_at\": \"1950-06-16T07:37:09.718Z\",\n  \"next_run_at\": \"2016-02-01T10:18:09.437Z\",\n  \"last_run_status\": \"string\",\n  \"last_run_stats\": {}\n}"
+              "body": "{\n  \"id\": \"c169fe05-b026-f159-241e-e40e6b4da2e9\",\n  \"tenant_id\": \"f8459362-df75-b34d-c6da-728a64fc71fe\",\n  \"name\": \"string\",\n  \"connector_type\": \"string\",\n  \"source_entity\": \"string\",\n  \"config\": {},\n  \"schedule\": \"string\",\n  \"is_active\": false,\n  \"created_at\": \"2000-06-21T20:05:51.948Z\",\n  \"updated_at\": \"1988-12-09T05:29:01.927Z\",\n  \"last_run_at\": \"1955-07-05T19:03:00.585Z\",\n  \"next_run_at\": \"2013-09-12T02:23:59.992Z\",\n  \"last_run_status\": \"string\",\n  \"last_run_stats\": {}\n}"
             },
             {
               "name": "Validation Error",
@@ -3551,7 +4314,65 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "Tienda Nube",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "\n{\n  \"name\": \"Tienda Nube Pedidos (test)\",\n  \"connector_type\": \"api\",\n  \"source_entity\": \"sales_order\",\n  \"is_active\": true,\n  \"config\": {\n    \"source_system\": \"tiendanube\",\n    \"base_url\": \"https://api.tiendanube.com\",\n    \"endpoint\": \"/2025-03/{{store_id}}/orders?payment_status=paid\",\n    \"auth_type\": \"api_key\",\n    \"api_key_header\": \"Authentication\",\n    \"api_key\": \"bearer {{tn_token}}\",\n    \"headers\": {\n      \"User-Agent\": \"MiIntegracion (servicios@morganatec.com)\",\n      \"Accept\": \"application/json\"\n    },\n    \"data_path\": null,\n    \"pagination\": {\n      \"type\": \"page_number\",\n      \"page_param\": \"page\",\n      \"page_size_param\": \"per_page\",\n      \"page_size\": 200\n    }\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/integrations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "integrations"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "date",
+                  "value": "Mon, 13 Jul 2026 21:38:48 GMT"
+                },
+                {
+                  "key": "server",
+                  "value": "uvicorn"
+                },
+                {
+                  "key": "content-length",
+                  "value": "854"
+                },
+                {
+                  "key": "content-type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"id\": \"a20ceecb-0f37-47b1-b0af-12c7d45f7a50\",\n    \"tenant_id\": \"67fc3827-3abd-4c37-ada2-0d30f19b86c7\",\n    \"name\": \"Tienda Nube Pedidos (test)\",\n    \"connector_type\": \"api\",\n    \"source_entity\": \"sales_order\",\n    \"config\": {\n        \"source_system\": \"tiendanube\",\n        \"base_url\": \"https://api.tiendanube.com\",\n        \"endpoint\": \"/2025-03/7949541/orders?payment_status=paid\",\n        \"auth_type\": \"api_key\",\n        \"api_key_header\": \"Authentication\",\n        \"api_key\": \"bearer d209d2d9a422bd6e8d3fbcebc3954570caf9fda1\",\n        \"headers\": {\n            \"User-Agent\": \"MiIntegracion (servicios@morganatec.com)\",\n            \"Accept\": \"application/json\"\n        },\n        \"data_path\": null,\n        \"pagination\": {\n            \"type\": \"page_number\",\n            \"page_param\": \"page\",\n            \"page_size_param\": \"per_page\",\n            \"page_size\": 200\n        }\n    },\n    \"schedule\": null,\n    \"is_active\": true,\n    \"created_at\": \"2026-07-13T21:38:48.969146Z\",\n    \"updated_at\": \"2026-07-13T21:38:48.969146Z\",\n    \"last_run_at\": null,\n    \"next_run_at\": null,\n    \"last_run_status\": null,\n    \"last_run_stats\": null\n}"
             }
           ]
         }
@@ -3599,7 +4420,7 @@
                       "variable": [
                         {
                           "key": "profile_id",
-                          "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                          "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                         }
                       ]
                     },
@@ -3634,7 +4455,7 @@
                           "variable": [
                             {
                               "key": "profile_id",
-                              "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                              "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                             }
                           ]
                         }
@@ -3649,7 +4470,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"id\": \"9aa237a2-88db-504e-c87f-83ac311d9e24\",\n  \"tenant_id\": \"6acb8640-cd8d-e42b-2300-3e860c1179e5\",\n  \"source_system\": \"string\",\n  \"entity\": \"string\",\n  \"version\": \"string\",\n  \"config\": [],\n  \"is_active\": true,\n  \"created_at\": \"1983-11-20T20:26:11.922Z\",\n  \"updated_at\": \"1968-11-12T05:13:53.844Z\"\n}"
+                      "body": "{\n  \"id\": \"ceab3779-7a11-8d06-56bb-bc93e20a14ae\",\n  \"tenant_id\": \"81f1dc7a-a672-1fa9-f380-0654c36ccba6\",\n  \"source_system\": \"string\",\n  \"entity\": \"string\",\n  \"version\": \"string\",\n  \"config\": [],\n  \"is_active\": false,\n  \"created_at\": \"2015-06-27T16:10:52.260Z\",\n  \"updated_at\": \"2010-10-10T05:38:59.228Z\"\n}"
                     },
                     {
                       "name": "Validation Error",
@@ -3679,7 +4500,7 @@
                           "variable": [
                             {
                               "key": "profile_id",
-                              "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                              "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                             }
                           ]
                         }
@@ -3694,7 +4515,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                     }
                   ]
                 }
@@ -3732,7 +4553,7 @@
                   "variable": [
                     {
                       "key": "profile_id",
-                      "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                      "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                     }
                   ]
                 },
@@ -3766,7 +4587,7 @@
                       "variable": [
                         {
                           "key": "profile_id",
-                          "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                          "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                         }
                       ]
                     }
@@ -3781,7 +4602,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"9aa237a2-88db-504e-c87f-83ac311d9e24\",\n  \"tenant_id\": \"6acb8640-cd8d-e42b-2300-3e860c1179e5\",\n  \"source_system\": \"string\",\n  \"entity\": \"string\",\n  \"version\": \"string\",\n  \"config\": [],\n  \"is_active\": true,\n  \"created_at\": \"1983-11-20T20:26:11.922Z\",\n  \"updated_at\": \"1968-11-12T05:13:53.844Z\"\n}"
+                  "body": "{\n  \"id\": \"ceab3779-7a11-8d06-56bb-bc93e20a14ae\",\n  \"tenant_id\": \"81f1dc7a-a672-1fa9-f380-0654c36ccba6\",\n  \"source_system\": \"string\",\n  \"entity\": \"string\",\n  \"version\": \"string\",\n  \"config\": [],\n  \"is_active\": false,\n  \"created_at\": \"2015-06-27T16:10:52.260Z\",\n  \"updated_at\": \"2010-10-10T05:38:59.228Z\"\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -3810,7 +4631,7 @@
                       "variable": [
                         {
                           "key": "profile_id",
-                          "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                          "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                         }
                       ]
                     }
@@ -3825,7 +4646,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -3855,7 +4676,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"config\": [\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    },\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    }\n  ],\n  \"version\": null,\n  \"is_active\": null\n}",
+                  "raw": "{\n  \"config\": [\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    },\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    }\n  ],\n  \"version\": \"string\",\n  \"is_active\": null\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -3875,7 +4696,7 @@
                   "variable": [
                     {
                       "key": "profile_id",
-                      "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                      "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                     }
                   ]
                 },
@@ -3903,7 +4724,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"config\": [\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    },\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    }\n  ],\n  \"version\": null,\n  \"is_active\": null\n}",
+                      "raw": "{\n  \"config\": [\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    },\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    }\n  ],\n  \"version\": \"string\",\n  \"is_active\": null\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -3923,7 +4744,7 @@
                       "variable": [
                         {
                           "key": "profile_id",
-                          "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                          "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                         }
                       ]
                     }
@@ -3938,7 +4759,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"9aa237a2-88db-504e-c87f-83ac311d9e24\",\n  \"tenant_id\": \"6acb8640-cd8d-e42b-2300-3e860c1179e5\",\n  \"source_system\": \"string\",\n  \"entity\": \"string\",\n  \"version\": \"string\",\n  \"config\": [],\n  \"is_active\": true,\n  \"created_at\": \"1983-11-20T20:26:11.922Z\",\n  \"updated_at\": \"1968-11-12T05:13:53.844Z\"\n}"
+                  "body": "{\n  \"id\": \"ceab3779-7a11-8d06-56bb-bc93e20a14ae\",\n  \"tenant_id\": \"81f1dc7a-a672-1fa9-f380-0654c36ccba6\",\n  \"source_system\": \"string\",\n  \"entity\": \"string\",\n  \"version\": \"string\",\n  \"config\": [],\n  \"is_active\": false,\n  \"created_at\": \"2015-06-27T16:10:52.260Z\",\n  \"updated_at\": \"2010-10-10T05:38:59.228Z\"\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -3961,7 +4782,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"config\": [\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    },\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    }\n  ],\n  \"version\": null,\n  \"is_active\": null\n}",
+                      "raw": "{\n  \"config\": [\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    },\n    {\n      \"source_field\": \"string\",\n      \"target_field\": \"string\",\n      \"field_type\": \"string\",\n      \"on_error\": \"fail\"\n    }\n  ],\n  \"version\": \"string\",\n  \"is_active\": null\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -3981,7 +4802,7 @@
                       "variable": [
                         {
                           "key": "profile_id",
-                          "value": "9be81ac9-5f76-4475-5299-324adcc4b2fe"
+                          "value": "c7ad9f68-9dc3-7a68-06cd-e17a0f4f58bd"
                         }
                       ]
                     }
@@ -3996,7 +4817,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -4069,7 +4890,7 @@
                 }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"id\": \"b35d61a0-e591-8785-7694-74421b38d698\",\n    \"tenant_id\": \"161ab9e5-a84c-7d4e-b9c1-7df5395627ec\",\n    \"source_system\": \"string\",\n    \"entity\": \"string\",\n    \"version\": \"string\",\n    \"config\": [],\n    \"is_active\": false,\n    \"created_at\": \"1987-10-07T07:07:08.540Z\",\n    \"updated_at\": \"1951-03-06T08:52:23.399Z\"\n  },\n  {\n    \"id\": \"a1c384c1-37de-cbbf-ea06-d14730d369a5\",\n    \"tenant_id\": \"03ae2de4-1f73-9282-7347-21f728a988f6\",\n    \"source_system\": \"string\",\n    \"entity\": \"string\",\n    \"version\": \"string\",\n    \"config\": [],\n    \"is_active\": false,\n    \"created_at\": \"2005-03-11T14:59:27.026Z\",\n    \"updated_at\": \"1982-03-15T14:18:45.283Z\"\n  }\n]"
+              "body": "[\n  {\n    \"id\": \"63ea0181-f3be-c002-ee63-7611dc19b34a\",\n    \"tenant_id\": \"06dfc78c-d0c6-47d4-ae49-2f3df86461c4\",\n    \"source_system\": \"string\",\n    \"entity\": \"string\",\n    \"version\": \"string\",\n    \"config\": [],\n    \"is_active\": false,\n    \"created_at\": \"1954-07-15T09:00:20.534Z\",\n    \"updated_at\": \"1977-02-28T01:49:05.030Z\"\n  },\n  {\n    \"id\": \"f129a92f-532b-13b0-1d8c-66153c0b7141\",\n    \"tenant_id\": \"2fb24e17-319b-f480-8e9e-3c93a27f89e1\",\n    \"source_system\": \"string\",\n    \"entity\": \"string\",\n    \"version\": \"string\",\n    \"config\": [],\n    \"is_active\": false,\n    \"created_at\": \"1998-04-25T15:44:58.729Z\",\n    \"updated_at\": \"1953-09-15T14:02:43.939Z\"\n  }\n]"
             }
           ]
         },
@@ -4168,7 +4989,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"id\": \"9aa237a2-88db-504e-c87f-83ac311d9e24\",\n  \"tenant_id\": \"6acb8640-cd8d-e42b-2300-3e860c1179e5\",\n  \"source_system\": \"string\",\n  \"entity\": \"string\",\n  \"version\": \"string\",\n  \"config\": [],\n  \"is_active\": true,\n  \"created_at\": \"1983-11-20T20:26:11.922Z\",\n  \"updated_at\": \"1968-11-12T05:13:53.844Z\"\n}"
+              "body": "{\n  \"id\": \"ceab3779-7a11-8d06-56bb-bc93e20a14ae\",\n  \"tenant_id\": \"81f1dc7a-a672-1fa9-f380-0654c36ccba6\",\n  \"source_system\": \"string\",\n  \"entity\": \"string\",\n  \"version\": \"string\",\n  \"config\": [],\n  \"is_active\": false,\n  \"created_at\": \"2015-06-27T16:10:52.260Z\",\n  \"updated_at\": \"2010-10-10T05:38:59.228Z\"\n}"
             },
             {
               "name": "Validation Error",
@@ -4219,7 +5040,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
             }
           ]
         }
@@ -4263,7 +5084,7 @@
                   "variable": [
                     {
                       "key": "lookup_id",
-                      "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                      "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                     }
                   ]
                 },
@@ -4297,7 +5118,7 @@
                       "variable": [
                         {
                           "key": "lookup_id",
-                          "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                          "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                         }
                       ]
                     }
@@ -4312,7 +5133,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"ed47caed-13fb-1965-96be-87690349cdf2\",\n  \"tenant_id\": \"45f54465-156e-105d-57e4-486455d15d78\",\n  \"name\": \"string\",\n  \"entries\": {},\n  \"created_at\": \"2025-07-11T11:33:35.101Z\",\n  \"updated_at\": \"1964-04-19T12:41:52.566Z\"\n}"
+                  "body": "{\n  \"id\": \"98599d09-53d3-fd46-9129-2f582833bc54\",\n  \"tenant_id\": \"1690c097-fb98-0b57-aa1d-10070eaf5426\",\n  \"name\": \"string\",\n  \"entries\": {},\n  \"created_at\": \"1972-04-28T19:19:44.851Z\",\n  \"updated_at\": \"1980-12-07T23:05:54.536Z\"\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -4341,7 +5162,7 @@
                       "variable": [
                         {
                           "key": "lookup_id",
-                          "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                          "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                         }
                       ]
                     }
@@ -4356,7 +5177,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -4386,7 +5207,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\"\n  }\n}",
+                  "raw": "{\n  \"name\": null,\n  \"entries\": null\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -4406,7 +5227,7 @@
                   "variable": [
                     {
                       "key": "lookup_id",
-                      "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                      "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                     }
                   ]
                 },
@@ -4434,7 +5255,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\"\n  }\n}",
+                      "raw": "{\n  \"name\": null,\n  \"entries\": null\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -4454,7 +5275,7 @@
                       "variable": [
                         {
                           "key": "lookup_id",
-                          "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                          "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                         }
                       ]
                     }
@@ -4469,7 +5290,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"ed47caed-13fb-1965-96be-87690349cdf2\",\n  \"tenant_id\": \"45f54465-156e-105d-57e4-486455d15d78\",\n  \"name\": \"string\",\n  \"entries\": {},\n  \"created_at\": \"2025-07-11T11:33:35.101Z\",\n  \"updated_at\": \"1964-04-19T12:41:52.566Z\"\n}"
+                  "body": "{\n  \"id\": \"98599d09-53d3-fd46-9129-2f582833bc54\",\n  \"tenant_id\": \"1690c097-fb98-0b57-aa1d-10070eaf5426\",\n  \"name\": \"string\",\n  \"entries\": {},\n  \"created_at\": \"1972-04-28T19:19:44.851Z\",\n  \"updated_at\": \"1980-12-07T23:05:54.536Z\"\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -4492,7 +5313,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\"\n  }\n}",
+                      "raw": "{\n  \"name\": null,\n  \"entries\": null\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -4512,7 +5333,7 @@
                       "variable": [
                         {
                           "key": "lookup_id",
-                          "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                          "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                         }
                       ]
                     }
@@ -4527,7 +5348,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -4563,7 +5384,7 @@
                   "variable": [
                     {
                       "key": "lookup_id",
-                      "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                      "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                     }
                   ]
                 },
@@ -4593,7 +5414,7 @@
                       "variable": [
                         {
                           "key": "lookup_id",
-                          "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                          "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                         }
                       ]
                     }
@@ -4603,7 +5424,7 @@
                   "_postman_previewlanguage": "text",
                   "header": [],
                   "cookie": [],
-                  "body": null
+                  "body": ""
                 },
                 {
                   "name": "Validation Error",
@@ -4632,7 +5453,7 @@
                       "variable": [
                         {
                           "key": "lookup_id",
-                          "value": "b24bcd5b-37e7-9dcf-3dfe-fd98cfa311e7"
+                          "value": "ab5be9cc-d3d4-5f40-2ec6-c1cf43a77a93"
                         }
                       ]
                     }
@@ -4647,7 +5468,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -4720,7 +5541,7 @@
                 }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"id\": \"39faade9-8665-e4a8-ec9c-be9d5abb464c\",\n    \"tenant_id\": \"f2b10e6f-cb4c-c3ae-4970-410418a60b3a\",\n    \"name\": \"string\",\n    \"entries\": {},\n    \"created_at\": \"2018-09-19T15:42:57.198Z\",\n    \"updated_at\": \"2014-07-23T20:39:15.457Z\"\n  },\n  {\n    \"id\": \"0f04bd09-fcc0-f2ca-82ed-c9429bccc98f\",\n    \"tenant_id\": \"0292b48d-eac5-da3a-5821-98b514865a9a\",\n    \"name\": \"string\",\n    \"entries\": {},\n    \"created_at\": \"2019-03-09T09:46:09.625Z\",\n    \"updated_at\": \"2017-06-17T13:11:24.979Z\"\n  }\n]"
+              "body": "[\n  {\n    \"id\": \"55270ebf-aece-45f2-e4f4-ff2a7be53c06\",\n    \"tenant_id\": \"c71260e1-8f47-d9ba-f52d-3a59f0f5aaa5\",\n    \"name\": \"string\",\n    \"entries\": {},\n    \"created_at\": \"2012-05-21T05:58:27.216Z\",\n    \"updated_at\": \"1979-06-01T05:32:28.864Z\"\n  },\n  {\n    \"id\": \"1ab4b579-6afd-757e-0ffe-e1eb3dfd55e4\",\n    \"tenant_id\": \"3b29ae4f-3630-f517-314f-bbc661245bcd\",\n    \"name\": \"string\",\n    \"entries\": {},\n    \"created_at\": \"1977-06-03T10:28:16.199Z\",\n    \"updated_at\": \"1952-11-14T10:22:45.246Z\"\n  }\n]"
             }
           ]
         },
@@ -4750,7 +5571,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\",\n    \"key_1\": \"string\",\n    \"key_2\": \"string\",\n    \"key_3\": \"string\",\n    \"key_4\": \"string\"\n  }\n}",
+              "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\",\n    \"key_1\": \"string\",\n    \"key_2\": \"string\"\n  }\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -4791,7 +5612,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\",\n    \"key_1\": \"string\",\n    \"key_2\": \"string\",\n    \"key_3\": \"string\",\n    \"key_4\": \"string\"\n  }\n}",
+                  "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\",\n    \"key_1\": \"string\",\n    \"key_2\": \"string\"\n  }\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -4819,7 +5640,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"id\": \"ed47caed-13fb-1965-96be-87690349cdf2\",\n  \"tenant_id\": \"45f54465-156e-105d-57e4-486455d15d78\",\n  \"name\": \"string\",\n  \"entries\": {},\n  \"created_at\": \"2025-07-11T11:33:35.101Z\",\n  \"updated_at\": \"1964-04-19T12:41:52.566Z\"\n}"
+              "body": "{\n  \"id\": \"98599d09-53d3-fd46-9129-2f582833bc54\",\n  \"tenant_id\": \"1690c097-fb98-0b57-aa1d-10070eaf5426\",\n  \"name\": \"string\",\n  \"entries\": {},\n  \"created_at\": \"1972-04-28T19:19:44.851Z\",\n  \"updated_at\": \"1980-12-07T23:05:54.536Z\"\n}"
             },
             {
               "name": "Validation Error",
@@ -4842,7 +5663,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\",\n    \"key_1\": \"string\",\n    \"key_2\": \"string\",\n    \"key_3\": \"string\",\n    \"key_4\": \"string\"\n  }\n}",
+                  "raw": "{\n  \"name\": \"string\",\n  \"entries\": {\n    \"key_0\": \"string\",\n    \"key_1\": \"string\",\n    \"key_2\": \"string\"\n  }\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -4870,7 +5691,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
             }
           ]
         }
@@ -4917,15 +5738,15 @@
                       ],
                       "query": [
                         {
-                          "description": "Filtrar por nivel de log: 'DEBUG', 'INFO', 'WARNING', 'ERROR'",
                           "key": "level",
-                          "value": "string"
+                          "value": "string",
+                          "description": "Filtrar por nivel de log: 'DEBUG', 'INFO', 'WARNING', 'ERROR'"
                         }
                       ],
                       "variable": [
                         {
                           "key": "trace_id",
-                          "value": "a3506277-9415-c334-f973-cda89ed9f00b"
+                          "value": "9ecab409-c279-0329-9b02-0da143249d89"
                         }
                       ]
                     },
@@ -4967,7 +5788,7 @@
                           "variable": [
                             {
                               "key": "trace_id",
-                              "value": "a3506277-9415-c334-f973-cda89ed9f00b"
+                              "value": "9ecab409-c279-0329-9b02-0da143249d89"
                             }
                           ]
                         }
@@ -4982,7 +5803,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "[\n  {\n    \"id\": \"c5dada28-cb54-058e-128f-8d6e25d6c7e9\",\n    \"trace_id\": \"4bbedea3-b979-d6b2-973e-58ce8b8b4588\",\n    \"timestamp\": \"1992-11-08T08:16:27.999Z\",\n    \"level\": \"string\",\n    \"event\": \"string\",\n    \"message\": \"string\",\n    \"data\": {}\n  },\n  {\n    \"id\": \"2eb1eebb-9a5a-b4b1-4ecd-2075e0481bdb\",\n    \"trace_id\": \"f8d9fc09-35e6-d246-b0e1-70d047d2cc3e\",\n    \"timestamp\": \"1948-01-21T11:32:45.288Z\",\n    \"level\": \"string\",\n    \"event\": \"string\",\n    \"message\": \"string\",\n    \"data\": {}\n  }\n]"
+                      "body": "[\n  {\n    \"id\": \"2aa9ce46-5c03-cf7e-9962-6f7f8864ac10\",\n    \"trace_id\": \"19341c66-6001-6ae9-deea-402990a35a17\",\n    \"timestamp\": \"1964-02-12T16:31:02.891Z\",\n    \"level\": \"string\",\n    \"event\": \"string\",\n    \"message\": \"string\",\n    \"data\": {}\n  },\n  {\n    \"id\": \"4d84d248-f80e-9fe9-1908-8577d4ac39a2\",\n    \"trace_id\": \"f7ed9905-9605-53fd-fb32-fb7c194ea23b\",\n    \"timestamp\": \"2022-05-02T19:37:09.749Z\",\n    \"level\": \"string\",\n    \"event\": \"string\",\n    \"message\": \"string\",\n    \"data\": {}\n  }\n]"
                     },
                     {
                       "name": "Validation Error",
@@ -5019,7 +5840,7 @@
                           "variable": [
                             {
                               "key": "trace_id",
-                              "value": "a3506277-9415-c334-f973-cda89ed9f00b"
+                              "value": "9ecab409-c279-0329-9b02-0da143249d89"
                             }
                           ]
                         }
@@ -5034,7 +5855,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                     }
                   ]
                 }
@@ -5072,7 +5893,7 @@
                   "variable": [
                     {
                       "key": "trace_id",
-                      "value": "a3506277-9415-c334-f973-cda89ed9f00b"
+                      "value": "9ecab409-c279-0329-9b02-0da143249d89"
                     }
                   ]
                 },
@@ -5106,7 +5927,7 @@
                       "variable": [
                         {
                           "key": "trace_id",
-                          "value": "a3506277-9415-c334-f973-cda89ed9f00b"
+                          "value": "9ecab409-c279-0329-9b02-0da143249d89"
                         }
                       ]
                     }
@@ -5121,7 +5942,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"trace_id\": \"b05dc63e-f86f-7805-e647-eec5af807c00\",\n  \"tenant_id\": \"daa08c8d-137b-5a5c-423f-93aa6ec13dda\",\n  \"integration_id\": \"8b619ad8-b8f5-c530-02fd-ff4de3543c3b\",\n  \"entity\": \"string\",\n  \"source_system\": \"string\",\n  \"status\": \"string\",\n  \"retries\": 406,\n  \"error_detail\": {},\n  \"created_at\": \"2001-11-30T09:36:28.171Z\",\n  \"updated_at\": \"1989-07-12T16:39:07.645Z\"\n}"
+                  "body": "{\n  \"trace_id\": \"bcdffe94-75cf-e4c3-ccad-5c390472a580\",\n  \"tenant_id\": \"d71665fc-824d-9b23-c9ca-8139d0327f96\",\n  \"integration_id\": \"559c06c7-6820-cceb-4bfd-c921f7917ccc\",\n  \"entity\": \"string\",\n  \"source_system\": \"string\",\n  \"status\": \"string\",\n  \"retries\": 7599,\n  \"error_detail\": {},\n  \"created_at\": \"1979-12-27T21:38:07.427Z\",\n  \"updated_at\": \"2003-01-13T20:21:37.301Z\"\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -5150,7 +5971,7 @@
                       "variable": [
                         {
                           "key": "trace_id",
-                          "value": "a3506277-9415-c334-f973-cda89ed9f00b"
+                          "value": "9ecab409-c279-0329-9b02-0da143249d89"
                         }
                       ]
                     }
@@ -5165,7 +5986,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -5201,19 +6022,19 @@
               ],
               "query": [
                 {
-                  "description": "Filtrar por estado del mensaje: 'pending', 'processing', 'ok', 'error', 'retry'",
                   "key": "status",
-                  "value": "string"
+                  "value": "string",
+                  "description": "Filtrar por estado del mensaje: 'pending', 'processing', 'ok', 'error', 'retry'"
                 },
                 {
-                  "description": "Filtrar por sistema de origen (ej: 'vtex', 'sap')",
                   "key": "source_system",
-                  "value": "string"
+                  "value": "string",
+                  "description": "Filtrar por sistema de origen (ej: 'vtex', 'sap')"
                 },
                 {
-                  "description": "Máximo de resultados (1-200)",
                   "key": "limit",
-                  "value": "50"
+                  "value": "50",
+                  "description": "Máximo de resultados (1-200)"
                 }
               ]
             },
@@ -5272,7 +6093,7 @@
                 }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"trace_id\": \"5449e93f-6a14-9b8d-211e-78288276694b\",\n    \"tenant_id\": \"42a0d04a-915c-c16b-b747-09707edc0e0a\",\n    \"integration_id\": \"4407c55d-d3ef-1872-576b-34118e7881ad\",\n    \"entity\": \"string\",\n    \"source_system\": \"string\",\n    \"status\": \"string\",\n    \"retries\": 4784,\n    \"error_detail\": {},\n    \"created_at\": \"1973-03-11T11:38:58.045Z\",\n    \"updated_at\": \"1972-10-09T15:07:30.960Z\"\n  },\n  {\n    \"trace_id\": \"925c0b4c-58ba-a328-5aae-1fc01ff3cbab\",\n    \"tenant_id\": \"19c9645a-271e-55bf-f972-8b7ee3e6e15e\",\n    \"integration_id\": \"60cab664-ffff-eb4d-b650-fd5c07f28e7d\",\n    \"entity\": \"string\",\n    \"source_system\": \"string\",\n    \"status\": \"string\",\n    \"retries\": 803,\n    \"error_detail\": {},\n    \"created_at\": \"1985-04-15T13:00:52.378Z\",\n    \"updated_at\": \"2017-03-31T06:04:20.395Z\"\n  }\n]"
+              "body": "[\n  {\n    \"trace_id\": \"89e87815-b0bc-6d05-ad3b-bf85513f1665\",\n    \"tenant_id\": \"b818d647-8c4e-91f3-1bac-0c80f9286ac8\",\n    \"integration_id\": \"e6923d87-925c-82fa-c2fb-339185d39ef1\",\n    \"entity\": \"string\",\n    \"source_system\": \"string\",\n    \"status\": \"string\",\n    \"retries\": 9318,\n    \"error_detail\": {},\n    \"created_at\": \"1976-08-09T12:00:39.298Z\",\n    \"updated_at\": \"1972-09-07T04:15:13.416Z\"\n  },\n  {\n    \"trace_id\": \"f8360871-9081-baaf-a6a2-39b03e184e4d\",\n    \"tenant_id\": \"3c38c842-3b0d-7483-d209-438bd450d947\",\n    \"integration_id\": \"42733fc6-e5e5-11f3-c3a2-077262a046e9\",\n    \"entity\": \"string\",\n    \"source_system\": \"string\",\n    \"status\": \"string\",\n    \"retries\": 4254,\n    \"error_detail\": {},\n    \"created_at\": \"1962-07-16T06:55:31.783Z\",\n    \"updated_at\": \"2003-10-13T09:31:50.652Z\"\n  }\n]"
             },
             {
               "name": "Validation Error",
@@ -5326,7 +6147,7 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
             }
           ]
         }
@@ -5360,7 +6181,7 @@
                   "variable": [
                     {
                       "key": "integration_id",
-                      "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                      "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                     }
                   ]
                 },
@@ -5389,7 +6210,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     }
@@ -5428,7 +6249,7 @@
                       "variable": [
                         {
                           "key": "integration_id",
-                          "value": "f9a35b9c-d9d5-dda4-85d2-174ebb5e3dc6"
+                          "value": "03eb9d39-4125-4ea7-efec-1e7070cf3317"
                         }
                       ]
                     }
@@ -5443,7 +6264,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        4054,\n        4630\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3857,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -5506,13 +6327,23 @@
                 }
               ],
               "cookie": [],
-              "body": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\"\n}"
+              "body": "{\n  \"key_0\": \"string\"\n}"
             }
           ]
         }
       ]
     }
   ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{json_web_token_18gk}}",
+        "type": "string"
+      }
+    ]
+  },
   "event": [
     {
       "listen": "prerequest",
@@ -5541,6 +6372,18 @@
     {
       "key": "baseUrl",
       "value": "/"
+    },
+    {
+      "key": "token",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_18gk",
+      "secret": true
+    },
+    {
+      "key": "tn_client_secret",
+      "value": ""
     }
   ]
 }

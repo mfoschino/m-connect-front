@@ -1,35 +1,76 @@
-import { useState } from 'react'
-import Button from '../../components/ui/Button'
-import Input from '../../components/ui/Input'
+import { useCallback, useState } from 'react'
+import Button from '../ui/Button'
+import Input from '../ui/Input'
+import {
+  getProfileFlowRole,
+  mapBackendProfileToForm,
+} from '../../services/adapters/profileAdapter'
+import { getMappingValidationErrors } from '../../services/adapters/mappingAdapter'
+import FieldMappingBuilder from './FieldMappingBuilder'
 
-const ProfileForm = ({ initialValues, onCancel, onSubmit, submitLabel = 'Guardar perfil' }) => {
-  const [values, setValues] = useState({
-    name: initialValues?.name || '',
-    source_system: initialValues?.source_system || '',
-    source_entity: initialValues?.source_entity || '',
-    version: initialValues?.version || '',
-    active: initialValues?.active ?? true,
-    configText: initialValues?.config ? JSON.stringify(initialValues.config, null, 2) : '[]',
+const ProfileForm = ({
+  initialValues,
+  onCancel,
+  onSubmit,
+  submitLabel = 'Guardar perfil',
+  fieldTypes = [],
+  commonConfigFields = [],
+  fieldTypeConfigFields = {},
+  onErrorStrategies = [],
+  entityTypes = [],
+  metadataLoading = false,
+  metadataError = null,
+}) => {
+  const [values, setValues] = useState(() => {
+    const formValues = mapBackendProfileToForm(initialValues)
+
+    return {
+      name: formValues.name || '',
+      source_system: formValues.source_system || '',
+      source_entity: formValues.source_entity || '',
+      version: formValues.version || '',
+      active: formValues.active,
+      config: formValues.config ?? [],
+    }
   })
   const [error, setError] = useState('')
+
+  const selectedEntityMissing = Boolean(
+    values.source_entity
+    && !metadataLoading
+    && !entityTypes.some((option) => option.value === values.source_entity),
+  )
+  const entityOptions = selectedEntityMissing
+    ? [{ value: values.source_entity, label: `${values.source_entity} (no disponible)` }, ...entityTypes]
+    : entityTypes
+  const profileFlowRole = getProfileFlowRole(values)
 
   const handleChange = (field) => (event) => {
     const value = field === 'active' ? event.target.checked : event.target.value
     setValues((current) => ({ ...current, [field]: value }))
   }
 
-  const handleSubmit = async (event) => {
+  const setFieldMappings = useCallback((nextMappings) => {
+    setValues((current) => ({
+      ...current,
+      config: typeof nextMappings === 'function'
+        ? nextMappings(current.config)
+        : nextMappings,
+    }))
+  }, [])
+
+  const handleSubmit = (event) => {
     event.preventDefault()
     setError('')
 
-    let config
-    try {
-      config = JSON.parse(values.configText || '[]')
-      if (!Array.isArray(config)) {
-        throw new Error('La configuración debe ser un arreglo de mapeos.')
-      }
-    } catch {
-      setError('El campo de configuración debe contener JSON válido y un arreglo de objetos.')
+    const mappingErrors = getMappingValidationErrors(values.config, {
+      fieldTypes,
+      onErrorStrategies,
+      fieldTypeConfigFields,
+    })
+
+    if (mappingErrors.length > 0) {
+      setError(mappingErrors[0])
       return
     }
 
@@ -39,7 +80,7 @@ const ProfileForm = ({ initialValues, onCancel, onSubmit, submitLabel = 'Guardar
       source_entity: values.source_entity,
       version: values.version,
       active: values.active,
-      config,
+      config: values.config,
     })
   }
 
@@ -53,30 +94,62 @@ const ProfileForm = ({ initialValues, onCancel, onSubmit, submitLabel = 'Guardar
           onChange={handleChange('name')}
           required
         />
-        <Input
-          id="profile-source-system"
-          label="Sistema origen"
-          value={values.source_system}
-          onChange={handleChange('source_system')}
-          required
-        />
+        <div>
+          <Input
+            id="profile-source-system"
+            label="Sistema origen"
+            value={values.source_system}
+            onChange={handleChange('source_system')}
+            required
+          />
+          {values.source_system ? (
+            <p className="mt-2 text-sm text-slate-500">
+              {profileFlowRole === 'outbound'
+                ? 'Perfil de salida hacia Finnegans.'
+                : 'Perfil de entrada hacia el formato canónico de M-Connect.'}
+            </p>
+          ) : null}
+        </div>
       </div>
+
       <div className="grid gap-6 sm:grid-cols-2">
-        <Input
-          id="profile-source-entity"
-          label="Entidad origen"
-          value={values.source_entity}
-          onChange={handleChange('source_entity')}
-          required
-        />
+        <div className="space-y-2">
+          <label htmlFor="profile-source-entity" className="block text-sm font-semibold text-slate-900">
+            Entidad origen
+          </label>
+          <select
+            id="profile-source-entity"
+            value={values.source_entity}
+            onChange={handleChange('source_entity')}
+            className="form-input w-full"
+            disabled={metadataLoading || Boolean(metadataError)}
+            required
+          >
+            <option value="">{metadataLoading ? 'Cargando entidades...' : 'Seleccionar entidad'}</option>
+            {entityOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          {selectedEntityMissing ? (
+            <p className="text-sm text-amber-700">
+              La entidad guardada ya no está disponible en la metadata, pero se conserva para edición.
+            </p>
+          ) : null}
+          {metadataError ? (
+            <p className="text-sm text-red-600">No se pudieron cargar las entidades: {metadataError}</p>
+          ) : null}
+        </div>
         <Input
           id="profile-version"
           label="Versión"
           value={values.version}
           onChange={handleChange('version')}
-          placeholder="Ej. v1.0"
+          placeholder="Ej. 1.0.0"
         />
       </div>
+
       <div className="flex items-center gap-4">
         <input
           id="profile-active"
@@ -89,27 +162,31 @@ const ProfileForm = ({ initialValues, onCancel, onSubmit, submitLabel = 'Guardar
           Perfil activo
         </label>
       </div>
-      <div className="space-y-2">
-        <label htmlFor="profile-config" className="block text-sm font-semibold text-slate-900">
-          Configuración de campo (JSON)
-        </label>
-        <textarea
-          id="profile-config"
-          className="form-input min-h-[240px] font-mono text-sm"
-          value={values.configText}
-          onChange={handleChange('configText')}
-          aria-invalid={Boolean(error)}
-        />
-        <p className="text-sm text-slate-500">
-          {'Ingrese un arreglo JSON de objetos de mapeo. Ejemplo: [{"source_field":"foo","target_field":"bar"}]'}
-        </p>
-      </div>
+
+      <FieldMappingBuilder
+        entityId={values.source_entity}
+        fieldMappings={values.config}
+        setFieldMappings={setFieldMappings}
+        fieldTypes={fieldTypes}
+        commonConfigFields={commonConfigFields}
+        fieldTypeConfigFields={fieldTypeConfigFields}
+        onErrorStrategies={onErrorStrategies}
+        metadataLoading={metadataLoading}
+        metadataError={metadataError}
+      />
+
       {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+
       <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">{submitLabel}</Button>
+        <Button
+          type="submit"
+          disabled={metadataLoading || Boolean(metadataError)}
+        >
+          {submitLabel}
+        </Button>
       </div>
     </form>
   )

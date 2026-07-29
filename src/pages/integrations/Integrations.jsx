@@ -4,6 +4,11 @@ import integrationService from '../../services/api/integrationService'
 import profileService from '../../services/api/profileService'
 import lookupService from '../../services/api/lookupService'
 import executionService from '../../services/api/executionService'
+import {
+  getProfileFlowRole,
+  mapBackendProfileToForm,
+} from '../../services/adapters/profileAdapter'
+import useIntegrationMetadata from '../../hooks/useIntegrationMetadata'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
@@ -26,14 +31,6 @@ const statusOptions = [
   { value: 'inactive', label: 'Inactivas' },
 ]
 
-const connectorOptions = [
-  { value: 'all', label: 'Todos' },
-  { value: 'api', label: 'API' },
-  { value: 'db', label: 'DB' },
-  { value: 'file', label: 'File' },
-  { value: 'webhook', label: 'Webhook' },
-]
-
 const integrationStatusVariant = (isActive) => (isActive === false ? 'offline' : 'online')
 const profileStatusVariant = (isActive) => (isActive === false ? 'offline' : 'online')
 
@@ -45,6 +42,7 @@ const formatDateTime = (value) => {
 }
 
 const Integrations = () => {
+  const integrationMetadata = useIntegrationMetadata()
   const [activeTab, setActiveTab] = useState('integrations')
   const [integrations, setIntegrations] = useState([])
   const [profiles, setProfiles] = useState([])
@@ -89,6 +87,11 @@ const Integrations = () => {
   const [lookupDeleteLoading, setLookupDeleteLoading] = useState(false)
 
   const [successMessage, setSuccessMessage] = useState('')
+
+  const connectorOptions = useMemo(() => [
+    { value: 'all', label: 'Todos' },
+    ...integrationMetadata.connectorTypes,
+  ], [integrationMetadata.connectorTypes])
 
   const fetchData = async () => {
     setLoading(true)
@@ -374,7 +377,7 @@ const Integrations = () => {
 
     try {
       const response = await profileService.getProfile(profile.id)
-      setSelectedProfile(response.data || profile)
+      setSelectedProfile(mapBackendProfileToForm(response.data || profile))
       setProfileModalOpen(true)
     } catch (err) {
       console.error('Failed to load profile', err)
@@ -421,7 +424,7 @@ const Integrations = () => {
     setProfileDetailOpen(true)
     try {
       const response = await profileService.getProfile(profile.id)
-      setDetailProfile(response.data || profile)
+      setDetailProfile(mapBackendProfileToForm(response.data || profile))
     } catch (err) {
       console.error('Failed to load profile details', err)
       setDetailProfile(profile)
@@ -627,6 +630,7 @@ const Integrations = () => {
                 value={connectorFilter}
                 onChange={(event) => setConnectorFilter(event.target.value)}
                 className="form-input w-full"
+                disabled={integrationMetadata.loading || Boolean(integrationMetadata.error)}
               >
                 {connectorOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -638,6 +642,11 @@ const Integrations = () => {
           ) : null}
         </div>
         {error ? <p className="mt-3 text-sm font-medium text-red-600">{error}</p> : null}
+        {integrationMetadata.error ? (
+          <p className="mt-3 text-sm font-medium text-red-600">
+            No se pudo cargar la metadata de integraciones: {integrationMetadata.error}
+          </p>
+        ) : null}
       </Card>
 
       {activeTab === 'integrations' ? (
@@ -717,7 +726,14 @@ const Integrations = () => {
                   filteredProfiles.map((profile) => (
                     <tr key={profile.id} className="hover:bg-slate-50">
                       <td className="font-medium text-slate-900">{profile.name || '—'}</td>
-                      <td>{profile.source_system || '—'}</td>
+                      <td>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span>{profile.source_system || '—'}</span>
+                          <Badge variant={getProfileFlowRole(profile) === 'outbound' ? 'online' : 'pending'}>
+                            {getProfileFlowRole(profile) === 'outbound' ? 'Salida Finnegans' : 'Entrada'}
+                          </Badge>
+                        </div>
+                      </td>
                       <td>{profile.source_entity || '—'}</td>
                       <td>{profile.version || '—'}</td>
                       <td>
@@ -800,6 +816,8 @@ const Integrations = () => {
             onCancel={closeIntegrationModal}
             loading={integrationModalLoading}
             errorMessage={integrationModalError}
+            metadata={integrationMetadata}
+            profiles={profiles}
           />
         )}
       </Modal>
@@ -998,6 +1016,13 @@ const Integrations = () => {
             onSubmit={handleProfileSave}
             onCancel={closeProfileModal}
             submitLabel={profileModalMode === 'create' ? 'Crear perfil' : 'Guardar cambios'}
+            fieldTypes={integrationMetadata.fieldTypes}
+            commonConfigFields={integrationMetadata.commonConfigFields}
+            fieldTypeConfigFields={integrationMetadata.fieldTypeConfigFields}
+            onErrorStrategies={integrationMetadata.onErrorStrategies}
+            entityTypes={integrationMetadata.entityTypes}
+            metadataLoading={integrationMetadata.loading}
+            metadataError={integrationMetadata.error}
           />
         )}
         {profileModalError ? <p className="mt-4 text-sm font-medium text-red-600">{profileModalError}</p> : null}

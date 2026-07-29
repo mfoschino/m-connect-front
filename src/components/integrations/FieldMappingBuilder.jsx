@@ -1,159 +1,430 @@
-import { useEffect, useMemo } from 'react'
-import Button from '../../components/ui/Button'
-import Input from '../../components/ui/Input'
+import { Fragment, useEffect, useMemo, useState } from 'react'
+import { RotateCcw, Settings2 } from 'lucide-react'
+import Button from '../ui/Button'
 import { getEntityFieldSpec } from '../../constants/connectors'
+import {
+  CONSTANT_SOURCE_FIELD,
+  getMappingValidationErrors,
+  isConstantFieldType,
+  mapBackendMappingListToForm,
+} from '../../services/adapters/mappingAdapter'
+import MappingConfigFields from './MappingConfigFields'
 
-const FIELD_TYPE_OPTIONS = [
-  { value: 'simple', label: 'Direct mapping' },
-  { value: 'constant', label: 'Constant value' },
-]
+const CORE_CONFIG_FIELDS = new Set(['source_field', 'target_field', 'on_error'])
 
-const normalize = (s = '') => String(s).replace(/[\s_\-]+/g, '').toLowerCase()
+const normalize = (value = '') => String(value).replace(/[\s_-]+/g, '').toLowerCase()
 
-const FieldMappingBuilder = ({ entityId, fieldMappings, setFieldMappings }) => {
+const includeCurrentOption = (options, currentValue) => {
+  if (!currentValue || options.some((option) => option.value === currentValue)) return options
+  return [{ value: currentValue, label: `${currentValue} (no disponible)` }, ...options]
+}
+
+const getRawMappingsText = (fieldMappings) => (
+  typeof fieldMappings === 'string'
+    ? fieldMappings
+    : JSON.stringify(fieldMappings ?? [], null, 2)
+)
+
+const RawMappingsEditor = ({
+  fieldMappings,
+  setFieldMappings,
+  validationMetadata,
+  disabled = false,
+}) => {
+  const [text, setText] = useState(() => getRawMappingsText(fieldMappings))
+  const [error, setError] = useState('')
+
+  const handleChange = (event) => {
+    const nextText = event.target.value
+    setText(nextText)
+
+    try {
+      const parsed = JSON.parse(nextText)
+      if (!Array.isArray(parsed)) {
+        throw new Error('La configuración debe ser un arreglo JSON.')
+      }
+      const validationErrors = getMappingValidationErrors(parsed, validationMetadata)
+      setError(validationErrors[0] ?? '')
+      setFieldMappings(mapBackendMappingListToForm(parsed))
+    } catch (parseError) {
+      setError(parseError.message || 'JSON inválido.')
+      setFieldMappings(nextText)
+    }
+  }
+
+  return (
+    <div className="mt-4 space-y-2">
+      <label htmlFor="raw-field-mappings" className="block text-sm font-semibold text-slate-900">
+        Configuración de mappings (JSON)
+      </label>
+      <textarea
+        id="raw-field-mappings"
+        value={text}
+        onChange={handleChange}
+        className="form-input min-h-[220px] w-full font-mono text-sm"
+        aria-invalid={Boolean(error)}
+        disabled={disabled}
+      />
+      <p className="text-sm text-slate-500">
+        Puede editar el arreglo de mappings aunque esta entidad todavía no tenga catálogo visual de campos.
+      </p>
+      {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+    </div>
+  )
+}
+
+const FieldMappingBuilder = ({
+  entityId,
+  fieldMappings,
+  setFieldMappings,
+  fieldTypes = [],
+  commonConfigFields = [],
+  fieldTypeConfigFields = {},
+  onErrorStrategies = [],
+  metadataLoading = false,
+  metadataError = null,
+}) => {
+  const [expandedRows, setExpandedRows] = useState(() => new Set())
   const entitySpec = useMemo(() => getEntityFieldSpec(entityId), [entityId])
   const { sourceFields = [], destinationFields = [] } = entitySpec || {}
+  const defaultFieldType = fieldTypes[0]?.value ?? ''
+  const defaultOnErrorStrategy = onErrorStrategies[0]?.value ?? ''
+  const validationMetadata = {
+    fieldTypes,
+    onErrorStrategies,
+    fieldTypeConfigFields,
+  }
 
-  // Auto-generate mappings when entity changes and no mappings provided
   useEffect(() => {
     if (!entityId) return
-    // If already have mappings for this entity, do not overwrite
-    if (fieldMappings && fieldMappings.length > 0) return
+    if (metadataLoading || metadataError || !defaultFieldType || !defaultOnErrorStrategy) return
+    if (sourceFields.length === 0) return
 
-    const initial = sourceFields.map((s) => {
-      // Attempt to find destination by label/id
-      let match = destinationFields.find((d) => d.id === s.id)
-      if (!match) match = destinationFields.find((d) => d.label === s.label)
-      if (!match) match = destinationFields.find((d) => d.label.toLowerCase() === String(s.label).toLowerCase())
-      if (!match) match = destinationFields.find((d) => normalize(d.label) === normalize(s.label))
+    setFieldMappings((currentMappings) => {
+      if (!Array.isArray(currentMappings) || currentMappings.length > 0) return currentMappings
 
-      return {
-        source_field: s.id,
-        source_label: s.label,
-        target_field: match ? match.id : '',
-        target_label: match ? match.label : '',
-        field_type: 'simple',
-        constant_value: '',
-        on_error: 'fail',
-        auto_mapped: Boolean(match),
-        required: match?.required === true,
-      }
+      return sourceFields.map((sourceField) => {
+        let match = destinationFields.find((destinationField) => destinationField.id === sourceField.id)
+        if (!match) match = destinationFields.find((destinationField) => destinationField.label === sourceField.label)
+        if (!match) match = destinationFields.find((destinationField) => destinationField.label.toLowerCase() === String(sourceField.label).toLowerCase())
+        if (!match) match = destinationFields.find((destinationField) => normalize(destinationField.label) === normalize(sourceField.label))
+
+        return {
+          source_field: sourceField.id,
+          source_label: sourceField.label,
+          target_field: match ? match.id : '',
+          target_label: match ? match.label : '',
+          field_type: defaultFieldType,
+          on_error: defaultOnErrorStrategy,
+          auto_mapped: Boolean(match),
+          required: match?.required === true,
+        }
+      })
     })
+  }, [
+    defaultFieldType,
+    defaultOnErrorStrategy,
+    destinationFields,
+    entityId,
+    metadataError,
+    metadataLoading,
+    setFieldMappings,
+    sourceFields,
+  ])
 
-    setFieldMappings(initial)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entityId])
+  const toggleRow = (index) => {
+    setExpandedRows((current) => {
+      const next = new Set(current)
+      if (next.has(index)) next.delete(index)
+      else next.add(index)
+      return next
+    })
+  }
 
   const handleUpdateMapping = (index, key, value) => {
-    const updated = [...(fieldMappings || [])]
-    updated[index] = {
-      ...updated[index],
-      [key]: value,
-      ...(key === 'field_type' && value === 'simple' ? { constant_value: '' } : {}),
-      ...(key === 'field_type' && value === 'constant' ? { source_field: '' } : {}),
+    setFieldMappings((currentMappings) => {
+      if (!Array.isArray(currentMappings)) return currentMappings
+
+      const updated = [...currentMappings]
+      const currentMapping = updated[index]
+      const nextMapping = { ...currentMapping, [key]: value }
+
+      if (key === 'field_type') {
+        const wasConstant = isConstantFieldType(currentMapping.field_type)
+        const willBeConstant = isConstantFieldType(value)
+        const previousFields = fieldTypeConfigFields[currentMapping.field_type] ?? []
+        const nextFieldNames = new Set(
+          (fieldTypeConfigFields[value] ?? []).map((field) => field.name),
+        )
+
+        previousFields.forEach((field) => {
+          if (nextFieldNames.has(field.name)) return
+          if (field.name === 'value') delete nextMapping.constant_value
+          else delete nextMapping[field.name]
+        })
+
+        if (willBeConstant) {
+          if (!wasConstant) {
+            nextMapping.source_field_before_constant = currentMapping.source_field
+          }
+          nextMapping.source_field = CONSTANT_SOURCE_FIELD
+        } else {
+          if (wasConstant) {
+            if (currentMapping.source_field_before_constant) {
+              nextMapping.source_field = currentMapping.source_field_before_constant
+            } else {
+              delete nextMapping.source_field
+            }
+          }
+          delete nextMapping.constant_value
+          delete nextMapping.source_field_before_constant
+        }
+      }
+
+      updated[index] = nextMapping
+      return updated
+    })
+
+    if (key === 'field_type') {
+      setExpandedRows((current) => new Set(current).add(index))
     }
-    setFieldMappings(updated)
   }
 
-  const handleRemoveMapping = (index) => {
-    setFieldMappings((fieldMappings || []).filter((_, rowIndex) => rowIndex !== index))
+  const handleConfigChange = (index, key, value) => {
+    setFieldMappings((currentMappings) => {
+      if (!Array.isArray(currentMappings)) return currentMappings
+
+      const updated = [...currentMappings]
+      const nextMapping = { ...updated[index] }
+
+      if (value === undefined) delete nextMapping[key]
+      else nextMapping[key] = value
+
+      updated[index] = nextMapping
+      return updated
+    })
   }
+
+  const renderMetadataState = () => (
+    <>
+      {metadataLoading ? (
+        <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+          Cargando tipos de campo y estrategias de error...
+        </p>
+      ) : null}
+      {metadataError ? (
+        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          No se pudo cargar la metadata de mappings: {metadataError}
+        </p>
+      ) : null}
+    </>
+  )
 
   if (!entityId) {
     return (
-      <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-4">
-        <p className="text-sm font-semibold text-amber-900">Select an entity first</p>
-        <p className="mt-1 text-sm text-amber-700">Field mapping works after you pick the business entity to sync.</p>
+      <div className="rounded-lg border-2 border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-semibold text-amber-900">Seleccione primero una entidad</p>
+        <p className="mt-1 text-sm text-amber-700">El mapeo de campos se habilita después de elegirla.</p>
       </div>
     )
   }
 
-  if (!sourceFields || sourceFields.length === 0) {
+  if (!Array.isArray(fieldMappings) || sourceFields.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-        <p className="text-sm font-semibold text-slate-900">No source fields available</p>
-        <p className="mt-1 text-sm text-slate-600">This entity does not expose any source fields.</p>
+      <div className="space-y-4 rounded-lg border-2 border-slate-200 bg-slate-50 p-4">
+        {renderMetadataState()}
+        <div>
+          <p className="text-sm font-semibold text-slate-900">
+            {!Array.isArray(fieldMappings)
+              ? 'La configuración JSON necesita corrección'
+              : 'No hay campos configurados para esta entidad todavía'}
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            El catálogo visual local aún no incluye esta entidad; puede mantener su configuración mediante JSON.
+          </p>
+        </div>
+        <RawMappingsEditor
+          fieldMappings={fieldMappings}
+          setFieldMappings={setFieldMappings}
+          validationMetadata={validationMetadata}
+          disabled={metadataLoading}
+        />
       </div>
     )
   }
 
-  const mappings = fieldMappings || []
-
-  const autoMappedCount = mappings.filter((m) => m.auto_mapped).length
-  const needsAttentionCount = mappings.filter((m) => !m.target_field || (m.field_type === 'constant' && !m.constant_value) || (m.field_type !== 'constant' && !m.source_field)).length
-
-  // Destination required fields not mapped (if destination metadata provides `required` flag)
-  const requiredUnmapped = destinationFields.filter((d) => d.required === true && !mappings.find((m) => m.target_field === d.id))
+  const mappings = fieldMappings
+  const autoMappedCount = mappings.filter((mapping) => mapping.auto_mapped).length
+  const needsAttentionCount = mappings.filter(
+    (mapping) => getMappingValidationErrors([mapping], validationMetadata).length > 0,
+  ).length
+  const requiredUnmapped = destinationFields.filter(
+    (destinationField) => destinationField.required === true
+      && !mappings.find((mapping) => mapping.target_field === destinationField.id),
+  )
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-sm font-semibold text-slate-900">Map your data fields</h3>
-        <p className="mt-1 text-sm text-slate-600">System generated mappings are shown below — adjust any row as needed.</p>
+        <h3 className="text-sm font-semibold text-slate-900">Mapeo de campos</h3>
+        <p className="mt-1 text-sm text-slate-600">
+          Los mapeos sugeridos se pueden ajustar y configurar según el tipo informado por el backend.
+        </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between">
+      {renderMetadataState()}
+
+      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4">
         <div className="text-sm text-slate-700">
-          <strong className="text-slate-900">{autoMappedCount} mapped automatically</strong>
-          <span className="ml-3">{needsAttentionCount > 0 ? `⚠ ${needsAttentionCount} need attention` : '✓ All rows valid'}</span>
+          <strong className="text-slate-900">{autoMappedCount} mapeados automáticamente</strong>
+          <span className="ml-3">
+            {needsAttentionCount > 0
+              ? `${needsAttentionCount} requieren atención`
+              : 'Todos los mapeos son válidos'}
+          </span>
         </div>
-        <div className="text-sm text-slate-600">
-          <Button variant="outline" onClick={() => setFieldMappings([])}>Reset mappings</Button>
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setFieldMappings([])}
+          title="Restablecer mapeos"
+        >
+          <RotateCcw size={16} aria-hidden="true" />
+          Restablecer
+        </Button>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed text-sm">
+        <table className="w-full min-w-[1080px] table-fixed text-sm">
           <thead>
             <tr className="text-left text-slate-700">
-              <th className="w-1/3 py-2">Source Field</th>
-              <th className="w-1/3 py-2">Destination Field</th>
-              <th className="w-1/6 py-2">Type</th>
-              <th className="w-1/12 py-2">Required</th>
-              <th className="w-1/6 py-2">Transform</th>
+              <th className="py-2">Campo origen</th>
+              <th className="py-2">Campo destino</th>
+              <th className="py-2">Tipo</th>
+              <th className="py-2">Ante error</th>
+              <th className="w-24 py-2">Requerido</th>
+              <th className="w-40 py-2">Configuración</th>
             </tr>
           </thead>
           <tbody>
             {mappings.map((mapping, index) => {
-              const srcLabel = mapping.source_label || (sourceFields.find((s) => s.id === mapping.source_field)?.label || mapping.source_field)
+              const selectedFieldType = fieldTypes.find(
+                (option) => option.value === mapping.field_type,
+              )
+              const srcLabel = isConstantFieldType(mapping.field_type)
+                ? 'Valor constante'
+                : mapping.source_label
+                  || sourceFields.find((field) => field.id === mapping.source_field)?.label
+                  || mapping.source_field
               const isUnmapped = !mapping.target_field
-              const destRequired = mapping.required === true
+              const mappingFieldTypes = includeCurrentOption(fieldTypes, mapping.field_type)
+              const mappingOnErrorStrategies = includeCurrentOption(
+                onErrorStrategies,
+                mapping.on_error,
+              )
+              const configFields = [
+                ...commonConfigFields.filter((field) => !CORE_CONFIG_FIELDS.has(field.name)),
+                ...(fieldTypeConfigFields[mapping.field_type] ?? []),
+              ]
+                .filter((field, fieldIndex, allFields) => (
+                  allFields.findIndex((candidate) => candidate.name === field.name) === fieldIndex
+                ))
+                .map((field) => (
+                  field.name === 'value' && isConstantFieldType(mapping.field_type)
+                    ? { ...field, name: 'constant_value', label: 'Valor' }
+                    : field
+                ))
+              const isExpanded = expandedRows.has(index)
 
               return (
-                <tr key={index} className={`${isUnmapped ? 'bg-amber-50' : ''}`}>
-                  <td className="py-3 pr-4">{srcLabel}</td>
-                  <td className="py-3 pr-4">
-                    <select
-                      value={mapping.target_field}
-                      onChange={(e) => handleUpdateMapping(index, 'target_field', e.target.value)}
-                      className="form-input w-full"
-                    >
-                      <option value="">Unmapped</option>
-                      {destinationFields.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.label}{d.required ? ' *' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-3 pr-4">
-                    <select value={mapping.field_type} onChange={(e) => handleUpdateMapping(index, 'field_type', e.target.value)} className="form-input w-full">
-                      {FIELD_TYPE_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="py-3 pr-4 text-center">
-                    <input type="checkbox" checked={!!mapping.required} onChange={(e) => handleUpdateMapping(index, 'required', e.target.checked)} />
-                  </td>
-                  <td className="py-3 pr-4">
-                    {mapping.field_type === 'constant' ? (
-                      <Input value={mapping.constant_value || ''} onChange={(e) => handleUpdateMapping(index, 'constant_value', e.target.value)} placeholder="Constant value" />
-                    ) : (
-                      <div className="text-slate-500">—</div>
-                    )}
-                  </td>
-                </tr>
+                <Fragment key={`${mapping.source_field || 'mapping'}-${index}`}>
+                  <tr className={isUnmapped ? 'bg-amber-50' : ''}>
+                    <td className="py-3 pr-4">{srcLabel || '—'}</td>
+                    <td className="py-3 pr-4">
+                      <select
+                        value={mapping.target_field || ''}
+                        onChange={(event) => handleUpdateMapping(index, 'target_field', event.target.value)}
+                        className="form-input w-full"
+                      >
+                        <option value="">Sin mapear</option>
+                        {destinationFields.map((destinationField) => (
+                          <option key={destinationField.id} value={destinationField.id}>
+                            {destinationField.label}{destinationField.required ? ' *' : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <select
+                        value={mapping.field_type || ''}
+                        onChange={(event) => handleUpdateMapping(index, 'field_type', event.target.value)}
+                        className="form-input w-full"
+                        disabled={metadataLoading || Boolean(metadataError)}
+                        title={selectedFieldType?.description}
+                      >
+                        <option value="">Seleccionar tipo</option>
+                        {mappingFieldTypes.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <select
+                        value={mapping.on_error || ''}
+                        onChange={(event) => handleUpdateMapping(index, 'on_error', event.target.value)}
+                        className="form-input w-full"
+                        disabled={metadataLoading || Boolean(metadataError)}
+                      >
+                        <option value="">Seleccionar estrategia</option>
+                        {mappingOnErrorStrategies.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-3 pr-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(mapping.required)}
+                        onChange={(event) => handleUpdateMapping(index, 'required', event.target.checked)}
+                      />
+                    </td>
+                    <td className="py-3 pr-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => toggleRow(index)}
+                        disabled={!mapping.field_type}
+                        title={isExpanded ? 'Ocultar configuración' : 'Editar configuración'}
+                      >
+                        <Settings2 size={16} aria-hidden="true" />
+                        {isExpanded ? 'Ocultar' : 'Configurar'}
+                      </Button>
+                    </td>
+                  </tr>
+                  {isExpanded ? (
+                    <tr className="border-b border-slate-200 bg-white">
+                      <td colSpan="6" className="px-4 py-4">
+                        {selectedFieldType?.description ? (
+                          <p className="mb-4 text-sm text-slate-600">
+                            {selectedFieldType.description}
+                          </p>
+                        ) : null}
+                        {configFields.length > 0 ? (
+                          <MappingConfigFields
+                            fields={configFields}
+                            mapping={mapping}
+                            onChange={(key, value) => handleConfigChange(index, key, value)}
+                            validationMetadata={validationMetadata}
+                          />
+                        ) : (
+                          <p className="text-sm text-slate-500">
+                            Este tipo no requiere configuración adicional.
+                          </p>
+                        )}
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
               )
             })}
           </tbody>
@@ -161,15 +432,15 @@ const FieldMappingBuilder = ({ entityId, fieldMappings, setFieldMappings }) => {
       </div>
 
       {requiredUnmapped.length > 0 ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-          <strong>Required fields not mapped:</strong>
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          <strong>Campos requeridos sin mapear:</strong>
           <ul className="mt-2 list-disc pl-5">
-            {requiredUnmapped.map((d) => (<li key={d.id}>{d.label}</li>))}
+            {requiredUnmapped.map((destinationField) => (
+              <li key={destinationField.id}>{destinationField.label}</li>
+            ))}
           </ul>
         </div>
       ) : null}
-
-      <div className="text-sm text-slate-600">Tip: You can edit any row. Transformations and lookups are supported in a future iteration.</div>
     </div>
   )
 }
