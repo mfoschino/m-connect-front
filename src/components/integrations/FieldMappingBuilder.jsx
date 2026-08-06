@@ -83,8 +83,10 @@ const FieldMappingBuilder = ({
   onErrorStrategies = [],
   metadataLoading = false,
   metadataError = null,
+  autoMapEnabled = true,
 }) => {
   const [expandedRows, setExpandedRows] = useState(() => new Set())
+  const [rawMode, setRawMode] = useState(false)
   const entitySpec = useMemo(() => getEntityFieldSpec(entityId), [entityId])
   const { sourceFields = [], destinationFields = [] } = entitySpec || {}
   const defaultFieldType = fieldTypes[0]?.value ?? ''
@@ -96,6 +98,7 @@ const FieldMappingBuilder = ({
   }
 
   useEffect(() => {
+    if (!autoMapEnabled) return
     if (!entityId) return
     if (metadataLoading || metadataError || !defaultFieldType || !defaultOnErrorStrategy) return
     if (sourceFields.length === 0) return
@@ -122,6 +125,7 @@ const FieldMappingBuilder = ({
       })
     })
   }, [
+    autoMapEnabled,
     defaultFieldType,
     defaultOnErrorStrategy,
     destinationFields,
@@ -229,7 +233,36 @@ const FieldMappingBuilder = ({
     )
   }
 
-  if (!Array.isArray(fieldMappings) || sourceFields.length === 0) {
+  if (rawMode) {
+    return (
+      <div className="space-y-4 rounded-lg border-2 border-slate-200 bg-slate-50 p-4">
+        {renderMetadataState()}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Edición completa de mappings</p>
+            <p className="mt-1 text-sm text-slate-600">
+              El arreglo conserva la metadata y la validación recursiva del formulario.
+            </p>
+          </div>
+          <Button type="button" variant="outline" onClick={() => setRawMode(false)}>
+            Volver al editor visual
+          </Button>
+        </div>
+        <RawMappingsEditor
+          fieldMappings={fieldMappings}
+          setFieldMappings={setFieldMappings}
+          validationMetadata={validationMetadata}
+          disabled={metadataLoading}
+        />
+      </div>
+    )
+  }
+
+  if (
+    !Array.isArray(fieldMappings)
+    || sourceFields.length === 0
+    || (!autoMapEnabled && fieldMappings.length === 0)
+  ) {
     return (
       <div className="space-y-4 rounded-lg border-2 border-slate-200 bg-slate-50 p-4">
         {renderMetadataState()}
@@ -265,11 +298,16 @@ const FieldMappingBuilder = ({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-sm font-semibold text-slate-900">Mapeo de campos</h3>
-        <p className="mt-1 text-sm text-slate-600">
-          Los mapeos sugeridos se pueden ajustar y configurar según el tipo informado por el backend.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900">Mapeo de campos</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            Los mapeos sugeridos se pueden ajustar y configurar según el tipo informado por el backend.
+          </p>
+        </div>
+        <Button type="button" variant="outline" onClick={() => setRawMode(true)}>
+          Editar JSON completo
+        </Button>
       </div>
 
       {renderMetadataState()}

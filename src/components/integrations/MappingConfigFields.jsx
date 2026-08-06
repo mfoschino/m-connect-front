@@ -180,6 +180,7 @@ const MappingConfigFields = ({
             field={field}
             value={value}
             onChange={(nextValue) => onChange(field.name, nextValue)}
+            validationMetadata={validationMetadata}
           />
         )
       }

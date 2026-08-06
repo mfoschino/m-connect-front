@@ -1,13 +1,69 @@
 import {
   mapBackendMappingListToForm,
   normalizeBackendMappingList,
-} from './mappingAdapter'
+} from './mappingAdapter.js'
 
 export const FINNEGANS_SOURCE_SYSTEM = 'finnegans'
 export const FINNEGANS_PUNTO_VENTA_SOURCE_SYSTEM = 'finnegans_punto_venta'
 export const FINNEGANS_DOCUMENT_PEDIDO_VENTA = 'pedido_venta'
 export const FINNEGANS_DOCUMENT_PUNTO_VENTA = 'punto_venta'
 export const FINNEGANS_DOCUMENT_ENTITY = 'sales_order'
+
+const LEGACY_API_CONFIG_KEYS = {
+  baseUrl: 'base_url',
+  authType: 'auth_type',
+  apiKeyHeader: 'api_key_header',
+  apiKey: 'api_key',
+  bearerToken: 'bearer_token',
+  basicUsername: 'basic_username',
+  basicPassword: 'basic_password',
+  dataPath: 'data_path',
+}
+
+const isObjectConfig = (value) => (
+  value !== null
+  && typeof value === 'object'
+  && !Array.isArray(value)
+)
+
+const parseObjectConfig = (value) => {
+  if (isObjectConfig(value) || typeof value !== 'string' || !value.trim()) return value
+
+  try {
+    const parsedValue = JSON.parse(value)
+    return isObjectConfig(parsedValue) ? parsedValue : value
+  } catch {
+    return value
+  }
+}
+
+export const normalizeApiConnectorConfig = (config = {}) => {
+  const normalizedConfig = { ...config }
+
+  Object.entries(LEGACY_API_CONFIG_KEYS).forEach(([legacyKey, backendKey]) => {
+    if (normalizedConfig[backendKey] === undefined && normalizedConfig[legacyKey] !== undefined) {
+      normalizedConfig[backendKey] = normalizedConfig[legacyKey]
+    }
+    delete normalizedConfig[legacyKey]
+  })
+
+  if (Object.hasOwn(normalizedConfig, 'headers')) {
+    normalizedConfig.headers = parseObjectConfig(normalizedConfig.headers)
+  }
+  if (Object.hasOwn(normalizedConfig, 'pagination')) {
+    normalizedConfig.pagination = parseObjectConfig(normalizedConfig.pagination)
+  }
+
+  if (normalizedConfig.data_path === '') {
+    normalizedConfig.data_path = null
+  }
+
+  return normalizedConfig
+}
+
+const normalizeConnectorConfig = (config, connectorType) => (
+  connectorType === 'api' ? normalizeApiConnectorConfig(config) : { ...(config ?? {}) }
+)
 
 export const FINNEGANS_DOCUMENT_OPTIONS = [
   {
@@ -103,7 +159,10 @@ export const getCanonicalEntityDesign = (entity, entityTypes = []) => {
 
 export const mapBackendIntegrationToDesign = (integration) => {
   const backendIntegration = integration ?? {}
-  const backendConfig = backendIntegration.config ?? {}
+  const backendConfig = normalizeConnectorConfig(
+    backendIntegration.config,
+    backendIntegration.connector_type,
+  )
   const sourceEntity = backendIntegration.source_entity ?? backendIntegration.entity ?? ''
   const config = {
     ...backendConfig,
@@ -121,7 +180,7 @@ export const mapBackendIntegrationToDesign = (integration) => {
 }
 
 export const buildBackendIntegrationPayload = (formData = {}) => {
-  const config = { ...(formData.config ?? {}) }
+  const config = normalizeConnectorConfig(formData.config, formData.connector_type)
   const sourceEntity = formData.source_entity ?? formData.entity_id
   const sourceSystem = getFormSourceSystem(formData)
   const finnegansDocument = normalizeFinnegansDocumentForEntity(sourceEntity, formData)

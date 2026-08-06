@@ -1023,6 +1023,7 @@ const Integrations = () => {
             entityTypes={integrationMetadata.entityTypes}
             metadataLoading={integrationMetadata.loading}
             metadataError={integrationMetadata.error}
+            showPresets={profileModalMode === 'create'}
           />
         )}
         {profileModalError ? <p className="mt-4 text-sm font-medium text-red-600">{profileModalError}</p> : null}
@@ -1080,6 +1081,7 @@ const Integrations = () => {
             onSubmit={handleLookupSave}
             onCancel={closeLookupModal}
             submitLabel={lookupModalMode === 'create' ? 'Crear tabla' : 'Guardar cambios'}
+            showPresets={lookupModalMode === 'create'}
           />
         )}
         {lookupModalError ? <p className="mt-4 text-sm font-medium text-red-600">{lookupModalError}</p> : null}

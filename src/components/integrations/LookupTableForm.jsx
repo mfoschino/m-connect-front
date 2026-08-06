@@ -1,16 +1,54 @@
 import { useState } from 'react'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
+import {
+  LOOKUP_TABLE_PRESETS,
+  getLookupTablePreset,
+  shouldShowCreationPresets,
+} from '../../constants/onboardingPresets'
 
-const LookupTableForm = ({ initialValues, onCancel, onSubmit, submitLabel = 'Guardar tabla' }) => {
+const hasLookupValues = (values) => (
+  Boolean(values.name.trim())
+  || !['', '{}'].includes(values.entriesText.trim())
+)
+
+const LookupTableForm = ({
+  initialValues,
+  onCancel,
+  onSubmit,
+  submitLabel = 'Guardar tabla',
+  showPresets = false,
+}) => {
   const [values, setValues] = useState({
     name: initialValues?.name || '',
     entriesText: initialValues?.entries ? JSON.stringify(initialValues.entries, null, 2) : '{}',
   })
   const [error, setError] = useState('')
+  const [selectedPresetId, setSelectedPresetId] = useState('')
+  const canUsePresets = shouldShowCreationPresets(showPresets, initialValues?.id)
 
   const handleChange = (field) => (event) => {
     setValues((current) => ({ ...current, [field]: event.target.value }))
+  }
+
+  const handlePresetChange = (event) => {
+    const presetId = event.target.value
+    const preset = getLookupTablePreset(presetId)
+    if (!preset) return
+
+    if (
+      hasLookupValues(values)
+      && !window.confirm('Aplicar esta plantilla reemplazará el nombre y las entradas actuales. ¿Continuar?')
+    ) {
+      return
+    }
+
+    setSelectedPresetId(presetId)
+    setValues({
+      name: preset.values.name,
+      entriesText: JSON.stringify(preset.values.entries, null, 2),
+    })
+    setError('')
   }
 
   const handleSubmit = (event) => {
@@ -36,6 +74,28 @@ const LookupTableForm = ({ initialValues, onCancel, onSubmit, submitLabel = 'Gua
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {canUsePresets ? (
+        <div className="space-y-2 rounded-2xl border border-sky-200 bg-sky-50 p-4">
+          <label htmlFor="lookup-preset" className="block text-sm font-semibold text-slate-900">
+            Plantilla opcional
+          </label>
+          <select
+            id="lookup-preset"
+            value={selectedPresetId}
+            onChange={handlePresetChange}
+            className="form-input w-full bg-white"
+          >
+            <option value="">Seleccionar plantilla</option>
+            {LOOKUP_TABLE_PRESETS.map((preset) => (
+              <option key={preset.id} value={preset.id}>{preset.label}</option>
+            ))}
+          </select>
+          <p className="text-sm text-slate-600">
+            La plantilla sólo precarga el formulario. Podés revisar y editar todo antes de crear la tabla.
+          </p>
+        </div>
+      ) : null}
+
       <Input
         id="lookup-name"
         label="Nombre de la tabla"

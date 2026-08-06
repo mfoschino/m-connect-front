@@ -1,8 +1,8 @@
 import {
   mapBackendMappingListToForm,
   normalizeBackendMappingList,
-} from './mappingAdapter'
-import { isFinnegansSourceSystem } from './integrationFlowAdapter'
+} from './mappingAdapter.js'
+import { isFinnegansSourceSystem } from './integrationFlowAdapter.js'
 
 export const getProfileFlowRole = (profile = {}) => (
   isFinnegansSourceSystem(profile.source_system)

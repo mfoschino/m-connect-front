@@ -16,35 +16,106 @@
  * that gets passed to the API unchanged (for backward compatibility)
  */
 
-import { useState, useMemo, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { getConnectorSchema } from '../../constants/connectors'
 
-const ConnectorConfigForm = ({ connectorType, sourceSystemName, config = {}, setConfig, error }) => {
-  const schema = useMemo(() => getConnectorSchema(connectorType), [connectorType])
+const isJsonObject = (value) => (
+  value !== null
+  && typeof value === 'object'
+  && !Array.isArray(value)
+)
 
-  // Local form state - sync with config prop
-  const [formValues, setFormValues] = useState({})
+const formatJsonValue = (value) => {
+  if (value === undefined || value === null) return ''
+  if (typeof value === 'string') return value
+  return JSON.stringify(value, null, 2)
+}
+
+const validateJsonDraft = (field, value) => {
+  if (!value.trim()) {
+    return field.required ? `El campo ${field.label} es obligatorio.` : ''
+  }
+
+  try {
+    const parsedValue = JSON.parse(value)
+    if (field.objectOnly && !isJsonObject(parsedValue)) {
+      return `${field.label} debe ser un objeto JSON.`
+    }
+    return ''
+  } catch {
+    return `El JSON de ${field.label} no es válido.`
+  }
+}
+
+const getInitialJsonState = (schema, config) => {
+  const drafts = {}
+  const errors = {}
+
+  schema?.fields
+    .filter((field) => field.type === 'json')
+    .forEach((field) => {
+      const draft = formatJsonValue(config?.[field.id])
+      drafts[field.id] = draft
+      const validationError = validateJsonDraft(field, draft)
+      if (validationError) errors[field.id] = validationError
+    })
+
+  return { drafts, errors }
+}
+
+const ConnectorConfigForm = ({
+  connectorType,
+  sourceSystemName,
+  config = {},
+  setConfig,
+  error,
+  onValidationChange,
+}) => {
+  const schema = useMemo(() => getConnectorSchema(connectorType), [connectorType])
+  const initialJsonState = useMemo(
+    () => getInitialJsonState(schema, config),
+    [config, schema],
+  )
+  const [jsonDrafts, setJsonDrafts] = useState(initialJsonState.drafts)
+  const [jsonErrors, setJsonErrors] = useState(initialJsonState.errors)
 
   useEffect(() => {
-    // Initialize form from config object
-    if (config && Object.keys(config).length > 0) {
-      setFormValues(config)
-    }
-  }, [config])
+    onValidationChange?.(jsonErrors)
+  }, [jsonErrors, onValidationChange])
 
-  const handleFieldChange = (fieldId, value) => {
-    const newValues = { ...formValues, [fieldId]: value }
-    setFormValues(newValues)
+  const handleFieldChange = (field, value) => {
+    const normalizedValue = field.nullable && value === '' ? null : value
+    const newValues = { ...config, [field.id]: normalizedValue }
     // Update parent with config object
+    setConfig(newValues)
+  }
+
+  const handleJsonChange = (field, value) => {
+    setJsonDrafts((current) => ({ ...current, [field.id]: value }))
+
+    const validationError = validateJsonDraft(field, value)
+    setJsonErrors((current) => {
+      const nextErrors = { ...current }
+      if (validationError) nextErrors[field.id] = validationError
+      else delete nextErrors[field.id]
+      return nextErrors
+    })
+
+    if (validationError) return
+
+    const newValues = { ...config }
+    if (!value.trim()) delete newValues[field.id]
+    else newValues[field.id] = JSON.parse(value)
+
     setConfig(newValues)
   }
 
   const handleTestConnection = async () => {
     // TODO: Implement connection testing
     // This should call a backend endpoint to validate the connection
-    console.log('Testing connection with config:', formValues)
+    console.log('Testing connection with config:', config)
     alert('Connection test not yet implemented. Configuration saved.')
   }
 
@@ -68,11 +139,11 @@ const ConnectorConfigForm = ({ connectorType, sourceSystemName, config = {}, set
         {schema.fields.map((field) => {
           // Check if field should be visible based on dependencies
           const dependsOn = field.dependsOn
-          const shouldShowField = !dependsOn || formValues[dependsOn.field] === dependsOn.value
+          const shouldShowField = !dependsOn || config[dependsOn.field] === dependsOn.value
 
           if (!shouldShowField) return null
 
-          const value = formValues[field.id] || ''
+          const value = config[field.id] ?? ''
 
           switch (field.type) {
             case 'text':
@@ -85,7 +156,7 @@ const ConnectorConfigForm = ({ connectorType, sourceSystemName, config = {}, set
                     label={field.label}
                     type={field.type}
                     value={value}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                    onChange={(e) => handleFieldChange(field, e.target.value)}
                     placeholder={field.placeholder}
                     required={field.required}
                     description={field.description}
@@ -103,7 +174,7 @@ const ConnectorConfigForm = ({ connectorType, sourceSystemName, config = {}, set
                   <select
                     id={`config-${field.id}`}
                     value={value}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                    onChange={(e) => handleFieldChange(field, e.target.value)}
                     className="form-input mt-2 w-full"
                     required={field.required}
                   >
@@ -128,7 +199,7 @@ const ConnectorConfigForm = ({ connectorType, sourceSystemName, config = {}, set
                   <textarea
                     id={`config-${field.id}`}
                     value={value}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                    onChange={(e) => handleFieldChange(field, e.target.value)}
                     placeholder={field.placeholder}
                     className="form-input mt-2 w-full min-h-[100px] font-mono text-sm"
                     required={field.required}
@@ -137,6 +208,38 @@ const ConnectorConfigForm = ({ connectorType, sourceSystemName, config = {}, set
                 </div>
               )
 
+            case 'json': {
+              const jsonError = jsonErrors[field.id]
+
+              return (
+                <div key={field.id}>
+                  <label htmlFor={`config-${field.id}`} className="block text-sm font-medium text-slate-900">
+                    {field.label}
+                    {field.required ? <span className="text-red-600">*</span> : null}
+                  </label>
+                  <textarea
+                    id={`config-${field.id}`}
+                    value={jsonDrafts[field.id] ?? ''}
+                    onChange={(e) => handleJsonChange(field, e.target.value)}
+                    placeholder={field.placeholder}
+                    className={`form-input mt-2 min-h-[130px] w-full font-mono text-sm ${
+                      jsonError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                    }`}
+                    required={field.required}
+                    aria-invalid={Boolean(jsonError)}
+                    aria-describedby={jsonError ? `config-${field.id}-error` : undefined}
+                  />
+                  {jsonError ? (
+                    <p id={`config-${field.id}-error`} className="mt-1 text-sm font-medium text-red-600">
+                      {jsonError}
+                    </p>
+                  ) : field.description ? (
+                    <p className="mt-1 text-sm text-slate-500">{field.description}</p>
+                  ) : null}
+                </div>
+              )
+            }
+
             case 'checkbox':
               return (
                 <div key={field.id} className="flex items-center gap-3">
@@ -144,7 +247,7 @@ const ConnectorConfigForm = ({ connectorType, sourceSystemName, config = {}, set
                     id={`config-${field.id}`}
                     type="checkbox"
                     checked={value === true || value === 'true'}
-                    onChange={(e) => handleFieldChange(field.id, e.target.checked)}
+                    onChange={(e) => handleFieldChange(field, e.target.checked)}
                     className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
                   />
                   <label htmlFor={`config-${field.id}`} className="text-sm font-medium text-slate-900">
@@ -174,12 +277,12 @@ const ConnectorConfigForm = ({ connectorType, sourceSystemName, config = {}, set
         <summary className="cursor-pointer font-semibold text-slate-700">Configuration Details</summary>
         <div className="mt-3 space-y-2 text-slate-600">
           <p>
-            <strong>Fields collected:</strong> {Object.keys(formValues).length}
+            <strong>Fields collected:</strong> {Object.keys(config).length}
           </p>
           <details className="mt-2">
             <summary className="cursor-pointer text-slate-700">Config Object</summary>
             <pre className="mt-2 bg-slate-50 p-2 rounded text-xs overflow-x-auto">
-              {JSON.stringify(formValues, null, 2)}
+              {JSON.stringify(config, null, 2)}
             </pre>
           </details>
         </div>

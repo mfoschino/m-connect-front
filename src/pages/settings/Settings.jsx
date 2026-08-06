@@ -1,5 +1,6 @@
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
+import FinnegansCredentialsSettings from '../../components/settings/FinnegansCredentialsSettings'
 
 const Settings = () => {
   return (
@@ -13,6 +14,8 @@ const Settings = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
+        <FinnegansCredentialsSettings />
+
         <Card title="Ajustes del espacio de trabajo" description="Gestiona valores predeterminados operativos y políticas organizacionales.">
           <div className="space-y-4 text-sm text-slate-600">
             <div>

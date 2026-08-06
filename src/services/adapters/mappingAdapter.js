@@ -132,6 +132,7 @@ const getConfigFieldErrors = (mapping, configField, validationMetadata, rowLabel
       value,
       validationMetadata,
       `${rowLabel} > ${configField.name}`,
+      false,
     )
   }
 
@@ -171,6 +172,7 @@ const getMappingListValidationErrors = (
   mappings,
   validationMetadata,
   labelPrefix,
+  requireSourceField = true,
 ) => {
   if (!Array.isArray(mappings)) {
     return [`${labelPrefix} debe ser un arreglo de mappings.`]
@@ -197,7 +199,11 @@ const getMappingListValidationErrors = (
     if (!isBlank(mapping.on_error) && !validOnErrorStrategies.has(mapping.on_error)) {
       errors.push(`${rowLabel}: on_error inválido.`)
     }
-    if (!isConstantFieldType(mapping.field_type) && isBlank(mapping.source_field)) {
+    if (
+      !isConstantFieldType(mapping.field_type)
+      && isBlank(mapping.source_field)
+      && (requireSourceField || mapping.field_type !== 'expression')
+    ) {
       errors.push(`${rowLabel}: falta source_field.`)
     }
 

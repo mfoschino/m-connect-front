@@ -13,6 +13,38 @@ export const CONNECTOR_TYPES = {
   WEBHOOK: 'webhook',
 }
 
+export const TIENDANUBE_SOURCE_SYSTEM = 'tiendanube'
+export const TIENDANUBE_SALES_ORDER_ENTITY = 'sales_order'
+
+export const getSystemPresetConfig = (sourceSystem, entity) => {
+  if (
+    sourceSystem !== TIENDANUBE_SOURCE_SYSTEM
+    || entity !== TIENDANUBE_SALES_ORDER_ENTITY
+  ) {
+    return null
+  }
+
+  return {
+    source_system: TIENDANUBE_SOURCE_SYSTEM,
+    base_url: 'https://api.tiendanube.com',
+    endpoint: '/2025-03/{{store_id}}/orders?payment_status=paid',
+    auth_type: 'api_key',
+    api_key_header: 'Authentication',
+    api_key: 'bearer {{tn_token}}',
+    headers: {
+      'User-Agent': 'MiIntegracion (servicios@morganatec.com)',
+      Accept: 'application/json',
+    },
+    data_path: null,
+    pagination: {
+      type: 'page_number',
+      page_param: 'page',
+      page_size_param: 'per_page',
+      page_size: 200,
+    },
+  }
+}
+
 export const SYSTEM_CATALOG = [
   // API Systems
   {
@@ -30,6 +62,15 @@ export const SYSTEM_CATALOG = [
     description: 'Connect to Shopify store',
     connectorType: CONNECTOR_TYPES.API,
     icon: '🛍️',
+  },
+  {
+    id: 'tiendanube',
+    name: 'Tienda Nube',
+    category: 'ecommerce',
+    description: 'Importá pedidos de Tienda Nube al modelo canónico de M-Connect',
+    connectorType: CONNECTOR_TYPES.API,
+    supportedEntities: ['sales_order'],
+    icon: 'TN',
   },
   {
     id: 'stripe',
@@ -276,7 +317,7 @@ export const CONNECTOR_CONFIG_SCHEMAS = {
     label: 'API Configuration',
     fields: [
       {
-        id: 'baseUrl',
+        id: 'base_url',
         label: 'Base URL',
         type: 'text',
         placeholder: 'https://api.example.com',
@@ -284,7 +325,15 @@ export const CONNECTOR_CONFIG_SCHEMAS = {
         description: 'The API endpoint base URL',
       },
       {
-        id: 'authType',
+        id: 'endpoint',
+        label: 'Endpoint',
+        type: 'text',
+        placeholder: '/v1/resources',
+        required: true,
+        description: 'Path and static query parameters appended to the base URL',
+      },
+      {
+        id: 'auth_type',
         label: 'Authentication Type',
         type: 'select',
         options: [
@@ -297,40 +346,67 @@ export const CONNECTOR_CONFIG_SCHEMAS = {
         required: true,
       },
       {
-        id: 'apiKey',
+        id: 'api_key_header',
+        label: 'API Key Header',
+        type: 'text',
+        placeholder: 'X-API-Key',
+        required: false,
+        dependsOn: { field: 'auth_type', value: 'api_key' },
+      },
+      {
+        id: 'api_key',
         label: 'API Key',
         type: 'password',
         required: false,
-        dependsOn: { field: 'authType', value: 'api_key' },
+        dependsOn: { field: 'auth_type', value: 'api_key' },
       },
       {
-        id: 'bearerToken',
+        id: 'bearer_token',
         label: 'Bearer Token',
         type: 'password',
         required: false,
-        dependsOn: { field: 'authType', value: 'bearer' },
+        dependsOn: { field: 'auth_type', value: 'bearer' },
       },
       {
-        id: 'basicUsername',
+        id: 'basic_username',
         label: 'Username',
         type: 'text',
         required: false,
-        dependsOn: { field: 'authType', value: 'basic' },
+        dependsOn: { field: 'auth_type', value: 'basic' },
       },
       {
-        id: 'basicPassword',
+        id: 'basic_password',
         label: 'Password',
         type: 'password',
         required: false,
-        dependsOn: { field: 'authType', value: 'basic' },
+        dependsOn: { field: 'auth_type', value: 'basic' },
       },
       {
         id: 'headers',
         label: 'Custom Headers (JSON)',
-        type: 'textarea',
+        type: 'json',
         placeholder: '{"X-Custom-Header": "value"}',
         required: false,
         description: 'Optional custom HTTP headers',
+        objectOnly: true,
+      },
+      {
+        id: 'data_path',
+        label: 'Data Path',
+        type: 'text',
+        placeholder: 'data.items',
+        required: false,
+        nullable: true,
+        description: 'Leave empty when the API returns the array directly',
+      },
+      {
+        id: 'pagination',
+        label: 'Pagination (JSON)',
+        type: 'json',
+        placeholder: '{"type":"page_number","page_param":"page","page_size_param":"per_page","page_size":200}',
+        required: false,
+        description: 'Optional pagination configuration',
+        objectOnly: true,
       },
     ],
   },

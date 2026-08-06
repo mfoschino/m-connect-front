@@ -23,6 +23,7 @@ import {
   SYSTEM_CATALOG,
   getConnectorSchema,
   getEntityFieldSpec,
+  getSystemPresetConfig,
 } from '../../constants/connectors'
 import { getScheduleDescription } from '../../utils/scheduleUtils'
 import {
@@ -257,6 +258,7 @@ const IntegrationForm = ({
   )
   const [stepError, setStepError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
+  const [connectorConfigErrors, setConnectorConfigErrors] = useState({})
 
   const sourceSystems = useMemo(
     () => buildSourceSystems(connectorTypes, sourceSystemId, designValues.connector_type),
@@ -276,15 +278,20 @@ const IntegrationForm = ({
     [connectorType],
   )
   const entityOptions = useMemo(() => {
-    if (!entityId || entityTypes.some((option) => option.value === entityId)) {
-      return entityTypes
+    const supportedEntities = sourceSystem?.supportedEntities
+    const selectableEntityTypes = supportedEntities?.length
+      ? entityTypes.filter((option) => supportedEntities.includes(option.value))
+      : entityTypes
+
+    if (!entityId || selectableEntityTypes.some((option) => option.value === entityId)) {
+      return selectableEntityTypes
     }
 
     return [
       { value: entityId, label: `${entityId} (valor existente)` },
-      ...entityTypes,
+      ...selectableEntityTypes,
     ]
-  }, [entityId, entityTypes])
+  }, [entityId, entityTypes, sourceSystem])
   const entity = useMemo(
     () => entityOptions.find((option) => option.value === entityId) ?? null,
     [entityId, entityOptions],
@@ -410,6 +417,12 @@ const IntegrationForm = ({
         setStepError(`Completá el campo obligatorio: ${missingField.label}.`)
         return false
       }
+
+      const connectorConfigError = Object.values(connectorConfigErrors)[0]
+      if (connectorConfigError) {
+        setStepError(connectorConfigError)
+        return false
+      }
     }
 
     if (stepToValidate === 3) {
@@ -459,8 +472,33 @@ const IntegrationForm = ({
   }
 
   const handleSourceSystemSelect = (system) => {
-    if (system.disabled) return
+    if (system.disabled || system.id === sourceSystemId) return
+
+    const supportedEntity = system.supportedEntities?.[0]
+    const selectedEntityId = system.supportedEntities?.includes(entityId)
+      ? entityId
+      : supportedEntity || entityId
+    const presetConfig = getSystemPresetConfig(system.id, selectedEntityId)
+
     setSourceSystemId(system.id)
+    setConnectorConfigErrors({})
+
+    if (selectedEntityId !== entityId) {
+      setEntityId(selectedEntityId)
+      setFieldMappings([])
+      setFinnegansDocument((currentDocument) => (
+        normalizeFinnegansDocumentForEntity(selectedEntityId, currentDocument)
+      ))
+    }
+
+    if (presetConfig) {
+      setConnectorConfig((currentConfig) => ({
+        ...currentConfig,
+        ...presetConfig,
+        headers: { ...presetConfig.headers },
+        pagination: { ...presetConfig.pagination },
+      }))
+    }
   }
 
   const handleEntitySelect = (selectedEntityId) => {
@@ -470,6 +508,17 @@ const IntegrationForm = ({
     setFinnegansDocument((currentDocument) => (
       normalizeFinnegansDocumentForEntity(selectedEntityId, currentDocument)
     ))
+
+    const presetConfig = getSystemPresetConfig(sourceSystemId, selectedEntityId)
+    if (presetConfig) {
+      setConnectorConfig((currentConfig) => ({
+        ...presetConfig,
+        ...currentConfig,
+        source_system: presetConfig.source_system,
+        headers: currentConfig.headers ?? { ...presetConfig.headers },
+        pagination: currentConfig.pagination ?? { ...presetConfig.pagination },
+      }))
+    }
   }
 
   return (
@@ -681,11 +730,13 @@ const IntegrationForm = ({
             {sourceSystem ? (
               <section className="border-t border-slate-200 pt-7">
                 <ConnectorConfigForm
+                  key={`${sourceSystem.id}-${entityId}`}
                   connectorType={connectorType}
                   sourceSystemName={sourceSystem.name}
                   config={connectorConfig}
                   setConfig={setConnectorConfig}
                   error={stepError}
+                  onValidationChange={setConnectorConfigErrors}
                 />
               </section>
             ) : null}

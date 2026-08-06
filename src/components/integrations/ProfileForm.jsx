@@ -6,7 +6,20 @@ import {
   mapBackendProfileToForm,
 } from '../../services/adapters/profileAdapter'
 import { getMappingValidationErrors } from '../../services/adapters/mappingAdapter'
+import {
+  MAPPING_PROFILE_PRESETS,
+  getMappingProfilePreset,
+  shouldShowCreationPresets,
+} from '../../constants/onboardingPresets'
 import FieldMappingBuilder from './FieldMappingBuilder'
+
+const hasProfileValues = (values) => (
+  Boolean(values.name.trim())
+  || Boolean(values.source_system.trim())
+  || Boolean(values.source_entity.trim())
+  || Boolean(values.version.trim())
+  || (Array.isArray(values.config) ? values.config.length > 0 : Boolean(values.config))
+)
 
 const ProfileForm = ({
   initialValues,
@@ -20,6 +33,7 @@ const ProfileForm = ({
   entityTypes = [],
   metadataLoading = false,
   metadataError = null,
+  showPresets = false,
 }) => {
   const [values, setValues] = useState(() => {
     const formValues = mapBackendProfileToForm(initialValues)
@@ -34,6 +48,9 @@ const ProfileForm = ({
     }
   })
   const [error, setError] = useState('')
+  const [selectedPresetId, setSelectedPresetId] = useState('')
+  const [presetNote, setPresetNote] = useState('')
+  const canUsePresets = shouldShowCreationPresets(showPresets, initialValues?.id)
 
   const selectedEntityMissing = Boolean(
     values.source_entity
@@ -58,6 +75,32 @@ const ProfileForm = ({
         : nextMappings,
     }))
   }, [])
+
+  const handlePresetChange = (event) => {
+    const presetId = event.target.value
+    const preset = getMappingProfilePreset(presetId)
+    if (!preset) return
+
+    if (
+      hasProfileValues(values)
+      && !window.confirm('Aplicar esta plantilla reemplazará los datos y mappings actuales. ¿Continuar?')
+    ) {
+      return
+    }
+
+    const formValues = mapBackendProfileToForm(preset.values)
+    setSelectedPresetId(presetId)
+    setPresetNote(preset.note || preset.description || '')
+    setValues({
+      name: preset.label,
+      source_system: formValues.source_system,
+      source_entity: formValues.source_entity,
+      version: formValues.version,
+      active: formValues.active,
+      config: formValues.config,
+    })
+    setError('')
+  }
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -86,6 +129,37 @@ const ProfileForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {canUsePresets ? (
+        <div className="space-y-2 rounded-2xl border border-sky-200 bg-sky-50 p-4">
+          <label htmlFor="profile-preset" className="block text-sm font-semibold text-slate-900">
+            Plantilla opcional
+          </label>
+          <select
+            id="profile-preset"
+            value={selectedPresetId}
+            onChange={handlePresetChange}
+            className="form-input w-full bg-white"
+          >
+            <option value="">Seleccionar plantilla</option>
+            {MAPPING_PROFILE_PRESETS.map((preset) => (
+              <option key={preset.id} value={preset.id}>{preset.label}</option>
+            ))}
+          </select>
+          <p className="text-sm text-slate-600">
+            La plantilla sólo precarga el formulario y no crea recursos automáticamente.
+          </p>
+          {presetNote ? (
+            <p className={`text-sm font-medium ${
+              getMappingProfilePreset(selectedPresetId)?.incomplete
+                ? 'text-amber-800'
+                : 'text-slate-700'
+            }`}>
+              {presetNote}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="grid gap-6 sm:grid-cols-2">
         <Input
           id="profile-name"
@@ -164,6 +238,7 @@ const ProfileForm = ({
       </div>
 
       <FieldMappingBuilder
+        key={selectedPresetId || initialValues?.id || 'profile-mappings'}
         entityId={values.source_entity}
         fieldMappings={values.config}
         setFieldMappings={setFieldMappings}
@@ -173,6 +248,7 @@ const ProfileForm = ({
         onErrorStrategies={onErrorStrategies}
         metadataLoading={metadataLoading}
         metadataError={metadataError}
+        autoMapEnabled={!initialValues?.id && !selectedPresetId}
       />
 
       {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
