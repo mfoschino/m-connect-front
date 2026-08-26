@@ -29,6 +29,7 @@ import { getScheduleDescription } from '../../utils/scheduleUtils'
 import {
   FINNEGANS_DOCUMENT_OPTIONS,
   buildBackendIntegrationPayload,
+  getActiveCompatibleProfiles,
   getCanonicalEntityDesign,
   getOutboundProfileSourceSystem,
   isFinnegansDocumentConfigurable,
@@ -40,7 +41,7 @@ import { getMappingValidationErrors } from '../../services/adapters/mappingAdapt
 
 const STEPS = [
   { title: 'Información general', shortTitle: 'General', icon: Settings2 },
-  { title: 'Sistema origen', shortTitle: 'Origen', icon: PlugZap },
+  { title: 'Sistema de origen', shortTitle: 'Origen', icon: PlugZap },
   { title: 'Mapeo de entrada', shortTitle: 'Entrada', icon: FileInput },
   { title: 'Formato canónico', shortTitle: 'Canónico', icon: Boxes },
   { title: 'Mapeo de salida', shortTitle: 'Salida', icon: FileOutput },
@@ -51,11 +52,11 @@ const STEPS = [
 const STEP_DESCRIPTIONS = {
   1: 'Definí el nombre, el estado y la programación de la integración.',
   2: 'Configurá el sistema que entrega los datos y la entidad que se va a procesar.',
-  3: 'Transformá los datos del origen al formato canónico de M-Connect.',
+  3: 'Revisá el perfil de entrada real y definí la transformación hacia el formato canónico.',
   4: 'Revisá la entidad central que desacopla el origen del destino.',
-  5: 'Relacioná el formato canónico con el perfil de salida de Finnegans.',
+  5: 'Revisá el perfil de salida real detectado para Finnegans.',
   6: 'Confirmá cómo queda configurado el destino Finnegans.',
-  7: 'Confirmá el flujo y el payload compatible con la API actual.',
+  7: 'Confirmá el flujo y los datos compatibles con la API actual.',
 }
 
 const getGenericSystemId = (connectorType) => connectorType
@@ -109,13 +110,25 @@ const buildSourceSystems = (connectorTypes, selectedSourceSystemId, selectedConn
 }
 
 const getProfileEntity = (profile) => profile.source_entity ?? profile.entity ?? ''
-const getProfileActive = (profile) => profile.active ?? profile.is_active ?? true
 
-const ProfileSuggestions = ({ profiles, emptyMessage }) => {
+const ProfileStatus = ({ profiles, emptyMessage, loading, onOpenProfiles }) => {
+  if (loading) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-600">
+        Consultando perfiles reales...
+      </div>
+    )
+  }
+
   if (profiles.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">
-        {emptyMessage}
+      <div className="space-y-3 rounded-lg border border-dashed border-amber-300 bg-amber-50 px-4 py-5 text-sm text-amber-900">
+        <p>{emptyMessage}</p>
+        {onOpenProfiles ? (
+          <Button type="button" variant="outline" onClick={onOpenProfiles}>
+            Ir a perfiles
+          </Button>
+        ) : null}
       </div>
     )
   }
@@ -134,11 +147,9 @@ const ProfileSuggestions = ({ profiles, emptyMessage }) => {
             </p>
           </div>
           <span
-            className={`shrink-0 text-xs font-semibold ${
-              getProfileActive(profile) ? 'text-emerald-700' : 'text-slate-500'
-            }`}
+            className="shrink-0 text-xs font-semibold text-emerald-700"
           >
-            {getProfileActive(profile) ? 'Compatible' : 'Inactivo'}
+            Detectado · activo
           </span>
         </div>
       ))}
@@ -154,13 +165,13 @@ const FlowOverview = ({
 }) => {
   const stages = [
     {
-      label: sourceSystemName || 'Sistema origen',
+      label: sourceSystemName || 'Sistema de origen',
       detail: 'Origen',
       active: currentStep === 2,
     },
     {
       label: 'Mapeo de entrada',
-      detail: 'Profile por convención',
+      detail: 'Perfil real',
       active: currentStep === 3,
     },
     {
@@ -170,7 +181,7 @@ const FlowOverview = ({
     },
     {
       label: 'Mapeo de salida',
-      detail: 'Profile Finnegans',
+      detail: 'Perfil real',
       active: currentStep === 5,
     },
     {
@@ -226,6 +237,8 @@ const IntegrationForm = ({
   errorMessage,
   metadata = {},
   profiles = [],
+  profilesLoading = false,
+  onOpenProfiles,
 }) => {
   const designValues = useMemo(
     () => mapBackendIntegrationToDesign(defaultValues),
@@ -327,20 +340,18 @@ const IntegrationForm = ({
     [finnegansDocument, finnegansDocumentOptions],
   )
   const outboundSourceSystem = getOutboundProfileSourceSystem(finnegansDocument, entityId)
+  const availableProfiles = useMemo(
+    () => (Array.isArray(profiles) ? profiles : []),
+    [profiles],
+  )
 
   const inboundProfiles = useMemo(
-    () => profiles.filter((profile) => (
-      profile.source_system === sourceSystemId
-      && getProfileEntity(profile) === entityId
-    )),
-    [entityId, profiles, sourceSystemId],
+    () => getActiveCompatibleProfiles(availableProfiles, sourceSystemId, entityId),
+    [availableProfiles, entityId, sourceSystemId],
   )
   const outboundProfiles = useMemo(
-    () => profiles.filter((profile) => (
-      profile.source_system === outboundSourceSystem
-      && getProfileEntity(profile) === entityId
-    )),
-    [entityId, outboundSourceSystem, profiles],
+    () => getActiveCompatibleProfiles(availableProfiles, outboundSourceSystem, entityId),
+    [availableProfiles, entityId, outboundSourceSystem],
   )
 
   const payloadPreview = useMemo(
@@ -381,15 +392,15 @@ const IntegrationForm = ({
 
     if (stepToValidate === 2) {
       if (metadataLoading) {
-        setStepError('La metadata de integraciones todavía se está cargando.')
+        setStepError('Los metadatos de integraciones todavía se están cargando.')
         return false
       }
       if (metadataError) {
-        setStepError(`No se pudo cargar la metadata de integraciones: ${metadataError}`)
+        setStepError(`No se pudieron cargar los metadatos de integraciones: ${metadataError}`)
         return false
       }
       if (!sourceSystem) {
-        setStepError('Seleccioná un sistema origen.')
+        setStepError('Seleccioná un sistema de origen.')
         return false
       }
       if (!entity) {
@@ -593,12 +604,12 @@ const IntegrationForm = ({
           ) : null}
           {metadataLoading ? (
             <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
-              Cargando metadata de integraciones...
+              Cargando metadatos de integraciones...
             </p>
           ) : null}
           {metadataError ? (
             <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-              No se pudo cargar la metadata de integraciones: {metadataError}
+              No se pudieron cargar los metadatos de integraciones: {metadataError}
             </p>
           ) : null}
           {stepError ? (
@@ -756,12 +767,14 @@ const IntegrationForm = ({
               </div>
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase text-slate-500">Profiles sugeridos</p>
-                  <span className="text-xs text-slate-400">{inboundProfiles.length} encontrados</span>
+                  <p className="text-xs font-semibold uppercase text-slate-500">Perfil de entrada real</p>
+                  <span className="text-xs text-slate-400">{inboundProfiles.length} activos</span>
                 </div>
-                <ProfileSuggestions
+                <ProfileStatus
                   profiles={inboundProfiles}
-                  emptyMessage="No hay profiles activos o inactivos que coincidan con este sistema y entidad."
+                  loading={profilesLoading}
+                  onOpenProfiles={onOpenProfiles}
+                  emptyMessage="No hay un perfil de entrada activo que coincida con este sistema y entidad."
                 />
               </div>
             </section>
@@ -791,7 +804,7 @@ const IntegrationForm = ({
               <p className="mt-4 text-xs font-semibold uppercase text-sky-700">Etapa fija</p>
               <h4 className="mt-1 text-lg font-semibold text-slate-900">{canonicalEntity.label}</h4>
               <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">
-                Esta entidad desacopla el sistema origen de Finnegans y se deriva de la entidad seleccionada.
+                Esta entidad desacopla el sistema de origen de Finnegans y se deriva de la entidad seleccionada.
               </p>
             </div>
 
@@ -825,27 +838,29 @@ const IntegrationForm = ({
                 {canonicalEntity.label} → Finnegans
               </h4>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Los profiles de salida se administran por separado. En esta etapa se sugieren por la convención
-                de Finnegans y la entidad, sin guardar un ID en la integración.
+                Los perfiles de salida se administran por separado. Esta etapa informa los perfiles activos
+                detectados por sistema y entidad, sin guardar un ID en la integración.
               </p>
               <dl className="mt-5 border-y border-slate-200">
                 <ReviewItem label="Entidad" value={entity?.label ?? entityId} />
                 <ReviewItem
-                  label="Convención de profile"
+                  label="Convención del perfil"
                   value={outboundSourceSystem || 'Sin convención para el valor existente'}
-                  detail="Se usa para sugerir profiles compatibles; la relación sigue siendo visual."
+                  detail="Se usa para detectar el perfil activo; no se persiste una relación en la integración."
                 />
               </dl>
             </section>
 
             <section>
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase text-slate-500">Profiles sugeridos</p>
-                <span className="text-xs text-slate-400">{outboundProfiles.length} encontrados</span>
+                <p className="text-xs font-semibold uppercase text-slate-500">Perfil de salida real</p>
+                <span className="text-xs text-slate-400">{outboundProfiles.length} activos</span>
               </div>
-              <ProfileSuggestions
+              <ProfileStatus
                 profiles={outboundProfiles}
-                emptyMessage="No hay profiles que coincidan con la convención de salida y esta entidad."
+                loading={profilesLoading}
+                onOpenProfiles={onOpenProfiles}
+                emptyMessage="No hay un perfil de salida activo que coincida con la convención de salida y esta entidad."
               />
             </section>
           </div>
@@ -859,7 +874,7 @@ const IntegrationForm = ({
               </div>
               <h4 className="mt-4 text-lg font-semibold text-slate-900">Finnegans</h4>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Destino principal del flujo. No requiere elegirlo como sistema externo ni se envía como campo top-level.
+                Destino principal del flujo. No requiere elegirlo como sistema externo ni se envía como campo de nivel principal.
               </p>
             </div>
 
@@ -918,11 +933,11 @@ const IntegrationForm = ({
                 <ReviewItem label="Entidad canónica" value={canonicalEntity.label} />
                 <ReviewItem
                   label="Mapeo de entrada"
-                  value={`${fieldMappings.length} reglas · ${inboundProfiles.length} profiles compatibles`}
+                  value={`${fieldMappings.length} reglas · ${inboundProfiles.length} perfiles activos detectados`}
                 />
                 <ReviewItem
                   label="Mapeo de salida"
-                  value={`${outboundProfiles.length} profiles compatibles`}
+                  value={`${outboundProfiles.length} perfiles activos detectados`}
                   detail={outboundSourceSystem || 'Convención de salida no reconocida'}
                 />
                 <ReviewItem
@@ -942,7 +957,7 @@ const IntegrationForm = ({
 
             <section className="min-w-0">
               <div className="flex items-center justify-between gap-4">
-                <h4 className="text-sm font-semibold text-slate-900">Payload final</h4>
+                <h4 className="text-sm font-semibold text-slate-900">Datos finales enviados</h4>
                 <span className="text-xs font-semibold text-emerald-700">Contrato actual</span>
               </div>
               <pre className="mt-3 max-h-[430px] max-w-full overflow-auto rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">

@@ -7,44 +7,44 @@
 export const SCHEDULE_PRESETS = [
   {
     id: 'manual',
-    label: 'Manual Only',
-    description: 'Run only when triggered manually',
+    label: 'Solo manual',
+    description: 'Se ejecuta únicamente cuando se inicia manualmente',
     cron: null,
   },
   {
     id: 'hourly',
-    label: 'Every Hour',
-    description: 'Runs at the start of every hour',
+    label: 'Cada hora',
+    description: 'Se ejecuta al comienzo de cada hora',
     cron: '0 * * * *',
   },
   {
     id: 'daily-midnight',
-    label: 'Daily at Midnight',
-    description: 'Runs every day at 00:00 (UTC)',
+    label: 'Todos los días a medianoche',
+    description: 'Se ejecuta todos los días a las 00:00 (UTC)',
     cron: '0 0 * * *',
   },
   {
     id: 'daily-custom',
-    label: 'Daily at Custom Time',
-    description: 'Choose a specific time each day',
+    label: 'Diaria en un horario personalizado',
+    description: 'Elegí una hora específica para cada día',
     cron: null, // Requires time picker
   },
   {
     id: 'weekly-monday',
-    label: 'Weekly on Monday',
-    description: 'Runs every Monday at 00:00',
+    label: 'Semanal, los lunes',
+    description: 'Se ejecuta todos los lunes a las 00:00',
     cron: '0 0 * * 1',
   },
   {
     id: 'weekly-custom',
-    label: 'Weekly on Custom Day',
-    description: 'Choose a specific day and time',
+    label: 'Semanal en un día personalizado',
+    description: 'Elegí un día y una hora específicos',
     cron: null, // Requires day and time picker
   },
   {
     id: 'monthly',
-    label: 'Monthly',
-    description: 'Runs on the first day of each month at 00:00',
+    label: 'Mensual',
+    description: 'Se ejecuta el primer día de cada mes a las 00:00',
     cron: '0 0 1 * *',
   },
 ]
@@ -158,21 +158,21 @@ export const getScheduleDescription = (cron) => {
 
   switch (type) {
     case 'hourly':
-      return 'Every hour'
+      return 'Cada hora'
     case 'daily-midnight':
-      return 'Daily at midnight'
+      return 'Todos los días a medianoche'
     case 'daily-custom':
-      return `Daily at ${timeStr}`
+      return `Todos los días a las ${timeStr}`
     case 'weekly-monday':
-      return 'Every Monday'
+      return 'Todos los lunes'
     case 'weekly-custom': {
-      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-      return `Every ${days[dayOfWeek]} at ${timeStr}`
+      const days = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+      return `Todos los ${days[dayOfWeek]} a las ${timeStr}`
     }
     case 'monthly':
-      return 'First of each month'
+      return 'El primer día de cada mes'
     case 'monthly-custom':
-      return `Day ${dayOfMonth} of each month at ${timeStr}`
+      return `El día ${dayOfMonth} de cada mes a las ${timeStr}`
     default:
       return cron
   }
@@ -186,12 +186,12 @@ export const getScheduleDescription = (cron) => {
  * For now, returns a simple estimate
  */
 export const getNextRunEstimate = (cron) => {
-  if (!cron) return 'Manual (no automatic runs)'
+  if (!cron) return 'Manual (sin ejecuciones automáticas)'
 
   const now = new Date()
   const parsed = parseCron(cron)
 
-  if (!parsed) return 'Unknown schedule'
+  if (!parsed) return 'Programación desconocida'
 
   const { type, hour, minute } = parsed
 
@@ -199,18 +199,18 @@ export const getNextRunEstimate = (cron) => {
     case 'hourly': {
       const next = new Date(now)
       next.setHours(next.getHours() + 1, 0, 0, 0)
-      return `Next hour at ${formatTimeString(next.getHours(), 0)}`
+      return `Próxima ejecución a las ${formatTimeString(next.getHours(), 0)}`
     }
     case 'daily-midnight':
     case 'daily-custom': {
       const next = new Date(now)
       next.setDate(next.getDate() + 1)
       next.setHours(hour, minute, 0, 0)
-      return `Tomorrow at ${formatTimeString(hour, minute)}`
+      return `Mañana a las ${formatTimeString(hour, minute)}`
     }
     case 'monthly':
-      return 'First of next month'
+      return 'El primer día del próximo mes'
     default:
-      return 'Soon'
+      return 'Próximamente'
   }
 }

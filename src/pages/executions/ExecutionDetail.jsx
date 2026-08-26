@@ -6,6 +6,7 @@ import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Table from '../../components/ui/Table'
 import executionService from '../../services/api/executionService'
+import { getExecutionStatusLabel, getLogLevelLabel } from '../../utils/presentationUtils'
 
 const variantForStatus = (status) => {
   const s = String(status || '').toLowerCase()
@@ -93,7 +94,7 @@ const ExecutionDetail = () => {
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Ejecución</p>
           <h2 className="section-title">Detalle de ejecución</h2>
           <p className="section-subtitle">
-            Monitorea el estado y los eventos de una ejecución concreta del pipeline.
+            Monitoreá el estado y los eventos de una ejecución concreta del flujo de procesamiento.
           </p>
         </div>
 
@@ -121,15 +122,15 @@ const ExecutionDetail = () => {
             <Card title="Detalles de ejecución">
               <div className="space-y-3 text-sm text-slate-700">
                 <div>
-                  <p className="text-slate-500">Trace ID</p>
+                  <p className="text-slate-500">ID de seguimiento</p>
                   <p className="font-medium text-slate-900 break-words">{execution.trace_id || '—'}</p>
                 </div>
                 <div>
                   <p className="text-slate-500">Estado</p>
-                  <Badge variant={variantForStatus(execution.status)}>{String(execution.status || '—')}</Badge>
+                  <Badge variant={variantForStatus(execution.status)}>{getExecutionStatusLabel(execution.status)}</Badge>
                 </div>
                 <div>
-                  <p className="text-slate-500">Sistema origen</p>
+                  <p className="text-slate-500">Sistema de origen</p>
                   <p>{execution.source_system || '—'}</p>
                 </div>
                 <div>
@@ -150,11 +151,11 @@ const ExecutionDetail = () => {
                   <p className="font-medium text-slate-900">{integrationName}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">Integration ID</p>
+                  <p className="text-slate-500">ID de integración</p>
                   <p>{execution.integration_id || 'N/D'}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">Tenant ID</p>
+                  <p className="text-slate-500">ID de la organización</p>
                   <p>{execution.tenant_id || 'N/D'}</p>
                 </div>
               </div>
@@ -171,7 +172,7 @@ const ExecutionDetail = () => {
                   <p>{formatDate(execution.updated_at)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">Error detalle</p>
+                  <p className="text-slate-500">Detalle del error</p>
                   {errorDetail ? (
                     <pre className="mt-2 overflow-x-auto rounded bg-slate-100 p-3 text-xs text-slate-800">
                       {JSON.stringify(errorDetail, null, 2)}
@@ -185,7 +186,7 @@ const ExecutionDetail = () => {
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <Card title="Timeline de eventos" description="Eventos ordenados cronológicamente.">
+            <Card title="Cronología de eventos" description="Eventos ordenados cronológicamente.">
               {timeline.length === 0 ? (
                 <p className="text-sm text-slate-500">No hay eventos de ejecución disponibles.</p>
               ) : (
@@ -197,7 +198,7 @@ const ExecutionDetail = () => {
                           <p className="font-semibold text-slate-900">{log.event || 'Evento desconocido'}</p>
                           <p className="text-sm text-slate-500">{formatDate(log.timestamp)}</p>
                         </div>
-                        <Badge variant={variantForLogLevel(log.level)}>{log.level || 'N/D'}</Badge>
+                        <Badge variant={variantForLogLevel(log.level)}>{getLogLevelLabel(log.level)}</Badge>
                       </div>
                       <p className="mt-3 text-sm text-slate-700">{log.message || 'Sin mensaje adicional.'}</p>
                       {log.data ? (
@@ -211,14 +212,14 @@ const ExecutionDetail = () => {
               )}
             </Card>
 
-            <Card title="Logs de ejecución" description="Registro detallado devuelto por el backend.">
+            <Card title="Registros de ejecución" description="Registro detallado devuelto por el servidor.">
               {timeline.length === 0 ? (
-                <p className="text-sm text-slate-500">No hay logs disponibles para esta ejecución.</p>
+                <p className="text-sm text-slate-500">No hay registros disponibles para esta ejecución.</p>
               ) : (
                 <Table>
                   <thead>
                     <tr>
-                      <th>Timestamp</th>
+                      <th>Fecha y hora</th>
                       <th>Nivel</th>
                       <th>Evento</th>
                       <th>Mensaje</th>
@@ -228,7 +229,7 @@ const ExecutionDetail = () => {
                     {timeline.map((log) => (
                       <tr key={log.id}>
                         <td>{formatDate(log.timestamp)}</td>
-                        <td><Badge variant={variantForLogLevel(log.level)}>{log.level || '—'}</Badge></td>
+                        <td><Badge variant={variantForLogLevel(log.level)}>{getLogLevelLabel(log.level)}</Badge></td>
                         <td>{log.event || '—'}</td>
                         <td className="max-w-xl truncate text-slate-700">{log.message || '—'}</td>
                       </tr>
@@ -262,7 +263,7 @@ const ExecutionDetail = () => {
 
           <Card title="Rastreo y relación de ejecuciones">
             <p className="text-sm text-slate-500">
-              La API actual solo expone el trace_id y los logs del mensaje.
+                La API actual solo expone el ID de seguimiento y los registros del mensaje.
             </p>
             {/* TODO(BACKEND): Add advanced trace lineage and related executions support. */}
           </Card>

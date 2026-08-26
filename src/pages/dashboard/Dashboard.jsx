@@ -5,6 +5,7 @@ import Table from '../../components/ui/Table'
 import Alert from '../../components/ui/Alert'
 import Input from '../../components/ui/Input'
 import apiClient from '../../services/api/client'
+import { getConnectorTypeLabel, getExecutionStatusLabel } from '../../utils/presentationUtils'
 
 const variantForStatus = (status) => {
   const s = String(status).toLowerCase()
@@ -72,7 +73,7 @@ const Dashboard = () => {
         id: e.trace_id || Math.random().toString(36).slice(2),
         severity: String(e.status).toLowerCase() === 'failed' ? 'error' : 'warning',
         title: integrationMap[e.integration_id] || `Integración ${e.integration_id || 'desconocida'}`,
-        description: e.error_detail ? JSON.stringify(e.error_detail) : `Trace ${e.trace_id || '—'} • Retries ${e.retries ?? 0}`,
+        description: e.error_detail ? JSON.stringify(e.error_detail) : `Seguimiento ${e.trace_id || '—'} • Reintentos ${e.retries ?? 0}`,
         timestamp: e.created_at || new Date().toISOString(),
       }))
 
@@ -114,20 +115,20 @@ const Dashboard = () => {
           <p className="text-4xl font-semibold text-slate-900">{stats.inactiveIntegrations}</p>
           <p className="mt-3 text-sm text-slate-500">Revisa configuraciones o conectividad.</p>
         </Card>
-        <Card title="Ejecuciones totales" description="Mensajes procesados por el pipeline.">
+        <Card title="Ejecuciones totales" description="Mensajes procesados por el flujo de datos.">
           <p className="text-4xl font-semibold text-slate-900">{stats.totalExecutions}</p>
           <p className="mt-3 text-sm text-slate-500">Últimas 50 mostradas en la tabla de ejecuciones.</p>
         </Card>
       </div>
 
       <div className="grid gap-6">
-        <Card title="Active Flows" description="Integraciones activas que pueden procesar mensajes.">
+        <Card title="Flujos activos" description="Integraciones activas que pueden procesar mensajes.">
           {activeFlows.length > 0 ? (
             <div className="space-y-3">
               {activeFlows.slice(0, 6).map((flow) => (
                 <div key={flow.id} className="rounded border border-slate-200 bg-slate-50 p-3">
                   <p className="font-medium text-slate-900">{flow.name || flow.source_entity || flow.id}</p>
-                  <p className="text-sm text-slate-500">{flow.connector_type || 'Flujo activo'}</p>
+                  <p className="text-sm text-slate-500">{getConnectorTypeLabel(flow.connector_type)}</p>
                 </div>
               ))}
               {activeFlows.length > 6 ? (
@@ -162,7 +163,7 @@ const Dashboard = () => {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card
           title="Filtros"
-          description="Filtra ejecuciones por flujo, sistema origen y rango de fechas."
+          description="Filtrá ejecuciones por flujo, sistema de origen y rango de fechas."
           actions={<>
             <select
               className="form-input min-w-[180px]"
@@ -178,7 +179,7 @@ const Dashboard = () => {
                 <option key={it.id} value={it.id} className="text-slate-900">{it.name}</option>
               ))}
             </select>
-            <Input id="source" label="Sistema origen" value={filters.source} onChange={(e) => setFilters((s) => ({ ...s, source: e.target.value }))} />
+            <Input id="source" label="Sistema de origen" value={filters.source} onChange={(e) => setFilters((s) => ({ ...s, source: e.target.value }))} />
             <Input id="from" label="Desde" type="date" value={filters.from} onChange={(e) => setFilters((s) => ({ ...s, from: e.target.value }))} />
             <Input id="to" label="Hasta" type="date" value={filters.to} onChange={(e) => setFilters((s) => ({ ...s, to: e.target.value }))} />
           </>}
@@ -199,17 +200,17 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      <Card title="Ejecuciones recientes" description="Pipelines más recientes y su estado actual.">
+      <Card title="Ejecuciones recientes" description="Flujos de procesamiento más recientes y su estado actual.">
         <Table>
           <thead>
             <tr>
-              <th>Trace ID</th>
+              <th>ID de seguimiento</th>
               <th>Integración</th>
-              <th>Sistema origen</th>
+              <th>Sistema de origen</th>
               <th>Entidad</th>
               <th>Estado</th>
               <th>Reintentos</th>
-              <th>Timestamp</th>
+              <th>Fecha y hora</th>
             </tr>
           </thead>
           <tbody>
@@ -219,7 +220,7 @@ const Dashboard = () => {
                 <td className="font-medium text-slate-900">{integrationMap[row.integration_id] || row.integration_id || '—'}</td>
                 <td>{row.source_system || '—'}</td>
                 <td>{row.entity || '—'}</td>
-                <td><Badge variant={variantForStatus(row.status)}>{String(row.status || '—')}</Badge></td>
+                <td><Badge variant={variantForStatus(row.status)}>{getExecutionStatusLabel(row.status)}</Badge></td>
                 <td>{row.retries ?? 0}</td>
                 <td>{row.created_at ? new Date(row.created_at).toLocaleString() : '—'}</td>
               </tr>

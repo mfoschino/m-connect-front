@@ -11,9 +11,9 @@ import { useAuth } from '../../context/AuthContext'
 import userAdminService, { normalizeRole, USER_ROLES } from '../../services/api/userAdminService'
 
 const roleOptions = [
-  { value: 'admin', label: 'Admin' },
+  { value: 'admin', label: 'Administrador' },
   { value: 'operator', label: 'Operador' },
-  { value: 'viewer', label: 'Viewer' },
+  { value: 'viewer', label: 'Visualizador' },
 ]
 
 const statusLabels = {
@@ -21,6 +21,9 @@ const statusLabels = {
   invited: 'Invitada',
   pending: 'Pendiente',
   disabled: 'Desactivada',
+  inactive: 'Inactiva',
+  suspended: 'Suspendida',
+  blocked: 'Bloqueada',
 }
 
 const statusVariants = {
@@ -113,7 +116,7 @@ const UserAdminPage = () => {
       setUsers(Array.isArray(response.data) ? response.data : [])
     } catch (err) {
       console.error('Failed to load tenant users', err)
-      setError(resolveErrorMessage(err, 'No se pudieron cargar los usuarios del tenant.'))
+      setError(resolveErrorMessage(err, 'No se pudieron cargar los usuarios de la organización.'))
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -145,9 +148,9 @@ const UserAdminPage = () => {
     const role = normalizeRole(inviteForm.role)
 
     if (!email) {
-      nextErrors.email = 'El email es requerido.'
+      nextErrors.email = 'El correo electrónico es obligatorio.'
     } else if (!emailPattern.test(email)) {
-      nextErrors.email = 'Ingrese un email valido.'
+      nextErrors.email = 'Ingresá un correo electrónico válido.'
     }
 
     if (!role) {
@@ -184,7 +187,7 @@ const UserAdminPage = () => {
         full_name: null,
         role: normalizeRole(inviteForm.role),
       })
-      setSuccessMessage('Usuario provisionado correctamente en el tenant.')
+      setSuccessMessage('Usuario creado correctamente en la organización.')
       closeInviteModal({ force: true })
       await loadUsers({ showRefreshing: true })
     } catch (err) {
@@ -205,7 +208,7 @@ const UserAdminPage = () => {
     }
 
     if (wouldLeaveTenantWithoutAdmin(record) && nextRole !== 'admin') {
-      setError('Debe quedar al menos un admin activo en el tenant.')
+      setError('Debe quedar al menos un administrador activo en la organización.')
       return
     }
 
@@ -238,11 +241,11 @@ const UserAdminPage = () => {
     }
 
     if (wouldLeaveTenantWithoutAdmin(record)) {
-      setError('No puedes desactivar el unico admin activo del tenant.')
+      setError('No podés desactivar al único administrador activo de la organización.')
       return
     }
 
-    if (!window.confirm(`Desactivar la cuenta de ${record.email}? El usuario perdera acceso al tenant.`)) {
+    if (!window.confirm(`¿Desactivar la cuenta de ${record.email}? El usuario perderá acceso a la organización.`)) {
       return
     }
 
@@ -265,12 +268,12 @@ const UserAdminPage = () => {
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Administracion</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Administración</p>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="section-title">Usuarios del tenant</h2>
+            <h2 className="section-title">Usuarios de la organización</h2>
             <p className="section-subtitle">
-              Gestiona acceso, roles y estado de las cuentas dentro de tu organizacion.
+              Gestioná el acceso, los roles y el estado de las cuentas dentro de tu organización.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -290,20 +293,20 @@ const UserAdminPage = () => {
         <Alert
           variant="warning"
           title="Acceso administrativo requerido"
-          description="Esta pantalla solo permite operar a usuarios con rol admin."
+          description="Esta pantalla solo permite operar a usuarios con rol de administrador."
         />
       ) : null}
 
       <Alert
         variant="info"
         title="Contrato de invitaciones"
-        description="La API documentada no expone un endpoint de invitacion por email; esta pantalla usa POST /users/ para provisionar usuarios en el tenant actual."
+        description="La API documentada no expone una ruta de invitación por correo electrónico; esta pantalla usa POST /users/ para crear usuarios en la organización actual."
       />
 
       {successMessage ? (
         <Alert
           variant="success"
-          title="Operacion completada"
+          title="Operación completada"
           description={successMessage}
           onClose={() => setSuccessMessage('')}
         />
@@ -312,7 +315,7 @@ const UserAdminPage = () => {
       {error ? (
         <Alert
           variant="error"
-          title="No se pudo completar la accion"
+          title="No se pudo completar la acción"
           description={error}
           onClose={() => setError('')}
         />
@@ -320,16 +323,16 @@ const UserAdminPage = () => {
 
       <Card
         title="Cuentas"
-        description="El backend filtra por tenant del admin autenticado; no se envia tenant_id desde el frontend."
+        description="El servidor filtra por la organización del administrador autenticado; la interfaz no envía tenant_id."
       >
         <Table>
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>Email</th>
+              <th>Correo electrónico</th>
               <th>Rol</th>
               <th>Estado</th>
-              <th>Ultimo acceso</th>
+              <th>Último acceso</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -343,7 +346,7 @@ const UserAdminPage = () => {
             ) : users.length === 0 ? (
               <tr>
                 <td colSpan="6" className="text-center text-sm text-slate-500">
-                  Todavia no hay usuarios para mostrar.
+                  Todavía no hay usuarios para mostrar.
                 </td>
               </tr>
             ) : (
@@ -377,7 +380,7 @@ const UserAdminPage = () => {
                     </td>
                     <td>
                       <Badge variant={statusVariants[status] || 'pending'}>
-                        {statusLabels[status] || status}
+                        {statusLabels[status] || 'Estado desconocido'}
                       </Badge>
                     </td>
                     <td>{formatLastAccess(record)}</td>
@@ -409,14 +412,14 @@ const UserAdminPage = () => {
         </Table>
       </Card>
 
-      <Modal open={inviteOpen} title="Invitar usuario" subtitle="Alta de cuenta dentro del tenant actual" onClose={closeInviteModal} footer={null}>
+      <Modal open={inviteOpen} title="Invitar usuario" subtitle="Alta de cuenta dentro de la organización actual" onClose={closeInviteModal} footer={null}>
         <form className="space-y-5" onSubmit={handleInviteSubmit} noValidate>
           {inviteError ? (
-            <Alert variant="error" title="No se pudo enviar la invitacion" description={inviteError} />
+            <Alert variant="error" title="No se pudo enviar la invitación" description={inviteError} />
           ) : null}
           <Input
             id="invite-email"
-            label="Email"
+            label="Correo electrónico"
             type="email"
             value={inviteForm.email}
             onChange={(event) => setInviteForm((current) => ({ ...current, email: event.target.value }))}
@@ -446,7 +449,7 @@ const UserAdminPage = () => {
             {inviteErrors.role ? <p className="text-sm font-medium text-red-600">{inviteErrors.role}</p> : null}
           </div>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            El contrato actual crea/provisiona usuarios con password temporal; no confirma envio de email de invitacion.
+            El contrato actual crea usuarios con una contraseña temporal; no confirma el envío del correo electrónico de invitación.
           </div>
           <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
             <Button type="button" variant="outline" onClick={closeInviteModal} disabled={inviteLoading}>

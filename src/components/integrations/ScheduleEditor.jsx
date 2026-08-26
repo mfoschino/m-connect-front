@@ -63,7 +63,7 @@ const ScheduleEditor = ({ scheduleMode, setScheduleMode, cron, setCron, error })
               </button>
             ))}
           </div>
-          <p className="text-sm text-slate-500">Utiliza presets para llenar rápidamente la expresión cron.</p>
+          <p className="text-sm text-slate-500">Usá las opciones predefinidas para completar rápidamente la expresión cron.</p>
         </div>
       ) : null}
 

@@ -123,7 +123,7 @@ const getConfigFieldErrors = (mapping, configField, validationMetadata, rowLabel
 
   if (configField.type === 'list[mapper]') {
     if (!Array.isArray(value)) {
-      return [`${rowLabel}: ${configField.name} debe ser un arreglo de mappings.`]
+      return [`${rowLabel}: ${configField.name} debe ser un arreglo de mapeos.`]
     }
     if (configField.required && value.length === 0) {
       return [`${rowLabel}: falta ${configField.name}.`]
@@ -175,7 +175,7 @@ const getMappingListValidationErrors = (
   requireSourceField = true,
 ) => {
   if (!Array.isArray(mappings)) {
-    return [`${labelPrefix} debe ser un arreglo de mappings.`]
+    return [`${labelPrefix} debe ser un arreglo de mapeos.`]
   }
 
   const {

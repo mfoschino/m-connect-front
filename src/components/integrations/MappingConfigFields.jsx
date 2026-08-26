@@ -40,7 +40,7 @@ const AnyValueField = ({ field, value, onChange }) => {
           <option value="string">Texto</option>
           <option value="number">Número</option>
           <option value="boolean">Booleano</option>
-          <option value="null">Null</option>
+          <option value="null">Nulo</option>
         </select>
         {valueType === 'boolean' ? (
           <select
@@ -49,8 +49,8 @@ const AnyValueField = ({ field, value, onChange }) => {
             onChange={(event) => onChange(event.target.value === 'true')}
             className="form-input w-full"
           >
-            <option value="false">false</option>
-            <option value="true">true</option>
+            <option value="false">Falso</option>
+            <option value="true">Verdadero</option>
           </select>
         ) : valueType === 'null' ? (
           <input
@@ -87,7 +87,7 @@ const getJsonListError = (field, value, validationMetadata) => {
   if (field.required && value.length === 0) return 'Este campo es obligatorio.'
 
   if (field.type === 'list[string]' && value.some((item) => typeof item !== 'string')) {
-    return 'Todos los elementos deben ser strings.'
+    return 'Todos los elementos deben ser cadenas de texto.'
   }
 
   if (field.type === 'list[mapper]') {

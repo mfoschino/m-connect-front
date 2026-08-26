@@ -43,7 +43,7 @@ const Alert = ({ variant = 'info', title, description, onClose }) => {
           {description ? <p className="mt-1 text-sm text-slate-700">{description}</p> : null}
         </div>
         {onClose ? (
-          <button type="button" className="alert-close" onClick={onClose} aria-label="Close alert">
+          <button type="button" className="alert-close" onClick={onClose} aria-label="Cerrar alerta">
             ×
           </button>
         ) : null}

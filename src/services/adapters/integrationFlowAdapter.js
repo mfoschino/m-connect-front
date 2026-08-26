@@ -141,6 +141,16 @@ export const getOutboundProfileSourceSystem = (finnegansDocument, entity) => (
   || (isFinnegansDocumentConfigurable(entity) ? '' : FINNEGANS_SOURCE_SYSTEM)
 )
 
+export const getActiveCompatibleProfiles = (profiles, sourceSystem, entity) => (
+  Array.isArray(profiles)
+    ? profiles.filter((profile) => (
+        profile?.source_system === sourceSystem
+        && (profile.entity ?? profile.source_entity ?? '') === entity
+        && (profile.is_active ?? profile.active) === true
+      ))
+    : []
+)
+
 export const isFinnegansSourceSystem = (sourceSystem) => (
   FINNEGANS_SOURCE_SYSTEMS.has(String(sourceSystem ?? '').trim().toLowerCase())
   || String(sourceSystem ?? '').trim().toLowerCase().startsWith('finnegans')
@@ -184,6 +194,16 @@ export const buildBackendIntegrationPayload = (formData = {}) => {
   const sourceEntity = formData.source_entity ?? formData.entity_id
   const sourceSystem = getFormSourceSystem(formData)
   const finnegansDocument = normalizeFinnegansDocumentForEntity(sourceEntity, formData)
+
+  for (const profileField of [
+    'profile_id',
+    'inbound_profile_id',
+    'outbound_profile_id',
+    'profiles',
+    'suggested_profiles',
+  ]) {
+    delete config[profileField]
+  }
 
   if (sourceSystem) {
     config.source_system = sourceSystem

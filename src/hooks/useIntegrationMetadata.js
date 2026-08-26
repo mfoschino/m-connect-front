@@ -14,7 +14,7 @@ const getErrorMessage = (error) => {
   const backendDetail = error?.response?.data?.detail
   if (typeof backendDetail === 'string') return backendDetail
   if (error?.message) return error.message
-  return 'No se pudo cargar la metadata de integraciones.'
+  return 'No se pudieron cargar los metadatos de integraciones.'
 }
 
 const useIntegrationMetadata = () => {

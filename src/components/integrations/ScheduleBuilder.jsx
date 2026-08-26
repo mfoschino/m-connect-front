@@ -21,7 +21,7 @@ const ScheduleBuilder = ({ schedule, setSchedule, error }) => {
   const parsed = useMemo(() => parseCron(schedule), [schedule])
 
   const selectedPreset = useMemo(
-    () => SCHEDULE_PRESETS.find((p) => p.cron === schedule) || { id: 'custom', label: 'Custom' },
+    () => SCHEDULE_PRESETS.find((p) => p.cron === schedule) || { id: 'custom', label: 'Personalizada' },
     [schedule]
   )
 
@@ -48,8 +48,8 @@ const ScheduleBuilder = ({ schedule, setSchedule, error }) => {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-sm font-semibold text-slate-900">How often should this integration run?</h3>
-        <p className="mt-1 text-sm text-slate-600">Choose a schedule or set it to manual if you prefer to trigger it on demand.</p>
+        <h3 className="text-sm font-semibold text-slate-900">¿Con qué frecuencia debe ejecutarse esta integración?</h3>
+        <p className="mt-1 text-sm text-slate-600">Elegí una programación o configurala como manual para iniciarla cuando la necesites.</p>
       </div>
 
       {/* Quick Preset Options */}
@@ -72,11 +72,11 @@ const ScheduleBuilder = ({ schedule, setSchedule, error }) => {
       {/* Custom Time Selection */}
       {selectedPreset.id === 'daily-custom' && (
         <div className="space-y-3 rounded-2xl border-2 border-sky-200 bg-sky-50 p-4">
-          <p className="text-sm font-semibold text-slate-900">Pick a time</p>
+          <p className="text-sm font-semibold text-slate-900">Elegí un horario</p>
           <div className="flex gap-3 items-end">
             <div className="flex-1">
               <label htmlFor="daily-time" className="block text-xs font-medium text-slate-700">
-                Time
+                Hora
               </label>
               <input
                 id="daily-time"
@@ -87,7 +87,7 @@ const ScheduleBuilder = ({ schedule, setSchedule, error }) => {
               />
             </div>
             <Button size="sm" onClick={handleDailyCustom}>
-              Set
+              Aplicar
             </Button>
           </div>
         </div>
@@ -95,31 +95,31 @@ const ScheduleBuilder = ({ schedule, setSchedule, error }) => {
 
       {selectedPreset.id === 'weekly-custom' && (
         <div className="space-y-3 rounded-2xl border-2 border-sky-200 bg-sky-50 p-4">
-          <p className="text-sm font-semibold text-slate-900">Pick a day and time</p>
+          <p className="text-sm font-semibold text-slate-900">Elegí un día y un horario</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="weekly-day" className="block text-xs font-medium text-slate-700">
-                Day of Week
+                Día de la semana
               </label>
               <select id="weekly-day" value={customDay} onChange={(e) => setCustomDay(Number(e.target.value))} className="form-input mt-1 w-full">
-                <option value={0}>Sunday</option>
-                <option value={1}>Monday</option>
-                <option value={2}>Tuesday</option>
-                <option value={3}>Wednesday</option>
-                <option value={4}>Thursday</option>
-                <option value={5}>Friday</option>
-                <option value={6}>Saturday</option>
+                <option value={0}>Domingo</option>
+                <option value={1}>Lunes</option>
+                <option value={2}>Martes</option>
+                <option value={3}>Miércoles</option>
+                <option value={4}>Jueves</option>
+                <option value={5}>Viernes</option>
+                <option value={6}>Sábado</option>
               </select>
             </div>
             <div>
               <label htmlFor="weekly-time" className="block text-xs font-medium text-slate-700">
-                Time
+                Hora
               </label>
               <input id="weekly-time" type="time" value={customTime} onChange={(e) => setCustomTime(e.target.value)} className="form-input mt-1 w-full" />
             </div>
           </div>
           <Button size="sm" onClick={handleWeeklyCustom}>
-            Set
+            Aplicar
           </Button>
         </div>
       )}
@@ -127,7 +127,7 @@ const ScheduleBuilder = ({ schedule, setSchedule, error }) => {
       {/* Current Schedule Summary */}
       {schedule && (
         <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4">
-          <p className="text-sm text-slate-600">Scheduled to run:</p>
+          <p className="text-sm text-slate-600">Programada para ejecutarse:</p>
           <p className="mt-1 text-base font-semibold text-slate-900">{getScheduleDescription(schedule)}</p>
           <p className="mt-2 text-sm text-slate-600">{getNextRunEstimate(schedule)}</p>
         </div>
@@ -136,21 +136,21 @@ const ScheduleBuilder = ({ schedule, setSchedule, error }) => {
       {/* Advanced Cron Mode */}
       <details className="rounded-2xl border border-slate-200">
         <summary className="cursor-pointer p-4 font-semibold text-slate-900 hover:bg-slate-50">
-          ⚙️ Advanced: Custom Cron Expression
+          ⚙️ Opciones avanzadas: expresión cron personalizada
         </summary>
         <div className="space-y-3 border-t border-slate-200 p-4">
           <p className="text-sm text-slate-600">
-            Enter a cron expression for advanced scheduling. Format: <code className="bg-slate-100 px-1">minute hour day month day-of-week</code>
+            Ingresá una expresión cron para una programación avanzada. Formato: <code className="bg-slate-100 px-1">minuto hora día mes día-de-la-semana</code>
           </p>
           <input
             type="text"
             value={schedule || ''}
             onChange={(e) => handleAdvancedCron(e.target.value)}
-            placeholder="0 0 * * * (daily at midnight)"
+            placeholder="0 0 * * * (todos los días a medianoche)"
             className="form-input w-full font-mono text-sm"
           />
           <p className="text-xs text-slate-500">
-            Example: <code className="bg-slate-100 px-1">0 9 * * 1-5</code> = Weekdays at 9 AM
+            Ejemplo: <code className="bg-slate-100 px-1">0 9 * * 1-5</code> = días hábiles a las 9:00
           </p>
         </div>
       </details>

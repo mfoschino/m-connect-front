@@ -1,14 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import integrationService from '../../services/api/integrationService'
 import profileService from '../../services/api/profileService'
 import lookupService from '../../services/api/lookupService'
 import executionService from '../../services/api/executionService'
+import finnegansCredentialsService from '../../services/api/finnegansCredentialsService'
 import {
   getProfileFlowRole,
   mapBackendProfileToForm,
 } from '../../services/adapters/profileAdapter'
+import {
+  getTiendaNubeRunReadiness,
+  isTiendaNubeSalesOrderIntegration,
+  redactSensitiveConfig,
+} from '../../services/adapters/tiendaNubeRunReadiness'
 import useIntegrationMetadata from '../../hooks/useIntegrationMetadata'
+import { useAuth } from '../../context/AuthContext'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
@@ -18,11 +25,13 @@ import Table from '../../components/ui/Table'
 import IntegrationForm from '../../components/integrations/IntegrationForm'
 import ProfileForm from '../../components/integrations/ProfileForm'
 import LookupTableForm from '../../components/integrations/LookupTableForm'
+import TiendaNubeRunPanel from '../../components/integrations/TiendaNubeRunPanel'
+import { getExecutionStatusLabel } from '../../utils/presentationUtils'
 
 const tabOptions = [
   { value: 'integrations', label: 'Integraciones' },
   { value: 'profiles', label: 'Perfiles de mapeo' },
-  { value: 'lookupTables', label: 'Tablas de búsqueda' },
+  { value: 'lookupTables', label: 'Tablas de consulta' },
 ]
 
 const statusOptions = [
@@ -43,6 +52,8 @@ const formatDateTime = (value) => {
 
 const Integrations = () => {
   const integrationMetadata = useIntegrationMetadata()
+  const { user } = useAuth()
+  const tenantId = user?.tenant_id
   const [activeTab, setActiveTab] = useState('integrations')
   const [integrations, setIntegrations] = useState([])
   const [profiles, setProfiles] = useState([])
@@ -68,6 +79,12 @@ const Integrations = () => {
   const [triggerLoading, setTriggerLoading] = useState(false)
   const [triggerMessage, setTriggerMessage] = useState('')
   const [triggerForm, setTriggerForm] = useState({ source_system: '', source_entity: '', raw_payload: '{}' })
+  const [guidedRunLoading, setGuidedRunLoading] = useState(false)
+  const guidedRunInFlightRef = useRef(false)
+  const [guidedRunFeedback, setGuidedRunFeedback] = useState(null)
+  const [finnegansCredentialsStatus, setFinnegansCredentialsStatus] = useState(null)
+  const [finnegansCredentialsLoading, setFinnegansCredentialsLoading] = useState(false)
+  const [finnegansCredentialsError, setFinnegansCredentialsError] = useState('')
 
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [profileModalMode, setProfileModalMode] = useState('create')
@@ -215,6 +232,31 @@ const Integrations = () => {
     return executions.filter((execution) => execution.integration_id === detailIntegration.id)
   }, [executions, detailIntegration])
 
+  const tiendaNubeRunReadiness = useMemo(() => {
+    if (
+      detailLoading
+      || !detailIntegration
+      || !isTiendaNubeSalesOrderIntegration(detailIntegration)
+    ) return null
+
+    return getTiendaNubeRunReadiness({
+      integration: detailIntegration,
+      lookupTables,
+      profiles,
+      credentialsStatus: finnegansCredentialsStatus,
+      credentialsLoading: finnegansCredentialsLoading,
+      credentialsError: finnegansCredentialsError,
+    })
+  }, [
+    detailIntegration,
+    detailLoading,
+    lookupTables,
+    profiles,
+    finnegansCredentialsStatus,
+    finnegansCredentialsLoading,
+    finnegansCredentialsError,
+  ])
+
   const openIntegrationCreate = () => {
     setIntegrationModalMode('create')
     setSelectedIntegration(null)
@@ -242,15 +284,45 @@ const Integrations = () => {
     }
   }
 
+  const loadFinnegansCredentialsStatus = async (integration) => {
+    if (!isTiendaNubeSalesOrderIntegration(integration)) return
+
+    setFinnegansCredentialsStatus(null)
+    setFinnegansCredentialsError('')
+
+    if (!tenantId) {
+      setFinnegansCredentialsError('La sesión actual no contiene el identificador de la organización.')
+      setFinnegansCredentialsLoading(false)
+      return
+    }
+
+    setFinnegansCredentialsLoading(true)
+
+    try {
+      const status = await finnegansCredentialsService.getTenantFinnegansCredentials(tenantId)
+      setFinnegansCredentialsStatus(status)
+    } catch {
+      setFinnegansCredentialsError('No se pudo consultar el estado de las credenciales Finnegans.')
+    } finally {
+      setFinnegansCredentialsLoading(false)
+    }
+  }
+
   const openIntegrationDetail = async (integration) => {
     setDetailError(null)
     setDetailLoading(true)
     setDetailIntegration(null)
+    setGuidedRunFeedback(null)
+    setFinnegansCredentialsStatus(null)
+    setFinnegansCredentialsLoading(false)
+    setFinnegansCredentialsError('')
     setIntegrationDetailOpen(true)
 
     try {
       const response = await integrationService.getIntegration(integration.id)
-      setDetailIntegration(response.data || integration)
+      const loadedIntegration = response.data || integration
+      setDetailIntegration(loadedIntegration)
+      loadFinnegansCredentialsStatus(loadedIntegration)
       setTriggerForm({
         source_system: response.data?.source_system || '',
         source_entity: response.data?.source_entity || integration.source_entity || '',
@@ -276,11 +348,39 @@ const Integrations = () => {
     setIntegrationModalError(null)
   }
 
+  const openProfilesFromIntegrationForm = () => {
+    const shouldLeave = window.confirm(
+      'Se cerrará el formulario de integración para administrar los perfiles. Los cambios sin guardar se perderán. ¿Continuar?',
+    )
+    if (!shouldLeave) return
+
+    closeIntegrationModal()
+    setSearch('')
+    setStatusFilter('all')
+    setActiveTab('profiles')
+  }
+
   const closeIntegrationDetail = () => {
     setIntegrationDetailOpen(false)
     setDetailIntegration(null)
     setDetailError(null)
     setTriggerMessage('')
+    setGuidedRunFeedback(null)
+    setFinnegansCredentialsStatus(null)
+    setFinnegansCredentialsError('')
+  }
+
+  const openIntegrationEditFromDetail = () => {
+    const integration = detailIntegration
+    closeIntegrationDetail()
+    if (integration) openIntegrationEdit(integration)
+  }
+
+  const openResourceTabFromDetail = (tab) => {
+    closeIntegrationDetail()
+    setSearch('')
+    setStatusFilter('all')
+    setActiveTab(tab)
   }
 
   const handleIntegrationSave = async (payload) => {
@@ -314,13 +414,55 @@ const Integrations = () => {
 
     try {
       const response = await integrationService.runIntegration(detailIntegration.id)
-      setTriggerMessage(`Ejecución programada correctamente. Tarea: ${response.data?.task_id || 'sin id'}`)
+      setTriggerMessage(`Ejecución programada correctamente. ID de tarea: ${response.data?.task_id || 'sin ID'}`)
       await refreshData()
     } catch (err) {
       console.error('Failed to run integration', err)
       setTriggerMessage('Error al iniciar ejecución. Intenta de nuevo.')
     } finally {
       setTriggerLoading(false)
+    }
+  }
+
+  const handleGuidedRunIntegration = async () => {
+    if (guidedRunInFlightRef.current || !detailIntegration?.id || !tiendaNubeRunReadiness) return
+
+    if (!tiendaNubeRunReadiness.canRun) {
+      setGuidedRunFeedback({
+        type: 'error',
+        message: 'Completá la configuración crítica antes de ejecutar la integración.',
+        taskId: '',
+        traceId: '',
+      })
+      return
+    }
+
+    guidedRunInFlightRef.current = true
+    setGuidedRunLoading(true)
+    setGuidedRunFeedback(null)
+
+    try {
+      const response = await integrationService.runIntegration(detailIntegration.id)
+      const taskId = response.data?.task_id || ''
+      const traceId = response.data?.trace_id || ''
+
+      setGuidedRunFeedback({
+        type: 'success',
+        message: response.data?.message || 'La ejecución fue encolada correctamente.',
+        taskId,
+        traceId,
+      })
+      await refreshData()
+    } catch {
+      setGuidedRunFeedback({
+        type: 'error',
+        message: 'Error al iniciar la ejecución. Revisá la configuración e intentá de nuevo.',
+        taskId: '',
+        traceId: '',
+      })
+    } finally {
+      guidedRunInFlightRef.current = false
+      setGuidedRunLoading(false)
     }
   }
 
@@ -352,11 +494,11 @@ const Integrations = () => {
         raw_payload: JSON.parse(triggerForm.raw_payload || '{}'),
       }
       const response = await integrationService.triggerIntegration(detailIntegration.id, payload)
-      setTriggerMessage(`Mensaje enviado. Trace ID: ${response.data?.trace_id || 'sin id'}`)
+      setTriggerMessage(`Mensaje enviado. ID de seguimiento: ${response.data?.trace_id || 'sin ID'}`)
       await refreshData()
     } catch (err) {
       console.error('Failed to trigger integration', err)
-      setTriggerMessage('Error al enviar trigger. Verifica el JSON o intenta de nuevo.')
+      setTriggerMessage('Error al enviar la prueba. Verificá el JSON o intentá de nuevo.')
     } finally {
       setTriggerLoading(false)
     }
@@ -477,17 +619,17 @@ const Integrations = () => {
     try {
       if (lookupModalMode === 'create') {
         await lookupService.createLookupTable(payload)
-        setSuccessMessage('Tabla de búsqueda creada correctamente.')
+        setSuccessMessage('Tabla de consulta creada correctamente.')
       } else if (selectedLookup?.id) {
         await lookupService.updateLookupTable(selectedLookup.id, payload)
-        setSuccessMessage('Tabla de búsqueda actualizada correctamente.')
+        setSuccessMessage('Tabla de consulta actualizada correctamente.')
       }
       await refreshData()
       closeLookupModal()
     } catch (err) {
       console.error('Failed to save lookup table', err)
       const backendMessage = err?.response?.data?.detail || err?.message
-      setLookupModalError(backendMessage || 'Error al guardar la tabla de búsqueda.')
+      setLookupModalError(backendMessage || 'Error al guardar la tabla de consulta.')
     } finally {
       setLookupModalLoading(false)
     }
@@ -511,14 +653,14 @@ const Integrations = () => {
   }
 
   const handleDeleteLookup = async (lookup) => {
-    if (!window.confirm(`¿Eliminar tabla de búsqueda "${lookup.name}"? Esta acción no se puede revertir.`)) {
+    if (!window.confirm(`¿Eliminar tabla de consulta "${lookup.name}"? Esta acción no se puede revertir.`)) {
       return
     }
 
     setLookupDeleteLoading(true)
     try {
       await lookupService.deleteLookupTable(lookup.id)
-      setSuccessMessage('Tabla de búsqueda eliminada correctamente.')
+      setSuccessMessage('Tabla de consulta eliminada correctamente.')
       await refreshData()
     } catch (err) {
       console.error('Failed to delete lookup table', err)
@@ -536,7 +678,7 @@ const Integrations = () => {
           <div>
             <h2 className="section-title">Gestión de integraciones, perfiles y tablas</h2>
             <p className="section-subtitle">
-              Todo lo que admite la API actual: integraciones, mapeos de campos y tablas de búsqueda.
+              Todo lo que admite la API actual: integraciones, mapeos de campos y tablas de consulta.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -584,7 +726,7 @@ const Integrations = () => {
             ? 'Busca por nombre, tipo de conector y estado para encontrar integraciones rápidamente.'
             : activeTab === 'profiles'
             ? 'Filtra perfiles por nombre, sistema o entidad de origen.'
-            : 'Busca tablas de búsqueda por nombre o ID.'
+            : 'Buscá tablas de consulta por nombre o ID.'
         }
       >
         <div className="grid gap-4 sm:grid-cols-3">
@@ -644,7 +786,7 @@ const Integrations = () => {
         {error ? <p className="mt-3 text-sm font-medium text-red-600">{error}</p> : null}
         {integrationMetadata.error ? (
           <p className="mt-3 text-sm font-medium text-red-600">
-            No se pudo cargar la metadata de integraciones: {integrationMetadata.error}
+          No se pudieron cargar los metadatos de integraciones: {integrationMetadata.error}
           </p>
         ) : null}
       </Card>
@@ -708,7 +850,7 @@ const Integrations = () => {
               <thead>
                 <tr>
                   <th>Nombre</th>
-                  <th>Sistema origen</th>
+                <th>Sistema de origen</th>
                   <th>Entidad</th>
                   <th>Versión</th>
                   <th>Estado</th>
@@ -757,7 +899,7 @@ const Integrations = () => {
           </div>
         </Card>
       ) : (
-        <Card title="Tablas de búsqueda" description="Gestione tablas de búsqueda reutilizables para transformaciones y reglas.">
+        <Card title="Tablas de consulta" description="Administrá tablas de consulta reutilizables para transformaciones y reglas.">
           <div className="overflow-x-auto">
             <Table>
               <thead>
@@ -771,7 +913,7 @@ const Integrations = () => {
                 {filteredLookupTables.length === 0 ? (
                   <tr>
                     <td colSpan="3" className="px-6 py-4 text-center text-sm text-slate-500">
-                      {loading ? 'Cargando tablas...' : 'No se encontraron tablas de búsqueda.'}
+                      {loading ? 'Cargando tablas...' : 'No se encontraron tablas de consulta.'}
                     </td>
                   </tr>
                 ) : (
@@ -804,7 +946,7 @@ const Integrations = () => {
         </Card>
       )}
 
-      <Modal open={integrationModalOpen} size="large" title={integrationModalMode === 'create' ? 'Crear nueva integración' : 'Editar integración'} subtitle={integrationModalMode === 'create' ? 'Set up a new integration in just a few steps' : 'Update your integration configuration'} onClose={closeIntegrationModal} footer={null}>
+      <Modal open={integrationModalOpen} size="large" title={integrationModalMode === 'create' ? 'Crear nueva integración' : 'Editar integración'} subtitle={integrationModalMode === 'create' ? 'Configurá una nueva integración en pocos pasos' : 'Actualizá la configuración de la integración'} onClose={closeIntegrationModal} footer={null}>
         {integrationModalLoading && integrationModalMode === 'edit' && !selectedIntegration ? (
           <div className="py-20 text-center text-slate-600">Cargando integración...</div>
         ) : (
@@ -818,6 +960,8 @@ const Integrations = () => {
             errorMessage={integrationModalError}
             metadata={integrationMetadata}
             profiles={profiles}
+            profilesLoading={loading}
+            onOpenProfiles={openProfilesFromIntegrationForm}
           />
         )}
       </Modal>
@@ -876,8 +1020,21 @@ const Integrations = () => {
 
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
               <h3 className="text-base font-semibold text-slate-900">Configuración de conector</h3>
-              <pre className="mt-3 max-h-72 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100">{JSON.stringify(detailIntegration.config, null, 2) || 'No hay configuración disponible.'}</pre>
+              <pre className="mt-3 max-h-72 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100">{JSON.stringify(redactSensitiveConfig(detailIntegration.config), null, 2) || 'No hay configuración disponible.'}</pre>
             </div>
+
+            {tiendaNubeRunReadiness ? (
+              <TiendaNubeRunPanel
+                integration={detailIntegration}
+                readiness={tiendaNubeRunReadiness}
+                runLoading={guidedRunLoading}
+                runFeedback={guidedRunFeedback}
+                onRun={handleGuidedRunIntegration}
+                onEditIntegration={openIntegrationEditFromDetail}
+                onOpenProfiles={() => openResourceTabFromDetail('profiles')}
+                onOpenLookupTables={() => openResourceTabFromDetail('lookupTables')}
+              />
+            ) : null}
 
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
               <h3 className="text-base font-semibold text-slate-900">Perfiles relacionados</h3>
@@ -912,10 +1069,12 @@ const Integrations = () => {
                   <p className="mt-1 text-sm text-slate-500">Últimas ejecuciones relacionadas con esta integración.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={handleRunIntegration} loading={triggerLoading}>
-                    Ejecutar ahora
-                  </Button>
-                  <Button onClick={openTriggerModal}>Trigger de prueba</Button>
+                  {!tiendaNubeRunReadiness ? (
+                    <Button variant="outline" onClick={handleRunIntegration} loading={triggerLoading}>
+                      Ejecutar ahora
+                    </Button>
+                  ) : null}
+                  <Button onClick={openTriggerModal}>Prueba manual</Button>
                 </div>
               </div>
               {integrationExecutions.length === 0 ? (
@@ -925,7 +1084,7 @@ const Integrations = () => {
                   <Table>
                     <thead>
                       <tr>
-                        <th>Trace ID</th>
+                        <th>ID de seguimiento</th>
                         <th>Estado</th>
                         <th>Sistema</th>
                         <th>Entidad</th>
@@ -940,7 +1099,7 @@ const Integrations = () => {
                               {execution.trace_id}
                             </Link>
                           </td>
-                          <td>{execution.status || '—'}</td>
+                          <td>{getExecutionStatusLabel(execution.status)}</td>
                           <td>{execution.source_system || '—'}</td>
                           <td>{execution.entity || '—'}</td>
                           <td>{formatDateTime(execution.created_at)}</td>
@@ -955,7 +1114,7 @@ const Integrations = () => {
             <div className="rounded-3xl border border-amber-200 bg-amber-50 p-4">
               <h3 className="text-base font-semibold text-amber-900">Funciones API no cubiertas aún</h3>
               <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-amber-900">
-                <li>Visor de orquestación de workflows no disponible en la API actual.</li>
+                <li>El visor de orquestación de flujos de trabajo no está disponible en la API actual.</li>
                 <li>Editor visual de mapeo/bloques de transformación requiere metadatos adicionales.</li>
                 <li>Relación directa entre integración y perfil sólo puede inferirse por entidad.</li>
               </ul>
@@ -964,12 +1123,12 @@ const Integrations = () => {
         ) : null}
       </Modal>
 
-      <Modal open={triggerModalOpen} title="Enviar trigger de prueba" onClose={closeTriggerModal} footer={null}>
+      <Modal open={triggerModalOpen} title="Enviar prueba manual" onClose={closeTriggerModal} footer={null}>
         <form onSubmit={handleTriggerIntegration} className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
               id="trigger-source-system"
-              label="Sistema origen"
+              label="Sistema de origen"
               value={triggerForm.source_system}
               onChange={(event) => setTriggerForm((current) => ({ ...current, source_system: event.target.value }))}
               required
@@ -984,14 +1143,14 @@ const Integrations = () => {
           </div>
           <div className="space-y-2">
             <label htmlFor="trigger-payload" className="block text-sm font-semibold text-slate-900">
-              Payload JSON
+              Datos JSON
             </label>
             <textarea
               id="trigger-payload"
               value={triggerForm.raw_payload}
               onChange={(event) => setTriggerForm((current) => ({ ...current, raw_payload: event.target.value }))}
               className="form-input min-h-[240px] font-mono text-sm"
-              aria-label="Payload JSON"
+              aria-label="Datos JSON"
             />
           </div>
           {triggerMessage ? <p className="text-sm text-slate-700">{triggerMessage}</p> : null}
@@ -1000,7 +1159,7 @@ const Integrations = () => {
               Cancelar
             </Button>
             <Button type="submit" loading={triggerLoading}>
-              Enviar trigger
+              Enviar prueba
             </Button>
           </div>
         </form>
@@ -1038,7 +1197,7 @@ const Integrations = () => {
                 <dd>{detailProfile.name || '—'}</dd>
               </div>
               <div>
-                <dt className="font-medium text-slate-900">Sistema origen</dt>
+                <dt className="font-medium text-slate-900">Sistema de origen</dt>
                 <dd>{detailProfile.source_system || '—'}</dd>
               </div>
               <div>
@@ -1062,7 +1221,7 @@ const Integrations = () => {
             </div>
             <div className="rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
               <p>
-                Esta vista usa los campos que expone la API actual. Para un editor visual de mapeo y previas de transformación, se requiere metadatos adicionales del backend.
+                Esta vista usa los campos que expone la API actual. Un editor visual de mapeo y vistas previas de transformación requiere metadatos adicionales del servidor.
               </p>
             </div>
           </div>

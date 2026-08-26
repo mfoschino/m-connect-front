@@ -40,7 +40,7 @@ const buildAuthError = (error) => {
   if (!axios.isAxiosError(error)) {
     return {
       code: 'network_error',
-      message: 'No se pudo conectar con el servidor de autenticacion.',
+      message: 'No se pudo conectar con el servidor de autenticación.',
     }
   }
 
@@ -51,7 +51,7 @@ const buildAuthError = (error) => {
   if (status === 401 || status === 400 || status === 422) {
     return {
       code: 'invalid_credentials',
-      message: message || 'Correo electronico o contrasena invalidos.',
+      message: message || 'Correo electrónico o contraseña no válidos.',
     }
   }
 
@@ -65,7 +65,7 @@ const buildAuthError = (error) => {
   ) {
     return {
       code: 'blocked_account',
-      message: message || 'Tu cuenta esta bloqueada. Contacta con soporte.',
+      message: message || 'Tu cuenta está bloqueada. Contactá con soporte.',
     }
   }
 
@@ -78,7 +78,7 @@ const buildAuthError = (error) => {
 
   return {
     code: 'network_error',
-    message: message || 'No se pudo iniciar sesion. Intentalo nuevamente.',
+      message: message || 'No se pudo iniciar sesión. Intentá nuevamente.',
   }
 }
 
@@ -111,7 +111,7 @@ const login = async ({ email, password, remember }) => {
     if (!data?.access_token) {
       throw {
         code: 'invalid_response',
-        message: 'El servidor no devolvio un token de acceso.',
+        message: 'El servidor no devolvió un token de acceso.',
       }
     }
 

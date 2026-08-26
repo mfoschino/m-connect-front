@@ -8,7 +8,7 @@ export const LOOKUP_TABLE_PRESETS = [
   {
     id: 'tiendanube-status-map',
     label: 'Tienda Nube — Estados de pedido',
-    description: 'Traduce open, closed y cancelled al estado canónico de sales_order.',
+    description: 'Traduce los estados de Tienda Nube al estado canónico del pedido de venta.',
     values: {
       name: 'TiendaNubeStatusMap',
       entries: {
@@ -23,8 +23,8 @@ export const LOOKUP_TABLE_PRESETS = [
 export const MAPPING_PROFILE_PRESETS = [
   {
     id: 'tiendanube-sales-order-inbound',
-    label: 'Tienda Nube → Sales Order canónico',
-    description: 'Perfil inbound basado en el payload real de Tienda Nube API 2025-03.',
+    label: 'Tienda Nube → Pedido de venta canónico',
+    description: 'Perfil de entrada basado en los datos reales de la API de Tienda Nube 2025-03.',
     values: {
       source_system: 'tiendanube',
       entity: 'sales_order',
@@ -80,8 +80,8 @@ export const MAPPING_PROFILE_PRESETS = [
   },
   {
     id: 'finnegans-pedido-venta-outbound',
-    label: 'Sales Order canónico → Finnegans Pedido de Venta',
-    description: 'Perfil outbound para /api/pedidoVenta; requiere completar los códigos maestros señalados.',
+    label: 'Pedido de venta canónico → Pedido de venta de Finnegans',
+    description: 'Perfil de salida para /api/pedidoVenta; requiere completar los códigos maestros señalados.',
     values: {
       source_system: 'finnegans',
       entity: 'sales_order',
@@ -121,10 +121,10 @@ export const MAPPING_PROFILE_PRESETS = [
   },
   {
     id: 'finnegans-punto-venta-outbound',
-    label: 'Sales Order canónico → Finnegans Punto de Venta',
-    description: 'El runbook identifica el profile, pero no incluye la config del seed PuntoVentaItem.',
+    label: 'Pedido de venta canónico → Punto de venta de Finnegans',
+    description: 'La guía de ejecución identifica el perfil, pero no incluye la configuración inicial de PuntoVentaItem.',
     incomplete: true,
-    note: 'Completá manualmente los mappings de PuntoVentaItem; el runbook no define su estructura exacta.',
+    note: 'Completá manualmente los mapeos de PuntoVentaItem; la guía de ejecución no define su estructura exacta.',
     values: {
       source_system: 'finnegans_punto_venta',
       entity: 'sales_order',

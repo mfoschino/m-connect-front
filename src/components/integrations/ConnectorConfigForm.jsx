@@ -116,14 +116,14 @@ const ConnectorConfigForm = ({
     // TODO: Implement connection testing
     // This should call a backend endpoint to validate the connection
     console.log('Testing connection with config:', config)
-    alert('Connection test not yet implemented. Configuration saved.')
+    alert('La prueba de conexión todavía no está implementada. La configuración quedó guardada.')
   }
 
   if (!schema) {
     return (
       <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-4">
-        <p className="text-sm font-semibold text-amber-900">No connector type selected</p>
-        <p className="mt-1 text-sm text-amber-700">Go back to select a source system first.</p>
+        <p className="text-sm font-semibold text-amber-900">No se seleccionó un tipo de conector</p>
+        <p className="mt-1 text-sm text-amber-700">Volvé al paso anterior y seleccioná primero un sistema de origen.</p>
       </div>
     )
   }
@@ -131,8 +131,8 @@ const ConnectorConfigForm = ({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-sm font-semibold text-slate-900">Connect {sourceSystemName || 'Source System'}</h3>
-        <p className="mt-1 text-sm text-slate-600">Enter the connection details below. All information is securely encrypted.</p>
+        <h3 className="text-sm font-semibold text-slate-900">Conectar {sourceSystemName || 'sistema de origen'}</h3>
+        <p className="mt-1 text-sm text-slate-600">Ingresá los datos de conexión. Toda la información se cifra de forma segura.</p>
       </div>
 
       <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
@@ -178,7 +178,7 @@ const ConnectorConfigForm = ({
                     className="form-input mt-2 w-full"
                     required={field.required}
                   >
-                    <option value="">Select {field.label.toLowerCase()}</option>
+                    <option value="">Seleccioná {field.label.toLowerCase()}</option>
                     {field.options?.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -265,22 +265,22 @@ const ConnectorConfigForm = ({
       {/* Test Connection Button */}
       <div className="flex gap-3 pt-4 border-t border-slate-200">
         <Button variant="outline" onClick={handleTestConnection}>
-          Test Connection
+          Probar conexión
         </Button>
-        <p className="text-sm text-slate-600 flex items-center">Optional - Verify connection before proceeding</p>
+        <p className="text-sm text-slate-600 flex items-center">Opcional: verificá la conexión antes de continuar</p>
       </div>
 
       {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
 
       {/* Extension Points */}
       <details className="rounded-2xl border border-slate-200 p-4 text-sm">
-        <summary className="cursor-pointer font-semibold text-slate-700">Configuration Details</summary>
+        <summary className="cursor-pointer font-semibold text-slate-700">Detalles de configuración</summary>
         <div className="mt-3 space-y-2 text-slate-600">
           <p>
-            <strong>Fields collected:</strong> {Object.keys(config).length}
+            <strong>Campos recopilados:</strong> {Object.keys(config).length}
           </p>
           <details className="mt-2">
-            <summary className="cursor-pointer text-slate-700">Config Object</summary>
+            <summary className="cursor-pointer text-slate-700">Objeto de configuración</summary>
             <pre className="mt-2 bg-slate-50 p-2 rounded text-xs overflow-x-auto">
               {JSON.stringify(config, null, 2)}
             </pre>

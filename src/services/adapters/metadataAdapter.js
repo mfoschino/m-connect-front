@@ -1,5 +1,45 @@
 const DEFAULT_COLLECTION_KEYS = ['items', 'values', 'data', 'results', 'types', 'strategies']
 
+const METADATA_LABELS = {
+  simple: 'Simple',
+  constant: 'Constante',
+  path: 'Ruta',
+  default: 'Valor predeterminado',
+  lookup: 'Consulta',
+  datetime: 'Fecha y hora',
+  expression: 'Expresión',
+  table: 'Tabla',
+  nested_object: 'Objeto anidado',
+  string: 'Texto',
+  fail: 'Detener con error',
+  skip: 'Omitir',
+  retry: 'Reintentar',
+  sales_order: 'Pedido de venta',
+  customer: 'Cliente',
+  product: 'Producto',
+  invoice: 'Factura',
+  inventory: 'Inventario',
+  payment: 'Pago',
+  user: 'Usuario',
+  contact: 'Contacto',
+  api: 'API',
+  db: 'Base de datos',
+  database: 'Base de datos',
+  file: 'Archivo',
+  webhook: 'Webhook',
+}
+
+const CONFIG_FIELD_LABELS = {
+  default_value: 'Valor predeterminado',
+  lookup_table_name: 'Tabla de consulta',
+  source_format: 'Formato de origen',
+  target_format: 'Formato de destino',
+  expression: 'Expresión',
+  sub_mappings: 'Mapeos anidados',
+  path: 'Ruta',
+  value: 'Valor',
+}
+
 const humanize = (value) => String(value)
   .replace(/[_-]+/g, ' ')
   .replace(/\b\w/g, (character) => character.toUpperCase())
@@ -32,7 +72,8 @@ const extractItems = (payload, collectionKeys) => {
 
 const normalizeItem = (item) => {
   if (typeof item === 'string' || typeof item === 'number') {
-    return { value: String(item), label: humanize(item) }
+    const value = String(item)
+    return { value, label: METADATA_LABELS[value] ?? humanize(value) }
   }
 
   if (!item || typeof item !== 'object') return null
@@ -41,7 +82,7 @@ const normalizeItem = (item) => {
   if (rawValue === undefined || rawValue === null || rawValue === '') return null
 
   const value = String(rawValue)
-  const label = String(item.label ?? item.display_name ?? item.name ?? humanize(value))
+  const label = String(METADATA_LABELS[value] ?? item.label ?? item.display_name ?? item.name ?? humanize(value))
   const description = item.description ?? item.help_text ?? item.help
 
   return description
@@ -92,7 +133,7 @@ const normalizeConfigField = (field) => {
 
   return {
     name,
-    label: String(field.label ?? field.display_name ?? humanize(name)),
+    label: String(CONFIG_FIELD_LABELS[name] ?? field.label ?? field.display_name ?? humanize(name)),
     type: String(field.type ?? 'string'),
     required: field.required === true,
     ...(description ? { description: String(description) } : {}),

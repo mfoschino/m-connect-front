@@ -114,7 +114,7 @@ const LookupTableForm = ({
           onChange={handleChange('entriesText')}
           aria-invalid={Boolean(error)}
         />
-        <p className="text-sm text-slate-500">Ingrese un objeto JSON de clave/valor para la tabla de búsqueda.</p>
+        <p className="text-sm text-slate-500">Ingresá un objeto JSON de clave/valor para la tabla de consulta.</p>
       </div>
       {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
       <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">

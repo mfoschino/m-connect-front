@@ -31,7 +31,7 @@ const ResetPasswordPage = () => {
     const nextErrors = {}
 
     if (!formData.password) {
-      nextErrors.password = 'Nueva contraseña es requerida.'
+      nextErrors.password = 'La nueva contraseña es obligatoria.'
     } else if (formData.password.length < 8) {
       nextErrors.password = 'La contraseña debe tener al menos 8 caracteres.'
     } else if (!/[A-Z]/.test(formData.password)) {
@@ -43,7 +43,7 @@ const ResetPasswordPage = () => {
     }
 
     if (!formData.confirmPassword) {
-      nextErrors.confirmPassword = 'Confirmar contraseña es requerida.'
+      nextErrors.confirmPassword = 'La confirmación de la contraseña es obligatoria.'
     } else if (formData.password !== formData.confirmPassword) {
       nextErrors.confirmPassword = 'Las contraseñas no coinciden.'
     }
@@ -93,7 +93,7 @@ const ResetPasswordPage = () => {
         navigate('/login')
       }, 2000)
     } catch (err) {
-      setGeneralError('Error al restablece su contraseña. Intente de nuevo.')
+      setGeneralError('Error al restablecer su contraseña. Intente de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -108,7 +108,7 @@ const ResetPasswordPage = () => {
         <div className="space-y-6">
           <Alert
             variant="error"
-            title="Token Inválido"
+            title="Enlace no válido"
             description="Los enlaces de restablecimiento son válidos por 24 horas. Solicite uno nuevo para continuar."
           />
 
@@ -225,7 +225,7 @@ const ResetPasswordPage = () => {
           loading={loading}
           className="w-full"
         >
-          Restablacer Contraseña
+          Restablecer contraseña
         </Button>
 
         <div className="text-center">

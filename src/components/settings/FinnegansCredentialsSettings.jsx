@@ -17,7 +17,7 @@ const getRequestErrorMessage = (error, action) => {
 
   if (status === 401) return 'La sesión no está autorizada para realizar esta operación.'
   if (status === 403) return 'No tenés permisos para administrar estas credenciales.'
-  if (status === 404) return 'No se encontró el tenant asociado a la sesión.'
+  if (status === 404) return 'No se encontró la organización asociada a la sesión.'
   if (status === 422) return 'Los datos ingresados no cumplen el contrato de credenciales Finnegans.'
 
   return action === 'load'
@@ -86,7 +86,7 @@ const FinnegansCredentialsSettings = () => {
     if (!tenantId) {
       setSaveMessage({
         type: 'error',
-        text: 'No se pudo determinar el tenant actual. No se enviaron credenciales.',
+        text: 'No se pudo determinar la organización actual. No se enviaron credenciales.',
       })
       return
     }
@@ -128,14 +128,14 @@ const FinnegansCredentialsSettings = () => {
     <Card
       className="xl:col-span-2"
       title="Credenciales Finnegans"
-      description="Configura las credenciales de destino compartidas por las integraciones del tenant."
+      description="Configurá las credenciales de destino compartidas por las integraciones de la organización."
     >
       <div className="space-y-6">
         {missingTenant ? (
           <Alert
             variant="error"
-            title="Tenant no disponible"
-            description="La sesión actual no contiene tenant_id. No se realizarán llamadas de credenciales."
+            title="Organización no disponible"
+            description="La sesión actual no contiene el identificador de la organización. No se realizarán llamadas de credenciales."
           />
         ) : null}
 
@@ -154,7 +154,7 @@ const FinnegansCredentialsSettings = () => {
             </p>
             <p className="mt-1 text-sm text-slate-600">
               {hasCredentials
-                ? 'El secret es write-only y no se muestra por seguridad.'
+                ? 'El secreto es de solo escritura y no se muestra por seguridad.'
                 : 'Ingresá las credenciales para habilitar la entrega hacia Finnegans.'}
             </p>
           </div>
@@ -173,7 +173,7 @@ const FinnegansCredentialsSettings = () => {
           <div className="grid gap-5 md:grid-cols-2">
             <Input
               id="finnegans-client-id"
-              label="Client ID"
+              label="ID de cliente"
               value={formValues.client_id}
               onChange={handleChange('client_id')}
               autoComplete="off"
@@ -182,12 +182,12 @@ const FinnegansCredentialsSettings = () => {
             />
             <Input
               id="finnegans-client-secret"
-              label={hasCredentials ? 'Nuevo client secret' : 'Client secret'}
+              label={hasCredentials ? 'Nuevo secreto de cliente' : 'Secreto de cliente'}
               type="password"
               value={formValues.client_secret}
               onChange={handleChange('client_secret')}
               autoComplete="new-password"
-              helperText="Write-only: nunca se recupera ni se muestra desde el backend."
+              helperText="Solo escritura: nunca se recupera ni se muestra desde el servidor."
               required
               disabled={missingTenant || saving}
             />
@@ -195,12 +195,12 @@ const FinnegansCredentialsSettings = () => {
 
           <Input
             id="finnegans-base-url"
-            label="Base URL opcional"
+            label="URL base opcional"
             type="url"
             value={formValues.base_url}
             onChange={handleChange('base_url')}
             placeholder="https://api.finneg.com"
-            helperText="Si se omite, el backend utiliza la URL global configurada."
+            helperText="Si se omite, el servidor utiliza la URL global configurada."
             disabled={missingTenant || saving}
           />
 
@@ -214,7 +214,7 @@ const FinnegansCredentialsSettings = () => {
 
           <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-500">
-              Credenciales específicas por integración: futuro override, fuera de este PR.
+              Las credenciales específicas por integración estarán disponibles en una versión futura.
             </p>
             <Button type="submit" loading={saving} disabled={missingTenant || loading}>
               {hasCredentials ? 'Reemplazar credenciales' : 'Guardar credenciales'}

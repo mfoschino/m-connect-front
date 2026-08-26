@@ -5,12 +5,12 @@ import notificationService from '../../services/api/notificationService'
 
 const TYPE_CONFIG = {
   critical_error: {
-    label: 'Error critico',
+    label: 'Error crítico',
     icon: AlertCircle,
     className: 'border-red-100 bg-red-50 text-red-700',
   },
   execution_completed: {
-    label: 'Ejecucion completada',
+    label: 'Ejecución completada',
     icon: CheckCircle2,
     className: 'border-emerald-100 bg-emerald-50 text-emerald-700',
   },
@@ -27,7 +27,7 @@ const normalizeNotification = (notification) => ({
   userId: notification.userId ?? notification.user_id,
   type: notification.type || 'alert',
   severity: notification.severity || 'info',
-  title: notification.title || 'Notificacion',
+  title: notification.title || 'Notificación',
   message: notification.message || notification.description || '',
   readAt: notification.readAt ?? notification.read_at ?? null,
   createdAt: notification.createdAt ?? notification.created_at ?? null,
@@ -55,7 +55,7 @@ const formatDate = (value) => {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'Sin fecha'
 
-  return date.toLocaleString()
+  return date.toLocaleString('es-AR')
 }
 
 const NotificationsMenu = () => {
@@ -162,7 +162,7 @@ const NotificationsMenu = () => {
       setUnreadCount((current) => Math.max(current - 1, 0))
     } catch (err) {
       console.error('Failed to mark notification as read', err)
-      setActionError('No se pudo marcar como leida. Intenta de nuevo.')
+      setActionError('No se pudo marcar como leída. Intentá de nuevo.')
     } finally {
       setMarkingId(null)
     }
@@ -216,7 +216,7 @@ const NotificationsMenu = () => {
             ) : error ? (
               <div className="px-4 py-6 text-sm">
                 <p className="font-medium text-red-600">{error}</p>
-                <p className="mt-2 text-slate-500">El endpoint de notificaciones todavia no esta disponible o rechazo la solicitud.</p>
+                <p className="mt-2 text-slate-500">El servicio de notificaciones todavía no está disponible o rechazó la solicitud.</p>
               </div>
             ) : visibleNotifications.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-slate-500">
@@ -242,7 +242,7 @@ const NotificationsMenu = () => {
                             </span>
                             <span className="text-xs text-slate-500">{formatDate(notification.createdAt)}</span>
                             {isUnread ? (
-                              <span className="h-2 w-2 rounded-full bg-sky-500" aria-label="No leida" />
+                              <span className="h-2 w-2 rounded-full bg-sky-500" aria-label="No leída" />
                             ) : null}
                           </div>
                           <p className="mt-2 text-sm font-semibold text-slate-900">{notification.title}</p>
@@ -250,7 +250,7 @@ const NotificationsMenu = () => {
                             <p className="mt-1 text-sm leading-5 text-slate-600">{notification.message}</p>
                           ) : null}
                           <div className="mt-3 flex items-center justify-between gap-3">
-                            <span className="text-xs text-slate-500">{isUnread ? 'No leida' : 'Leida'}</span>
+                            <span className="text-xs text-slate-500">{isUnread ? 'No leída' : 'Leída'}</span>
                             {isUnread ? (
                               <button
                                 type="button"
@@ -259,7 +259,7 @@ const NotificationsMenu = () => {
                                 disabled={markingId === notification.id}
                               >
                                 <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                                {markingId === notification.id ? 'Marcando...' : 'Marcar leida'}
+                                {markingId === notification.id ? 'Marcando...' : 'Marcar como leída'}
                               </button>
                             ) : null}
                           </div>

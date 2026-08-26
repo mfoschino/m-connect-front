@@ -4,7 +4,7 @@ const getTenantCredentialsPath = (tenantId) => {
   const normalizedTenantId = String(tenantId ?? '').trim()
 
   if (!normalizedTenantId) {
-    throw new Error('No se pudo determinar el tenant actual.')
+    throw new Error('No se pudo determinar la organización actual.')
   }
 
   return `/tenants/${encodeURIComponent(normalizedTenantId)}/finnegans-credentials`
@@ -16,7 +16,7 @@ const buildCredentialsPayload = (values = {}) => {
   const baseUrl = String(values.base_url ?? '').trim()
 
   if (!clientId || !clientSecret) {
-    throw new Error('Client ID y client secret son obligatorios.')
+    throw new Error('El ID de cliente y el secreto de cliente son obligatorios.')
   }
 
   return {

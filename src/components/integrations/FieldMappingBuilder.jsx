@@ -55,7 +55,7 @@ const RawMappingsEditor = ({
   return (
     <div className="mt-4 space-y-2">
       <label htmlFor="raw-field-mappings" className="block text-sm font-semibold text-slate-900">
-        Configuración de mappings (JSON)
+        Configuración de mapeos (JSON)
       </label>
       <textarea
         id="raw-field-mappings"
@@ -66,7 +66,7 @@ const RawMappingsEditor = ({
         disabled={disabled}
       />
       <p className="text-sm text-slate-500">
-        Puede editar el arreglo de mappings aunque esta entidad todavía no tenga catálogo visual de campos.
+        Podés editar el arreglo de mapeos aunque esta entidad todavía no tenga un catálogo visual de campos.
       </p>
       {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
     </div>
@@ -218,7 +218,7 @@ const FieldMappingBuilder = ({
       ) : null}
       {metadataError ? (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          No se pudo cargar la metadata de mappings: {metadataError}
+          No se pudieron cargar los metadatos de mapeos: {metadataError}
         </p>
       ) : null}
     </>
@@ -239,9 +239,9 @@ const FieldMappingBuilder = ({
         {renderMetadataState()}
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-900">Edición completa de mappings</p>
+              <p className="text-sm font-semibold text-slate-900">Edición completa de mapeos</p>
             <p className="mt-1 text-sm text-slate-600">
-              El arreglo conserva la metadata y la validación recursiva del formulario.
+              El arreglo conserva los metadatos y la validación recursiva del formulario.
             </p>
           </div>
           <Button type="button" variant="outline" onClick={() => setRawMode(false)}>
@@ -302,7 +302,7 @@ const FieldMappingBuilder = ({
         <div>
           <h3 className="text-sm font-semibold text-slate-900">Mapeo de campos</h3>
           <p className="mt-1 text-sm text-slate-600">
-            Los mapeos sugeridos se pueden ajustar y configurar según el tipo informado por el backend.
+              Los mapeos sugeridos se pueden ajustar y configurar según el tipo informado por el servidor.
           </p>
         </div>
         <Button type="button" variant="outline" onClick={() => setRawMode(true)}>

@@ -83,7 +83,7 @@ const ProfileForm = ({
 
     if (
       hasProfileValues(values)
-      && !window.confirm('Aplicar esta plantilla reemplazará los datos y mappings actuales. ¿Continuar?')
+      && !window.confirm('Aplicar esta plantilla reemplazará los datos y mapeos actuales. ¿Continuar?')
     ) {
       return
     }
@@ -171,7 +171,7 @@ const ProfileForm = ({
         <div>
           <Input
             id="profile-source-system"
-            label="Sistema origen"
+            label="Sistema de origen"
             value={values.source_system}
             onChange={handleChange('source_system')}
             required
@@ -208,7 +208,7 @@ const ProfileForm = ({
           </select>
           {selectedEntityMissing ? (
             <p className="text-sm text-amber-700">
-              La entidad guardada ya no está disponible en la metadata, pero se conserva para edición.
+              La entidad guardada ya no está disponible en los metadatos, pero se conserva para edición.
             </p>
           ) : null}
           {metadataError ? (

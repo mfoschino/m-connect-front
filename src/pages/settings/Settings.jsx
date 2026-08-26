@@ -20,7 +20,7 @@ const Settings = () => {
           <div className="space-y-4 text-sm text-slate-600">
             <div>
               <p className="font-semibold text-slate-900">Región predeterminada</p>
-              <p className="mt-1">US East</p>
+              <p className="mt-1">Este de EE. UU.</p>
             </div>
             <div>
               <p className="font-semibold text-slate-900">Zona horaria</p>
