@@ -17,7 +17,7 @@ const Sidebar = () => {
   const visibleLinks = links.filter((link) => !link.roles || link.roles.includes(userRole))
 
   return (
-    <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-slate-950 px-5 py-6 text-sm text-slate-300 shadow-soft lg:block">
+    <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-slate-950 px-4 py-6 text-sm text-slate-300 shadow-soft lg:block">
       <div className="mb-8">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Área de trabajo</p>
         <h2 className="mt-3 text-xl font-semibold text-white">M-Connect</h2>
