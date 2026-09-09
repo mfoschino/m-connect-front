@@ -31,6 +31,7 @@ const METADATA_LABELS = {
 
 const CONFIG_FIELD_LABELS = {
   default_value: 'Valor predeterminado',
+  lookup_table_code: 'Tabla de consulta',
   lookup_table_name: 'Tabla de consulta',
   source_format: 'Formato de origen',
   target_format: 'Formato de destino',

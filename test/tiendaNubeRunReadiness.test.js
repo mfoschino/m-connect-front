@@ -35,7 +35,7 @@ const inboundProfile = {
       source_field: 'status',
       target_field: 'status',
       field_type: 'lookup',
-      lookup_table_name: 'TiendaNubeStatusMap',
+      lookup_table_code: 'TiendaNubeStatusMap',
     },
   ],
 }
@@ -284,6 +284,24 @@ test('an unreferenced lookup table does not block run', () => {
     lookupTables: [],
     profiles: [{ ...inboundProfile, config: [] }, pedidoVentaProfile],
   })
+
+  assert.equal(readiness.canRun, true)
+  assert.ok(!readiness.missingChecks.some((check) => check.id === 'lookup'))
+})
+
+test('a legacy lookup_table_name reference remains readable', () => {
+  const legacyInboundProfile = {
+    ...inboundProfile,
+    config: [
+      {
+        source_field: 'status',
+        target_field: 'status',
+        field_type: 'lookup',
+        lookup_table_name: 'TiendaNubeStatusMap',
+      },
+    ],
+  }
+  const readiness = getReadiness({ profiles: [legacyInboundProfile, pedidoVentaProfile] })
 
   assert.equal(readiness.canRun, true)
   assert.ok(!readiness.missingChecks.some((check) => check.id === 'lookup'))

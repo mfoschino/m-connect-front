@@ -10,6 +10,28 @@ const hasOwn = (value, key) => (
   isMappingObject(value) && Object.prototype.hasOwnProperty.call(value, key)
 )
 
+const isNestedMapping = (value) => (
+  isMappingObject(value)
+  && (
+    hasOwn(value, 'field_type')
+    || hasOwn(value, 'source_field')
+    || hasOwn(value, 'target_field')
+    || hasOwn(value, 'on_error')
+  )
+)
+
+const normalizeLookupTableReference = (mapping) => {
+  const normalized = { ...mapping }
+
+  if (!hasOwn(mapping, 'lookup_table_code') && hasOwn(mapping, 'lookup_table_name')) {
+    normalized.lookup_table_code = mapping.lookup_table_name
+  }
+
+  delete normalized.lookup_table_name
+
+  return normalized
+}
+
 const isBlank = (value) => (
   value === undefined
   || value === null
@@ -26,7 +48,7 @@ export const getBackendMappingSourceField = (mapping = {}) => {
 export const mapBackendMappingToForm = (mapping = {}) => {
   if (!isMappingObject(mapping)) return mapping
 
-  const formMapping = { ...mapping }
+  const formMapping = normalizeLookupTableReference(mapping)
 
   if (isConstantFieldType(mapping.field_type)) {
     formMapping.constant_value = hasOwn(mapping, 'constant_value')
@@ -38,6 +60,14 @@ export const mapBackendMappingToForm = (mapping = {}) => {
     delete formMapping.value
   }
 
+  Object.entries(formMapping).forEach(([fieldName, value]) => {
+    if (!Array.isArray(value)) return
+
+    formMapping[fieldName] = value.map((item) => (
+      isNestedMapping(item) ? mapBackendMappingToForm(item) : item
+    ))
+  })
+
   return formMapping
 }
 
@@ -48,7 +78,7 @@ export const mapBackendMappingListToForm = (mappings) => (
 export const normalizeBackendMapping = (mapping = {}) => {
   if (!isMappingObject(mapping)) return mapping
 
-  const backendMapping = { ...mapping }
+  const backendMapping = normalizeLookupTableReference(mapping)
   const normalizedConstantValue = hasOwn(mapping, 'constant_value')
     ? mapping.constant_value
     : mapping.value
@@ -75,15 +105,7 @@ export const normalizeBackendMapping = (mapping = {}) => {
     if (!Array.isArray(value)) return
 
     backendMapping[fieldName] = value.map((item) => (
-      isMappingObject(item)
-      && (
-        hasOwn(item, 'field_type')
-        || hasOwn(item, 'source_field')
-        || hasOwn(item, 'target_field')
-        || hasOwn(item, 'on_error')
-      )
-        ? normalizeBackendMapping(item)
-        : item
+      isNestedMapping(item) ? normalizeBackendMapping(item) : item
     ))
   })
 

@@ -43,7 +43,8 @@ const referencesLookupTable = (value, lookupTableName) => {
   }
 
   if (!isObject(value)) return false
-  if (value.lookup_table_name === lookupTableName) return true
+  const lookupTableCode = value.lookup_table_code ?? value.lookup_table_name
+  if (lookupTableCode === lookupTableName) return true
 
   return Object.values(value).some((entry) => referencesLookupTable(entry, lookupTableName))
 }
