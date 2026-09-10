@@ -71,7 +71,7 @@ export const getTiendaNubeRunReadiness = (options = {}) => {
     TIENDA_NUBE_STATUS_LOOKUP,
   ))
   const hasRequiredStatusLookup = lookupTables.some(
-    (lookup) => lookup?.name === TIENDA_NUBE_STATUS_LOOKUP,
+    (lookup) => lookup?.codigo === TIENDA_NUBE_STATUS_LOOKUP,
   )
 
   const checks = [

@@ -14,6 +14,7 @@ import {
   isTiendaNubeSalesOrderIntegration,
   redactSensitiveConfig,
 } from '../../services/adapters/tiendaNubeRunReadiness'
+import { getLookupApiErrorMessage } from '../../services/adapters/lookupTableAdapter'
 import useIntegrationMetadata from '../../hooks/useIntegrationMetadata'
 import { useAuth } from '../../context/AuthContext'
 import Badge from '../../components/ui/Badge'
@@ -217,7 +218,7 @@ const Integrations = () => {
   const filteredLookupTables = useMemo(() => {
     const searchTerm = search.trim().toLowerCase()
     if (!searchTerm) return lookupTables
-    return lookupTables.filter((lookup) => [lookup.name, lookup.id]
+    return lookupTables.filter((lookup) => [lookup.codigo, lookup.name, lookup.id]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(searchTerm)))
   }, [lookupTables, search])
@@ -628,8 +629,7 @@ const Integrations = () => {
       closeLookupModal()
     } catch (err) {
       console.error('Failed to save lookup table', err)
-      const backendMessage = err?.response?.data?.detail || err?.message
-      setLookupModalError(backendMessage || 'Error al guardar la tabla de consulta.')
+      setLookupModalError(getLookupApiErrorMessage(err))
     } finally {
       setLookupModalLoading(false)
     }

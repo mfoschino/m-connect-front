@@ -41,12 +41,19 @@ const flattenMappings = (mappings) => mappings.flatMap((mapping) => [
     )),
 ])
 
-test('el preset TiendaNubeStatusMap conserva el contrato real del runbook', () => {
+test('el preset TiendaNubeStatusMap usa el contrato LookupTable desplegado', () => {
   const preset = getLookupTablePreset('tiendanube-status-map')
-  const expected = extractJsonBlockAfter('### Fase 1 — LookupTable de estados')
 
-  assert.deepEqual(preset.values, expected)
-  assert.deepEqual(Object.keys(preset.values).sort(), ['entries', 'name'])
+  assert.deepEqual(preset.values, {
+    codigo: 'TiendaNubeStatusMap',
+    name: 'Estados de Tienda Nube',
+    is_active: true,
+    entries: {
+      open: 'confirmed',
+      closed: 'completed',
+      cancelled: 'cancelled',
+    },
+  })
 })
 
 test('el preset inbound conserva el runbook salvo por el contrato lookup vigente', () => {

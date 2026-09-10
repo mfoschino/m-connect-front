@@ -10,7 +10,9 @@ export const LOOKUP_TABLE_PRESETS = [
     label: 'Tienda Nube — Estados de pedido',
     description: 'Traduce los estados de Tienda Nube al estado canónico del pedido de venta.',
     values: {
-      name: 'TiendaNubeStatusMap',
+      codigo: 'TiendaNubeStatusMap',
+      name: 'Estados de Tienda Nube',
+      is_active: true,
       entries: {
         open: 'confirmed',
         closed: 'completed',

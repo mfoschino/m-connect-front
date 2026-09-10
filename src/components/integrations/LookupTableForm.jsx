@@ -6,9 +6,16 @@ import {
   getLookupTablePreset,
   shouldShowCreationPresets,
 } from '../../constants/onboardingPresets'
+import {
+  LOOKUP_TABLE_CODE_PATTERN,
+  buildLookupTablePayload,
+  mapLookupTableToForm,
+} from '../../services/adapters/lookupTableAdapter'
 
 const hasLookupValues = (values) => (
-  Boolean(values.name.trim())
+  Boolean(values.codigo.trim())
+  || Boolean(values.name.trim())
+  || values.is_active !== true
   || !['', '{}'].includes(values.entriesText.trim())
 )
 
@@ -19,16 +26,14 @@ const LookupTableForm = ({
   submitLabel = 'Guardar tabla',
   showPresets = false,
 }) => {
-  const [values, setValues] = useState({
-    name: initialValues?.name || '',
-    entriesText: initialValues?.entries ? JSON.stringify(initialValues.entries, null, 2) : '{}',
-  })
+  const [values, setValues] = useState(() => mapLookupTableToForm(initialValues))
   const [error, setError] = useState('')
   const [selectedPresetId, setSelectedPresetId] = useState('')
   const canUsePresets = shouldShowCreationPresets(showPresets, initialValues?.id)
 
   const handleChange = (field) => (event) => {
-    setValues((current) => ({ ...current, [field]: event.target.value }))
+    const value = field === 'is_active' ? event.target.checked : event.target.value
+    setValues((current) => ({ ...current, [field]: value }))
   }
 
   const handlePresetChange = (event) => {
@@ -44,10 +49,7 @@ const LookupTableForm = ({
     }
 
     setSelectedPresetId(presetId)
-    setValues({
-      name: preset.values.name,
-      entriesText: JSON.stringify(preset.values.entries, null, 2),
-    })
+    setValues(mapLookupTableToForm(preset.values))
     setError('')
   }
 
@@ -55,25 +57,17 @@ const LookupTableForm = ({
     event.preventDefault()
     setError('')
 
-    let entries
-    try {
-      entries = JSON.parse(values.entriesText || '{}')
-      if (typeof entries !== 'object' || Array.isArray(entries) || entries === null) {
-        throw new Error('Las entradas deben ser un objeto JSON de pares clave/valor.')
-      }
-    } catch {
-      setError('El campo de entradas debe contener JSON válido y un objeto de pares clave/valor.')
+    const result = buildLookupTablePayload(values)
+    if (result.error) {
+      setError(result.error)
       return
     }
 
-    onSubmit({
-      name: values.name,
-      entries,
-    })
+    onSubmit(result.payload)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {canUsePresets ? (
         <div className="space-y-2 rounded-2xl border border-sky-200 bg-sky-50 p-4">
           <label htmlFor="lookup-preset" className="block text-sm font-semibold text-slate-900">
@@ -96,13 +90,33 @@ const LookupTableForm = ({
         </div>
       ) : null}
 
-      <Input
-        id="lookup-name"
-        label="Nombre de la tabla"
-        value={values.name}
-        onChange={handleChange('name')}
-        required
-      />
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Input
+          id="lookup-code"
+          label="Código"
+          value={values.codigo}
+          onChange={handleChange('codigo')}
+          pattern={LOOKUP_TABLE_CODE_PATTERN.source}
+          helperText="Identificador técnico estable. Usá letras, números, guiones, guiones bajos o puntos."
+          required
+        />
+        <Input
+          id="lookup-name"
+          label="Nombre descriptivo"
+          value={values.name}
+          onChange={handleChange('name')}
+          required
+        />
+      </div>
+      <label className="flex items-center gap-3 text-sm font-medium text-slate-900">
+        <input
+          type="checkbox"
+          checked={values.is_active}
+          onChange={handleChange('is_active')}
+          className="h-4 w-4 rounded border-slate-300 text-slate-700 focus:ring-slate-500"
+        />
+        Tabla activa
+      </label>
       <div className="space-y-2">
         <label htmlFor="lookup-entries" className="block text-sm font-semibold text-slate-900">
           Entradas de la tabla (JSON)
@@ -113,6 +127,7 @@ const LookupTableForm = ({
           value={values.entriesText}
           onChange={handleChange('entriesText')}
           aria-invalid={Boolean(error)}
+          required
         />
         <p className="text-sm text-slate-500">Ingresá un objeto JSON de clave/valor para la tabla de consulta.</p>
       </div>

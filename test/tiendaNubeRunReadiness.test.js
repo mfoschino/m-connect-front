@@ -25,7 +25,7 @@ const integration = {
   },
 }
 
-const lookupTables = [{ name: 'TiendaNubeStatusMap' }]
+const lookupTables = [{ codigo: 'TiendaNubeStatusMap', name: 'Estados de Tienda Nube' }]
 const inboundProfile = {
   source_system: 'tiendanube',
   entity: 'sales_order',
@@ -274,6 +274,17 @@ test('missing Punto de Venta outbound profile blocks run', () => {
 
 test('missing lookup table referenced by inbound profile blocks run', () => {
   const readiness = getReadiness({ lookupTables: [] })
+
+  assert.equal(readiness.canRun, false)
+  assert.ok(readiness.missingChecks.some((check) => check.id === 'lookup'))
+})
+
+test('lookup readiness resolves the required table by codigo, not by name', () => {
+  const readiness = getReadiness({
+    lookupTables: [
+      { codigo: 'OtherMap', name: 'TiendaNubeStatusMap' },
+    ],
+  })
 
   assert.equal(readiness.canRun, false)
   assert.ok(readiness.missingChecks.some((check) => check.id === 'lookup'))
