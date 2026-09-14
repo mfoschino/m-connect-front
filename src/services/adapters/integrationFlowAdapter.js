@@ -151,6 +151,20 @@ export const getActiveCompatibleProfiles = (profiles, sourceSystem, entity) => (
     : []
 )
 
+export const getInboundProfileCandidates = (profiles, sourceSystem, entity) => (
+  getActiveCompatibleProfiles(profiles, sourceSystem, entity)
+)
+
+export const getOutboundProfileCandidates = (
+  profiles,
+  finnegansDocument,
+  entity,
+) => getActiveCompatibleProfiles(
+  profiles,
+  getOutboundProfileSourceSystem(finnegansDocument, entity),
+  entity,
+)
+
 export const isFinnegansSourceSystem = (sourceSystem) => (
   FINNEGANS_SOURCE_SYSTEMS.has(String(sourceSystem ?? '').trim().toLowerCase())
   || String(sourceSystem ?? '').trim().toLowerCase().startsWith('finnegans')

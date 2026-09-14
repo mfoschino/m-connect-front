@@ -17,7 +17,7 @@ import {
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import ConnectorConfigForm from './ConnectorConfigForm'
-import FieldMappingBuilder from './FieldMappingBuilder'
+import MappingProfileReadOnly from './MappingProfileReadOnly'
 import ScheduleBuilder from './ScheduleBuilder'
 import {
   SYSTEM_CATALOG,
@@ -29,9 +29,10 @@ import { getScheduleDescription } from '../../utils/scheduleUtils'
 import {
   FINNEGANS_DOCUMENT_OPTIONS,
   buildBackendIntegrationPayload,
-  getActiveCompatibleProfiles,
   getCanonicalEntityDesign,
+  getInboundProfileCandidates,
   getOutboundProfileSourceSystem,
+  getOutboundProfileCandidates,
   isFinnegansDocumentConfigurable,
   isFinnegansSourceSystem,
   mapBackendIntegrationToDesign,
@@ -52,7 +53,7 @@ const STEPS = [
 const STEP_DESCRIPTIONS = {
   1: 'Definí el nombre, el estado y la programación de la integración.',
   2: 'Configurá el sistema que entrega los datos y la entidad que se va a procesar.',
-  3: 'Revisá el perfil de entrada real y definí la transformación hacia el formato canónico.',
+  3: 'Revisá el perfil de entrada real que transforma los datos hacia el formato canónico.',
   4: 'Revisá la entidad central que desacopla el origen del destino.',
   5: 'Revisá el perfil de salida real detectado para Finnegans.',
   6: 'Confirmá cómo queda configurado el destino Finnegans.',
@@ -107,54 +108,6 @@ const buildSourceSystems = (connectorTypes, selectedSourceSystemId, selectedConn
       existing: true,
     },
   ]
-}
-
-const getProfileEntity = (profile) => profile.source_entity ?? profile.entity ?? ''
-
-const ProfileStatus = ({ profiles, emptyMessage, loading, onOpenProfiles }) => {
-  if (loading) {
-    return (
-      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-600">
-        Consultando perfiles reales...
-      </div>
-    )
-  }
-
-  if (profiles.length === 0) {
-    return (
-      <div className="space-y-3 rounded-lg border border-dashed border-amber-300 bg-amber-50 px-4 py-5 text-sm text-amber-900">
-        <p>{emptyMessage}</p>
-        {onOpenProfiles ? (
-          <Button type="button" variant="outline" onClick={onOpenProfiles}>
-            Ir a perfiles
-          </Button>
-        ) : null}
-      </div>
-    )
-  }
-
-  return (
-    <div className="divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
-      {profiles.map((profile) => (
-        <div key={profile.id ?? profile.name} className="flex items-center justify-between gap-4 px-4 py-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900">
-              {profile.name || `Perfil ${profile.id}`}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              {profile.source_system} · {getProfileEntity(profile)}
-              {profile.version ? ` · v${profile.version}` : ''}
-            </p>
-          </div>
-          <span
-            className="shrink-0 text-xs font-semibold text-emerald-700"
-          >
-            Detectado · activo
-          </span>
-        </div>
-      ))}
-    </div>
-  )
 }
 
 const FlowOverview = ({
@@ -238,7 +191,6 @@ const IntegrationForm = ({
   metadata = {},
   profiles = [],
   profilesLoading = false,
-  onOpenProfiles,
 }) => {
   const designValues = useMemo(
     () => mapBackendIntegrationToDesign(defaultValues),
@@ -246,7 +198,6 @@ const IntegrationForm = ({
   )
   const {
     fieldTypes = [],
-    commonConfigFields = [],
     fieldTypeConfigFields = {},
     onErrorStrategies = [],
     entityTypes = [],
@@ -263,7 +214,7 @@ const IntegrationForm = ({
   const [sourceSystemId, setSourceSystemId] = useState(designValues.source_system_id || '')
   const [entityId, setEntityId] = useState(initialEntityId)
   const [connectorConfig, setConnectorConfig] = useState(designValues.config ?? {})
-  const [fieldMappings, setFieldMappings] = useState(
+  const [fieldMappings] = useState(
     designValues.config?.field_mappings ?? [],
   )
   const [finnegansDocument, setFinnegansDocument] = useState(
@@ -346,12 +297,16 @@ const IntegrationForm = ({
   )
 
   const inboundProfiles = useMemo(
-    () => getActiveCompatibleProfiles(availableProfiles, sourceSystemId, entityId),
+    () => getInboundProfileCandidates(availableProfiles, sourceSystemId, entityId),
     [availableProfiles, entityId, sourceSystemId],
   )
   const outboundProfiles = useMemo(
-    () => getActiveCompatibleProfiles(availableProfiles, outboundSourceSystem, entityId),
-    [availableProfiles, entityId, outboundSourceSystem],
+    () => getOutboundProfileCandidates(
+      availableProfiles,
+      finnegansDocument,
+      entityId,
+    ),
+    [availableProfiles, entityId, finnegansDocument],
   )
 
   const payloadPreview = useMemo(
@@ -496,7 +451,6 @@ const IntegrationForm = ({
 
     if (selectedEntityId !== entityId) {
       setEntityId(selectedEntityId)
-      setFieldMappings([])
       setFinnegansDocument((currentDocument) => (
         normalizeFinnegansDocumentForEntity(selectedEntityId, currentDocument)
       ))
@@ -515,7 +469,6 @@ const IntegrationForm = ({
   const handleEntitySelect = (selectedEntityId) => {
     if (selectedEntityId === entityId) return
     setEntityId(selectedEntityId)
-    setFieldMappings([])
     setFinnegansDocument((currentDocument) => (
       normalizeFinnegansDocumentForEntity(selectedEntityId, currentDocument)
     ))
@@ -755,43 +708,28 @@ const IntegrationForm = ({
         ) : null}
 
         {currentStep === 3 ? (
-          <div className="mt-6 space-y-7">
-            <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="mt-6 space-y-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h4 className="text-sm font-semibold text-slate-900">
-                  {sourceSystem?.name || 'Origen'} → {canonicalEntity.label}
+                  {sourceSystem?.name || sourceSystemId || 'Origen'} → {canonicalEntity.label}
                 </h4>
-                <p className="mt-1 text-sm text-slate-500">
-                  Estas reglas definen la transformación desde el origen.
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  El backend resuelve este perfil automáticamente por source system, entity y estado activo.
+                  La IntegrationConfig no guarda una selección de perfil.
                 </p>
               </div>
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase text-slate-500">Perfil de entrada real</p>
-                  <span className="text-xs text-slate-400">{inboundProfiles.length} activos</span>
-                </div>
-                <ProfileStatus
-                  profiles={inboundProfiles}
-                  loading={profilesLoading}
-                  onOpenProfiles={onOpenProfiles}
-                  emptyMessage="No hay un perfil de entrada activo que coincida con este sistema y entidad."
-                />
-              </div>
-            </section>
+              <span className="text-xs font-semibold text-slate-500">
+                {inboundProfiles.length} candidatos activos
+              </span>
+            </div>
 
-            <section className="border-t border-slate-200 pt-7">
-              <FieldMappingBuilder
-                entityId={entityId}
-                fieldMappings={fieldMappings}
-                setFieldMappings={setFieldMappings}
-                fieldTypes={fieldTypes}
-                commonConfigFields={commonConfigFields}
-                fieldTypeConfigFields={fieldTypeConfigFields}
-                onErrorStrategies={onErrorStrategies}
-                metadataLoading={metadataLoading}
-                metadataError={metadataError}
-              />
-            </section>
+            <MappingProfileReadOnly
+              profiles={inboundProfiles}
+              loading={profilesLoading}
+              emptyMessage={`No existe un MappingProfile inbound activo compatible con ${sourceSystem?.name || sourceSystemId || 'el origen seleccionado'} y ${entityId || 'la entidad seleccionada'}.`}
+              emptyDescription="Debe crearse un profile compatible desde la sección Perfiles de mapeo. El wizard permanecerá abierto y no creará ni seleccionará uno automáticamente."
+            />
           </div>
         ) : null}
 
@@ -832,37 +770,28 @@ const IntegrationForm = ({
         ) : null}
 
         {currentStep === 5 ? (
-          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.8fr)]">
-            <section>
-              <h4 className="text-sm font-semibold text-slate-900">
-                {canonicalEntity.label} → Finnegans
-              </h4>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Los perfiles de salida se administran por separado. Esta etapa informa los perfiles activos
-                detectados por sistema y entidad, sin guardar un ID en la integración.
-              </p>
-              <dl className="mt-5 border-y border-slate-200">
-                <ReviewItem label="Entidad" value={entity?.label ?? entityId} />
-                <ReviewItem
-                  label="Convención del perfil"
-                  value={outboundSourceSystem || 'Sin convención para el valor existente'}
-                  detail="Se usa para detectar el perfil activo; no se persiste una relación en la integración."
-                />
-              </dl>
+          <div className="mt-6 space-y-5">
+            <section className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">
+                  {canonicalEntity.label} → Finnegans
+                </h4>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  El backend resuelve este perfil automáticamente según el documento Finnegans y la entidad.
+                  La IntegrationConfig no guarda una selección ni un ID de perfil.
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-slate-500">
+                {outboundProfiles.length} candidatos activos
+              </span>
             </section>
 
-            <section>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase text-slate-500">Perfil de salida real</p>
-                <span className="text-xs text-slate-400">{outboundProfiles.length} activos</span>
-              </div>
-              <ProfileStatus
-                profiles={outboundProfiles}
-                loading={profilesLoading}
-                onOpenProfiles={onOpenProfiles}
-                emptyMessage="No hay un perfil de salida activo que coincida con la convención de salida y esta entidad."
-              />
-            </section>
+            <MappingProfileReadOnly
+              profiles={outboundProfiles}
+              loading={profilesLoading}
+              emptyMessage={`No existe un MappingProfile outbound activo compatible con Finnegans ${selectedFinnegansDocument?.label || finnegansDocument || 'para el documento seleccionado'} y ${entityId || 'la entidad seleccionada'}.`}
+              emptyDescription="Debe crearse un profile compatible desde la sección Perfiles de mapeo. El wizard permanecerá abierto y no creará ni seleccionará uno automáticamente."
+            />
           </div>
         ) : null}
 

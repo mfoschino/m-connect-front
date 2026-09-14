@@ -349,18 +349,6 @@ const Integrations = () => {
     setIntegrationModalError(null)
   }
 
-  const openProfilesFromIntegrationForm = () => {
-    const shouldLeave = window.confirm(
-      'Se cerrará el formulario de integración para administrar los perfiles. Los cambios sin guardar se perderán. ¿Continuar?',
-    )
-    if (!shouldLeave) return
-
-    closeIntegrationModal()
-    setSearch('')
-    setStatusFilter('all')
-    setActiveTab('profiles')
-  }
-
   const closeIntegrationDetail = () => {
     setIntegrationDetailOpen(false)
     setDetailIntegration(null)
@@ -961,7 +949,6 @@ const Integrations = () => {
             metadata={integrationMetadata}
             profiles={profiles}
             profilesLoading={loading}
-            onOpenProfiles={openProfilesFromIntegrationForm}
           />
         )}
       </Modal>
