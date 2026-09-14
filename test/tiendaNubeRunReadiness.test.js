@@ -336,7 +336,11 @@ test('redacts connector secrets without hiding non-secret configuration', () => 
       Authentication: 'bearer placeholder',
       Authorization: 'Bearer placeholder',
       Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Custom-Authorization': 'Bearer hidden-value',
     },
+    endpoint: '/orders?access_token=hidden-query&limit=20',
+    base_url: 'https://demo-user:demo-password@example.test',
   }), {
     api_key: '[configurado]',
     bearer_token: '[configurado]',
@@ -347,6 +351,10 @@ test('redacts connector secrets without hiding non-secret configuration', () => 
       Authentication: '[configurado]',
       Authorization: '[configurado]',
       Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Custom-Authorization': '[configurado]',
     },
+    endpoint: '/orders?access_token=[configurado]&limit=20',
+    base_url: 'https://[configurado]@example.test',
   })
 })

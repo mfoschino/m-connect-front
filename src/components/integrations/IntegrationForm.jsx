@@ -17,6 +17,7 @@ import {
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import ConnectorConfigForm from './ConnectorConfigForm'
+import IntegrationReview from './IntegrationReview'
 import MappingProfileReadOnly from './MappingProfileReadOnly'
 import ScheduleBuilder from './ScheduleBuilder'
 import {
@@ -25,7 +26,6 @@ import {
   getEntityFieldSpec,
   getSystemPresetConfig,
 } from '../../constants/connectors'
-import { getScheduleDescription } from '../../utils/scheduleUtils'
 import {
   FINNEGANS_DOCUMENT_OPTIONS,
   buildBackendIntegrationPayload,
@@ -38,7 +38,6 @@ import {
   mapBackendIntegrationToDesign,
   normalizeFinnegansDocumentForEntity,
 } from '../../services/adapters/integrationFlowAdapter'
-import { getMappingValidationErrors } from '../../services/adapters/mappingAdapter'
 
 const STEPS = [
   { title: 'Información general', shortTitle: 'General', icon: Settings2 },
@@ -57,7 +56,7 @@ const STEP_DESCRIPTIONS = {
   4: 'Revisá la entidad central que desacopla el origen del destino.',
   5: 'Revisá el perfil de salida real detectado para Finnegans.',
   6: 'Confirmá cómo queda configurado el destino Finnegans.',
-  7: 'Confirmá el flujo y los datos compatibles con la API actual.',
+  7: 'Confirmá la IntegrationConfig y los perfiles de mapeo que backend resolverá durante la ejecución.',
 }
 
 const getGenericSystemId = (connectorType) => connectorType
@@ -173,14 +172,6 @@ const FlowOverview = ({
   )
 }
 
-const ReviewItem = ({ label, value, detail }) => (
-  <div className="border-b border-slate-200 py-3 last:border-b-0">
-    <dt className="text-xs font-semibold uppercase text-slate-500">{label}</dt>
-    <dd className="mt-1 text-sm font-semibold text-slate-900">{value || 'Sin definir'}</dd>
-    {detail ? <p className="mt-1 text-xs text-slate-500">{detail}</p> : null}
-  </div>
-)
-
 const IntegrationForm = ({
   mode = 'create',
   defaultValues = {},
@@ -197,9 +188,6 @@ const IntegrationForm = ({
     [defaultValues],
   )
   const {
-    fieldTypes = [],
-    fieldTypeConfigFields = {},
-    onErrorStrategies = [],
     entityTypes = [],
     connectorTypes = [],
     loading: metadataLoading = false,
@@ -387,19 +375,6 @@ const IntegrationForm = ({
       const connectorConfigError = Object.values(connectorConfigErrors)[0]
       if (connectorConfigError) {
         setStepError(connectorConfigError)
-        return false
-      }
-    }
-
-    if (stepToValidate === 3) {
-      const mappingErrors = getMappingValidationErrors(fieldMappings, {
-        fieldTypes,
-        onErrorStrategies,
-        fieldTypeConfigFields,
-      })
-
-      if (mappingErrors.length > 0) {
-        setStepError(mappingErrors[0])
         return false
       }
     }
@@ -848,52 +823,24 @@ const IntegrationForm = ({
         ) : null}
 
         {currentStep === 7 ? (
-          <div className="mt-6 grid min-w-0 gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)]">
-            <section className="min-w-0">
-              <h4 className="text-sm font-semibold text-slate-900">Resumen del flujo</h4>
-              <dl className="mt-2 border-y border-slate-200">
-                <ReviewItem label="Nombre" value={name} />
-                <ReviewItem label="Estado" value={isActive ? 'Activa' : 'Inactiva'} />
-                <ReviewItem
-                  label="Origen"
-                  value={sourceSystem?.name ?? sourceSystemId}
-                  detail={`${connectorTypeOption?.label ?? connectorType} · ${sourceSystemId}`}
-                />
-                <ReviewItem label="Entidad canónica" value={canonicalEntity.label} />
-                <ReviewItem
-                  label="Mapeo de entrada"
-                  value={`${fieldMappings.length} reglas · ${inboundProfiles.length} perfiles activos detectados`}
-                />
-                <ReviewItem
-                  label="Mapeo de salida"
-                  value={`${outboundProfiles.length} perfiles activos detectados`}
-                  detail={outboundSourceSystem || 'Convención de salida no reconocida'}
-                />
-                <ReviewItem
-                  label="Destino"
-                  value={
-                    isFinnegansDocumentEnabled
-                      ? `Finnegans · ${selectedFinnegansDocument?.label ?? finnegansDocument}`
-                      : 'Finnegans'
-                  }
-                />
-                <ReviewItem
-                  label="Programación"
-                  value={getScheduleDescription(schedule)}
-                />
-              </dl>
-            </section>
-
-            <section className="min-w-0">
-              <div className="flex items-center justify-between gap-4">
-                <h4 className="text-sm font-semibold text-slate-900">Datos finales enviados</h4>
-                <span className="text-xs font-semibold text-emerald-700">Contrato actual</span>
-              </div>
-              <pre className="mt-3 max-h-[430px] max-w-full overflow-auto rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
-                {JSON.stringify(payloadPreview, null, 2)}
-              </pre>
-            </section>
-          </div>
+          <IntegrationReview
+            name={name}
+            isActive={isActive}
+            sourceSystemId={sourceSystemId}
+            sourceSystemLabel={sourceSystem?.name}
+            connectorType={connectorType}
+            connectorTypeLabel={connectorTypeOption?.label}
+            entity={entityId}
+            canonicalEntityLabel={canonicalEntity.label}
+            finnegansDocument={finnegansDocument}
+            finnegansDocumentLabel={selectedFinnegansDocument?.label}
+            schedule={schedule}
+            config={payloadPreview.config}
+            inboundProfiles={inboundProfiles}
+            outboundProfiles={outboundProfiles}
+            profilesLoading={profilesLoading}
+            outboundSourceSystem={outboundSourceSystem}
+          />
         ) : null}
       </div>
 

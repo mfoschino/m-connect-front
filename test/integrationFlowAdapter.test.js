@@ -7,6 +7,7 @@ import {
   getOutboundProfileSourceSystem,
   mapBackendIntegrationToDesign,
 } from '../src/services/adapters/integrationFlowAdapter.js'
+import { getSafeIntegrationReviewConfig } from '../src/services/adapters/integrationReviewAdapter.js'
 
 const inboundProfile = (overrides = {}) => ({
   id: 'inbound-1',
@@ -198,4 +199,102 @@ test('editing preserves legacy config.field_mappings and unknown config fields',
       on_error: 'fail',
     },
   ])
+})
+
+test('Review sanitization is visual only and the payload keeps original config values', () => {
+  const originalConfig = {
+    source_system: 'tiendanube',
+    endpoint: '/orders?access_token=embedded-secret&limit=20',
+    base_url: 'https://demo-user:demo-password@example.test',
+    access_token: 'real-access-token',
+    api_key: 'real-api-key',
+    headers: {
+      Authentication: 'bearer real-header-token',
+      'Content-Type': 'application/json',
+      'X-Custom-Authorization': 'Bearer neutral-header-secret',
+    },
+    unknown_option: { keep: true },
+    field_mappings: [
+      { source_field: 'legacy', target_field: 'legacy', field_type: 'simple' },
+    ],
+  }
+  const originalSnapshot = structuredClone(originalConfig)
+  const safeConfig = getSafeIntegrationReviewConfig(originalConfig)
+  const payload = buildBackendIntegrationPayload({
+    name: 'Integración segura',
+    source_entity: 'sales_order',
+    connector_type: 'api',
+    source_system: 'tiendanube',
+    finnegans_document: 'pedido_venta',
+    config: originalConfig,
+    field_mappings: originalConfig.field_mappings,
+    profile_id: 'must-not-leak',
+    inbound_profile_id: 'must-not-leak',
+    outbound_profile_id: 'must-not-leak',
+    profile_candidates: ['must-not-leak'],
+    review_state: { mustNotLeak: true },
+    sanitized_config: safeConfig,
+  })
+
+  assert.deepEqual(originalConfig, originalSnapshot)
+  assert.equal(safeConfig.access_token, '[configurado]')
+  assert.equal(safeConfig.api_key, '[configurado]')
+  assert.equal(safeConfig.headers.Authentication, '[configurado]')
+  assert.equal(safeConfig.headers['Content-Type'], 'application/json')
+  assert.equal(safeConfig.headers['X-Custom-Authorization'], '[configurado]')
+  assert.equal(safeConfig.endpoint, '/orders?access_token=[configurado]&limit=20')
+  assert.equal(safeConfig.base_url, 'https://[configurado]@example.test')
+  assert.equal('field_mappings' in safeConfig, false)
+
+  assert.equal(payload.config.access_token, 'real-access-token')
+  assert.equal(payload.config.api_key, 'real-api-key')
+  assert.equal(payload.config.headers.Authentication, 'bearer real-header-token')
+  assert.equal(
+    payload.config.headers['X-Custom-Authorization'],
+    'Bearer neutral-header-secret',
+  )
+  assert.equal(payload.config.endpoint, '/orders?access_token=embedded-secret&limit=20')
+  assert.equal(payload.config.base_url, 'https://demo-user:demo-password@example.test')
+  assert.deepEqual(payload.config.unknown_option, { keep: true })
+  assert.deepEqual(payload.config.field_mappings, [
+    {
+      source_field: 'legacy',
+      target_field: 'legacy',
+      field_type: 'simple',
+      on_error: 'fail',
+    },
+  ])
+
+  for (const field of [
+    'profile_id',
+    'inbound_profile_id',
+    'outbound_profile_id',
+    'profile_candidates',
+    'review_state',
+    'sanitized_config',
+  ]) {
+    assert.equal(field in payload, false)
+    assert.equal(field in payload.config, false)
+  }
+})
+
+test('empty or absent legacy field_mappings remain valid payload inputs', () => {
+  const withoutMappings = buildBackendIntegrationPayload({
+    name: 'Sin legacy',
+    source_entity: 'sales_order',
+    connector_type: 'api',
+    source_system: 'tiendanube',
+    config: { endpoint: '/orders' },
+  })
+  const withEmptyMappings = buildBackendIntegrationPayload({
+    name: 'Legacy vacío',
+    source_entity: 'sales_order',
+    connector_type: 'api',
+    source_system: 'tiendanube',
+    config: { endpoint: '/orders', field_mappings: [] },
+    field_mappings: [],
+  })
+
+  assert.equal('field_mappings' in withoutMappings.config, false)
+  assert.deepEqual(withEmptyMappings.config.field_mappings, [])
 })

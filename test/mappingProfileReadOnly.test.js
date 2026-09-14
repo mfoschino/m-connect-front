@@ -169,3 +169,35 @@ test('a raw backend constant value remains readable as a defensive fallback', ()
 
   assert.match(html, /Constante (?:&quot;|")CF(?:&quot;|")/)
 })
+
+test('json-summary keeps profile metadata and prioritizes JSON without detailed mapping cards', () => {
+  const html = renderProfiles({
+    profiles: [profile({
+      config: [
+        {
+          source_field: 'products',
+          target_field: 'lines',
+          field_type: 'table',
+          sub_mappings: [
+            { source_field: 'sku', target_field: 'sku', field_type: 'simple' },
+          ],
+        },
+      ],
+    })],
+    presentation: 'json-summary',
+  })
+
+  assert.match(html, /Perfil detectado automáticamente/)
+  assert.match(html, /profile-real-id/)
+  assert.match(html, /Mappings/)
+  assert.match(html, /Configuración JSON del MappingProfile/)
+  assert.match(html, /source_field/)
+  assert.match(html, /products/)
+  assert.match(html, /sub_mappings/)
+  assert.match(html, /sku/)
+  assert.doesNotMatch(html, /Mapeos anidados/)
+  assert.doesNotMatch(html, /Lookup:|Constante /)
+  assert.doesNotMatch(html, /Perfil de mapeo/)
+  assert.doesNotMatch(html, /Ver configuración JSON del perfil/)
+  assert.doesNotMatch(html, /<details/)
+})

@@ -88,6 +88,9 @@ test('integration payload never persists profile ids or forbidden relationship f
     destination_system: 'finnegans',
     target_system: 'finnegans',
     metadata: { suggested: true },
+    profile_candidates: ['candidate-id'],
+    review_state: { step: 7 },
+    sanitized_config: { api_key: '[configurado]' },
     is_active: true,
   })
 
@@ -110,6 +113,9 @@ test('integration payload never persists profile ids or forbidden relationship f
     'metadata',
     'profiles',
     'suggested_profiles',
+    'profile_candidates',
+    'review_state',
+    'sanitized_config',
   ]) {
     assert.equal(field in payload, false)
     assert.equal(field in payload.config, false)

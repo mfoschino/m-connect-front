@@ -116,8 +116,9 @@ export const MappingList = ({ mappings = [], depth = 0 }) => {
   )
 }
 
-const ProfileCard = ({ profile, index, showCandidateLabel }) => {
+const ProfileCard = ({ profile, index, showCandidateLabel, presentation }) => {
   const mappings = getProfileMappings(profile)
+  const showJsonSummary = presentation === 'json-summary'
 
   return (
     <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
@@ -160,21 +161,34 @@ const ProfileCard = ({ profile, index, showCandidateLabel }) => {
         ) : null}
       </dl>
 
-      <div className="mt-5 border-t border-slate-200 pt-5">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Perfil de mapeo
-        </p>
-        <MappingList mappings={mappings} />
-      </div>
+      {showJsonSummary ? (
+        <div className="mt-5 border-t border-slate-200 pt-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Configuración JSON del MappingProfile
+          </p>
+          <pre className="max-h-80 overflow-auto rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
+            {JSON.stringify(mappings, null, 2)}
+          </pre>
+        </div>
+      ) : (
+        <>
+          <div className="mt-5 border-t border-slate-200 pt-5">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Perfil de mapeo
+            </p>
+            <MappingList mappings={mappings} />
+          </div>
 
-      <details className="mt-4 border-t border-slate-200 pt-4">
-        <summary className="cursor-pointer text-xs font-semibold text-slate-600">
-          Ver configuración JSON del perfil
-        </summary>
-        <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
-          {JSON.stringify(mappings, null, 2)}
-        </pre>
-      </details>
+          <details className="mt-4 border-t border-slate-200 pt-4">
+            <summary className="cursor-pointer text-xs font-semibold text-slate-600">
+              Ver configuración JSON del perfil
+            </summary>
+            <pre className="mt-3 max-h-72 overflow-auto rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
+              {JSON.stringify(mappings, null, 2)}
+            </pre>
+          </details>
+        </>
+      )}
     </article>
   )
 }
@@ -184,6 +198,7 @@ const MappingProfileReadOnly = ({
   loading = false,
   emptyMessage,
   emptyDescription,
+  presentation = 'detailed',
 }) => {
   const compatibleProfiles = Array.isArray(profiles) ? profiles : []
 
@@ -227,6 +242,7 @@ const MappingProfileReadOnly = ({
           profile={profile}
           index={index}
           showCandidateLabel={hasMultipleProfiles}
+          presentation={presentation}
         />
       ))}
     </div>

@@ -179,31 +179,96 @@ export const getTiendaNubeRunReadiness = (options = {}) => {
   }
 }
 
-const SENSITIVE_CONFIG_KEYS = new Set([
-  'api_key',
-  'apikey',
-  'access_token',
-  'accesstoken',
-  'bearer_token',
-  'bearertoken',
-  'authentication',
-  'authorization',
-  'client_secret',
-  'clientsecret',
-  'password',
-  'secret',
-  'token',
-  'x_api_key',
+const SAFE_CONFIG_DESCRIPTOR_KEYS = new Set([
+  'apikeyheader',
+  'authtype',
+  'authenticationtype',
+  'authorizationtype',
+  'tokentype',
 ])
 
-export const redactSensitiveConfig = (value) => {
-  if (Array.isArray(value)) return value.map(redactSensitiveConfig)
-  if (!isObject(value)) return value
+const SENSITIVE_CONFIG_KEY_MARKERS = [
+  'accesstoken',
+  'apikey',
+  'authentication',
+  'authorization',
+  'bearer',
+  'cookie',
+  'credential',
+  'password',
+  'privatekey',
+  'secret',
+  'token',
+]
+
+const SAFE_HEADER_KEYS = new Set([
+  'accept',
+  'acceptencoding',
+  'acceptlanguage',
+  'cachecontrol',
+  'contenttype',
+  'useragent',
+])
+
+const CONFIGURED_MARKER = '[configurado]'
+const NOT_CONFIGURED_MARKER = '[no configurado]'
+const CREDENTIAL_VALUE_PATTERN = /^\s*(?:api[ -]?key|basic|bearer|token)\s+/i
+
+const normalizeConfigKey = (key) => String(key).toLowerCase().replace(/[^a-z0-9]/g, '')
+
+const isSensitiveConfigKey = (key) => {
+  const normalizedKey = normalizeConfigKey(key)
+
+  if (SAFE_CONFIG_DESCRIPTOR_KEYS.has(normalizedKey)) return false
+  if (normalizedKey === 'auth') return true
+
+  return SENSITIVE_CONFIG_KEY_MARKERS.some((marker) => normalizedKey.includes(marker))
+}
+
+const getRedactionMarker = (value) => (
+  hasValue(value) ? CONFIGURED_MARKER : NOT_CONFIGURED_MARKER
+)
+
+const redactSensitiveUrlParts = (value) => {
+  if (typeof value !== 'string') return value
+
+  return value
+    .replace(
+      /([a-z][a-z\d+.-]*:\/\/)([^/?#@\s]+)@/gi,
+      `$1${CONFIGURED_MARKER}@`,
+    )
+    .replace(/([?&#])([^=&#]+)=([^&#]*)/g, (match, separator, rawKey, rawValue) => {
+      let decodedKey = rawKey
+      try {
+        decodedKey = decodeURIComponent(rawKey)
+      } catch {
+        // Keep the raw key when malformed percent-encoding prevents decoding.
+      }
+
+      return isSensitiveConfigKey(decodedKey)
+        ? `${separator}${rawKey}=${getRedactionMarker(rawValue)}`
+        : match
+    })
+}
+
+const redactConfigValue = (value, insideHeaders = false) => {
+  if (Array.isArray(value)) {
+    return value.map((entry) => redactConfigValue(entry, insideHeaders))
+  }
+  if (!isObject(value)) {
+    return CREDENTIAL_VALUE_PATTERN.test(String(value ?? ''))
+      ? getRedactionMarker(value)
+      : redactSensitiveUrlParts(value)
+  }
 
   return Object.fromEntries(Object.entries(value).map(([key, entryValue]) => [
     key,
-    SENSITIVE_CONFIG_KEYS.has(key.toLowerCase().replaceAll('-', '_'))
-      ? (hasValue(entryValue) ? '[configurado]' : '[no configurado]')
-      : redactSensitiveConfig(entryValue),
+    isSensitiveConfigKey(key)
+      ? getRedactionMarker(entryValue)
+      : insideHeaders && !SAFE_HEADER_KEYS.has(normalizeConfigKey(key))
+        ? getRedactionMarker(entryValue)
+        : redactConfigValue(entryValue, normalizeConfigKey(key) === 'headers'),
   ]))
 }
+
+export const redactSensitiveConfig = (value) => redactConfigValue(value)
