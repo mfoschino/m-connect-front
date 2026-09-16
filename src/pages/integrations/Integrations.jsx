@@ -12,8 +12,8 @@ import {
 import {
   getTiendaNubeRunReadiness,
   isTiendaNubeSalesOrderIntegration,
-  redactSensitiveConfig,
 } from '../../services/adapters/tiendaNubeRunReadiness'
+import { redactSensitiveConfig } from '../../services/adapters/sensitiveConfigAdapter'
 import { getLookupApiErrorMessage } from '../../services/adapters/lookupTableAdapter'
 import useIntegrationMetadata from '../../hooks/useIntegrationMetadata'
 import { useAuth } from '../../context/AuthContext'
@@ -127,8 +127,7 @@ const Integrations = () => {
       setProfiles(profilesRes.data || [])
       setLookupTables(lookupsRes.data || [])
       setExecutions(executionsRes.data || [])
-    } catch (err) {
-      console.error('Failed to load integrations module data', err)
+    } catch {
       setError('No se pudieron cargar los datos del módulo. Intenta recargar.')
     } finally {
       setLoading(false)
@@ -158,8 +157,7 @@ const Integrations = () => {
         setProfiles(profilesRes.data || [])
         setLookupTables(lookupsRes.data || [])
         setExecutions(executionsRes.data || [])
-      } catch (err) {
-        console.error('Failed to load integrations module data', err)
+      } catch {
         if (mounted) {
           setError('No se pudieron cargar los datos del módulo. Intenta recargar.')
         }
@@ -275,8 +273,7 @@ const Integrations = () => {
       const response = await integrationService.getIntegration(integration.id)
       setSelectedIntegration(response.data || integration)
       setIntegrationModalOpen(true)
-    } catch (err) {
-      console.error('Failed to load integration', err)
+    } catch {
       setIntegrationModalError('No se pudo cargar la integración. Intenta de nuevo.')
       setSelectedIntegration(integration)
       setIntegrationModalOpen(true)
@@ -329,8 +326,7 @@ const Integrations = () => {
         source_entity: response.data?.source_entity || integration.source_entity || '',
         raw_payload: '{}',
       })
-    } catch (err) {
-      console.error('Failed to load integration details', err)
+    } catch {
       setDetailError('No se pudieron cargar los detalles de la integración.')
       setDetailIntegration(integration)
       setTriggerForm({
@@ -388,7 +384,6 @@ const Integrations = () => {
       await refreshData()
       closeIntegrationModal()
     } catch (err) {
-      console.error('Failed to save integration', err)
       const backendMessage = err?.response?.data?.detail || err?.message
       setIntegrationModalError(backendMessage || 'Error al guardar la integración. Intenta de nuevo.')
     } finally {
@@ -405,8 +400,7 @@ const Integrations = () => {
       const response = await integrationService.runIntegration(detailIntegration.id)
       setTriggerMessage(`Ejecución programada correctamente. ID de tarea: ${response.data?.task_id || 'sin ID'}`)
       await refreshData()
-    } catch (err) {
-      console.error('Failed to run integration', err)
+    } catch {
       setTriggerMessage('Error al iniciar ejecución. Intenta de nuevo.')
     } finally {
       setTriggerLoading(false)
@@ -485,8 +479,7 @@ const Integrations = () => {
       const response = await integrationService.triggerIntegration(detailIntegration.id, payload)
       setTriggerMessage(`Mensaje enviado. ID de seguimiento: ${response.data?.trace_id || 'sin ID'}`)
       await refreshData()
-    } catch (err) {
-      console.error('Failed to trigger integration', err)
+    } catch {
       setTriggerMessage('Error al enviar la prueba. Verificá el JSON o intentá de nuevo.')
     } finally {
       setTriggerLoading(false)
@@ -510,8 +503,7 @@ const Integrations = () => {
       const response = await profileService.getProfile(profile.id)
       setSelectedProfile(mapBackendProfileToForm(response.data || profile))
       setProfileModalOpen(true)
-    } catch (err) {
-      console.error('Failed to load profile', err)
+    } catch {
       setProfileModalError('No se pudo cargar el perfil. Intenta de nuevo.')
       setSelectedProfile(profile)
       setProfileModalOpen(true)
@@ -542,7 +534,6 @@ const Integrations = () => {
       await refreshData()
       closeProfileModal()
     } catch (err) {
-      console.error('Failed to save profile', err)
       const backendMessage = err?.response?.data?.detail || err?.message
       setProfileModalError(backendMessage || 'Error al guardar el perfil.')
     } finally {
@@ -556,8 +547,7 @@ const Integrations = () => {
     try {
       const response = await profileService.getProfile(profile.id)
       setDetailProfile(mapBackendProfileToForm(response.data || profile))
-    } catch (err) {
-      console.error('Failed to load profile details', err)
+    } catch {
       setDetailProfile(profile)
     }
   }
@@ -584,8 +574,7 @@ const Integrations = () => {
       const response = await lookupService.getLookupTable(lookup.id)
       setSelectedLookup(response.data || lookup)
       setLookupModalOpen(true)
-    } catch (err) {
-      console.error('Failed to load lookup table', err)
+    } catch {
       setLookupModalError('No se pudo cargar la tabla. Intenta de nuevo.')
       setSelectedLookup(lookup)
       setLookupModalOpen(true)
@@ -616,7 +605,6 @@ const Integrations = () => {
       await refreshData()
       closeLookupModal()
     } catch (err) {
-      console.error('Failed to save lookup table', err)
       setLookupModalError(getLookupApiErrorMessage(err))
     } finally {
       setLookupModalLoading(false)
@@ -629,8 +617,7 @@ const Integrations = () => {
     try {
       const response = await lookupService.getLookupTable(lookup.id)
       setDetailLookup(response.data || lookup)
-    } catch (err) {
-      console.error('Failed to load lookup table details', err)
+    } catch {
       setDetailLookup(lookup)
     }
   }
@@ -650,8 +637,7 @@ const Integrations = () => {
       await lookupService.deleteLookupTable(lookup.id)
       setSuccessMessage('Tabla de consulta eliminada correctamente.')
       await refreshData()
-    } catch (err) {
-      console.error('Failed to delete lookup table', err)
+    } catch {
       setError('No se pudo eliminar la tabla. Intenta de nuevo.')
     } finally {
       setLookupDeleteLoading(false)

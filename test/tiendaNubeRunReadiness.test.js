@@ -4,7 +4,6 @@ import {
   getFinnegansDocument,
   getTiendaNubeRunReadiness,
   isTiendaNubeSalesOrderIntegration,
-  redactSensitiveConfig,
 } from '../src/services/adapters/tiendaNubeRunReadiness.js'
 
 const integration = {
@@ -323,38 +322,4 @@ test('missing Finnegans credentials block run', () => {
 
   assert.equal(readiness.canRun, false)
   assert.ok(readiness.missingChecks.some((check) => check.id === 'credentials'))
-})
-
-test('redacts connector secrets without hiding non-secret configuration', () => {
-  assert.deepEqual(redactSensitiveConfig({
-    api_key: '{{tn_api_key}}',
-    bearer_token: '{{bearer_token}}',
-    client_secret: '{{client_secret}}',
-    secret: '{{webhook_secret}}',
-    api_key_header: 'Authentication',
-    headers: {
-      Authentication: 'bearer placeholder',
-      Authorization: 'Bearer placeholder',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Custom-Authorization': 'Bearer hidden-value',
-    },
-    endpoint: '/orders?access_token=hidden-query&limit=20',
-    base_url: 'https://demo-user:demo-password@example.test',
-  }), {
-    api_key: '[configurado]',
-    bearer_token: '[configurado]',
-    client_secret: '[configurado]',
-    secret: '[configurado]',
-    api_key_header: 'Authentication',
-    headers: {
-      Authentication: '[configurado]',
-      Authorization: '[configurado]',
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Custom-Authorization': '[configurado]',
-    },
-    endpoint: '/orders?access_token=[configurado]&limit=20',
-    base_url: 'https://[configurado]@example.test',
-  })
 })

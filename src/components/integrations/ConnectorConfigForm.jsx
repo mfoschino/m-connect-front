@@ -20,6 +20,12 @@ import { useEffect, useMemo, useState } from 'react'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { getConnectorSchema } from '../../constants/connectors'
+import {
+  getConnectorFieldInputType,
+  getNextConnectorConfig,
+  reportConnectionTestUnavailable,
+} from '../../services/adapters/connectorConfigFormAdapter'
+import { redactSensitiveConfig } from '../../services/adapters/sensitiveConfigAdapter'
 
 const isJsonObject = (value) => (
   value !== null
@@ -80,16 +86,15 @@ const ConnectorConfigForm = ({
   )
   const [jsonDrafts, setJsonDrafts] = useState(initialJsonState.drafts)
   const [jsonErrors, setJsonErrors] = useState(initialJsonState.errors)
+  const [connectionTestMessage, setConnectionTestMessage] = useState('')
+  const safeConfigPreview = useMemo(() => redactSensitiveConfig(config), [config])
 
   useEffect(() => {
     onValidationChange?.(jsonErrors)
   }, [jsonErrors, onValidationChange])
 
   const handleFieldChange = (field, value) => {
-    const normalizedValue = field.nullable && value === '' ? null : value
-    const newValues = { ...config, [field.id]: normalizedValue }
-    // Update parent with config object
-    setConfig(newValues)
+    setConfig(getNextConnectorConfig(config, field, value))
   }
 
   const handleJsonChange = (field, value) => {
@@ -112,11 +117,8 @@ const ConnectorConfigForm = ({
     setConfig(newValues)
   }
 
-  const handleTestConnection = async () => {
-    // TODO: Implement connection testing
-    // This should call a backend endpoint to validate the connection
-    console.log('Testing connection with config:', config)
-    alert('La prueba de conexión todavía no está implementada. La configuración quedó guardada.')
+  const handleTestConnection = () => {
+    reportConnectionTestUnavailable(setConnectionTestMessage)
   }
 
   if (!schema) {
@@ -132,7 +134,7 @@ const ConnectorConfigForm = ({
     <div className="space-y-6">
       <div>
         <h3 className="text-sm font-semibold text-slate-900">Conectar {sourceSystemName || 'sistema de origen'}</h3>
-        <p className="mt-1 text-sm text-slate-600">Ingresá los datos de conexión. Toda la información se cifra de forma segura.</p>
+        <p className="mt-1 text-sm text-slate-600">Ingresá los datos de conexión. Los valores sensibles se ocultan en resúmenes y diagnósticos.</p>
       </div>
 
       <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
@@ -144,17 +146,42 @@ const ConnectorConfigForm = ({
           if (!shouldShowField) return null
 
           const value = config[field.id] ?? ''
+          const inputType = getConnectorFieldInputType(field)
+
+          if (inputType === 'password') {
+            const isJsonField = field.type === 'json'
+            const jsonError = isJsonField ? jsonErrors[field.id] : ''
+
+            return (
+              <Input
+                key={field.id}
+                id={`config-${field.id}`}
+                label={field.label}
+                type="password"
+                value={isJsonField ? (jsonDrafts[field.id] ?? '') : value}
+                onChange={(event) => (
+                  isJsonField
+                    ? handleJsonChange(field, event.target.value)
+                    : handleFieldChange(field, event.target.value)
+                )}
+                placeholder={field.placeholder}
+                required={field.required}
+                helperText={jsonError ? undefined : field.description}
+                error={jsonError}
+                autoComplete="off"
+              />
+            )
+          }
 
           switch (field.type) {
             case 'text':
             case 'number':
-            case 'password':
               return (
                 <div key={field.id}>
                   <Input
                     id={`config-${field.id}`}
                     label={field.label}
-                    type={field.type}
+                    type={inputType}
                     value={value}
                     onChange={(e) => handleFieldChange(field, e.target.value)}
                     placeholder={field.placeholder}
@@ -264,11 +291,17 @@ const ConnectorConfigForm = ({
 
       {/* Test Connection Button */}
       <div className="flex gap-3 pt-4 border-t border-slate-200">
-        <Button variant="outline" onClick={handleTestConnection}>
+        <Button type="button" variant="outline" onClick={handleTestConnection}>
           Probar conexión
         </Button>
-        <p className="text-sm text-slate-600 flex items-center">Opcional: verificá la conexión antes de continuar</p>
+        <p className="text-sm text-slate-600 flex items-center">La validación remota no está disponible en este formulario.</p>
       </div>
+
+      {connectionTestMessage ? (
+        <p role="status" className="rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700">
+          {connectionTestMessage}
+        </p>
+      ) : null}
 
       {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
 
@@ -282,7 +315,7 @@ const ConnectorConfigForm = ({
           <details className="mt-2">
             <summary className="cursor-pointer text-slate-700">Objeto de configuración</summary>
             <pre className="mt-2 bg-slate-50 p-2 rounded text-xs overflow-x-auto">
-              {JSON.stringify(config, null, 2)}
+              {JSON.stringify(safeConfigPreview, null, 2)}
             </pre>
           </details>
         </div>

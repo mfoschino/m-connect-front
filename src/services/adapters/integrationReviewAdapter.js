@@ -1,4 +1,4 @@
-import { redactSensitiveConfig } from './tiendaNubeRunReadiness.js'
+import { redactSensitiveConfig } from './sensitiveConfigAdapter.js'
 
 const isObject = (value) => (
   value !== null
