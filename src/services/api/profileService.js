@@ -1,6 +1,7 @@
 import apiClient from './client'
 import {
-  buildBackendProfilePayload,
+  buildBackendProfileCreatePayload,
+  buildBackendProfileUpdatePayload,
   mapBackendProfileToForm,
   normalizeProfileList,
 } from '../adapters/profileAdapter'
@@ -21,12 +22,15 @@ const getProfile = async (profileId) => {
 }
 
 const createProfile = async (formData) => {
-  const response = await apiClient.post('/profiles', buildBackendProfilePayload(formData))
+  const response = await apiClient.post('/profiles', buildBackendProfileCreatePayload(formData))
   return mapResponseData(response, mapBackendProfileToForm)
 }
 
 const updateProfile = async (profileId, formData) => {
-  const response = await apiClient.patch(`/profiles/${profileId}`, buildBackendProfilePayload(formData))
+  const response = await apiClient.patch(
+    `/profiles/${profileId}`,
+    buildBackendProfileUpdatePayload(formData),
+  )
   return mapResponseData(response, mapBackendProfileToForm)
 }
 

@@ -1,8 +1,10 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
 import {
+  getProfileDisplayName,
   getProfileFlowRole,
+  getResetProfileMappings,
   mapBackendProfileToForm,
 } from '../../services/adapters/profileAdapter'
 import { getMappingValidationErrors } from '../../services/adapters/mappingAdapter'
@@ -14,12 +16,23 @@ import {
 import FieldMappingBuilder from './FieldMappingBuilder'
 
 const hasProfileValues = (values) => (
-  Boolean(values.name.trim())
-  || Boolean(values.source_system.trim())
+  Boolean(values.source_system.trim())
   || Boolean(values.source_entity.trim())
   || Boolean(values.version.trim())
   || (Array.isArray(values.config) ? values.config.length > 0 : Boolean(values.config))
 )
+
+const getInitialFormValues = (initialValues) => {
+  const formValues = mapBackendProfileToForm(initialValues)
+
+  return {
+    source_system: formValues.source_system || '',
+    source_entity: formValues.source_entity || '',
+    version: formValues.version || '',
+    active: formValues.active,
+    config: getResetProfileMappings(formValues.config),
+  }
+}
 
 const ProfileForm = ({
   initialValues,
@@ -34,22 +47,20 @@ const ProfileForm = ({
   metadataLoading = false,
   metadataError = null,
   showPresets = false,
+  isEditing = Boolean(initialValues?.id),
+  loading = false,
+  saveError = '',
 }) => {
-  const [values, setValues] = useState(() => {
-    const formValues = mapBackendProfileToForm(initialValues)
-
-    return {
-      name: formValues.name || '',
-      source_system: formValues.source_system || '',
-      source_entity: formValues.source_entity || '',
-      version: formValues.version || '',
-      active: formValues.active,
-      config: formValues.config ?? [],
-    }
-  })
+  const [initialFormValues] = useState(() => getInitialFormValues(initialValues))
+  const [values, setValues] = useState(() => ({
+    ...initialFormValues,
+    config: getResetProfileMappings(initialFormValues.config),
+  }))
   const [error, setError] = useState('')
   const [selectedPresetId, setSelectedPresetId] = useState('')
   const [presetNote, setPresetNote] = useState('')
+  const [mappingEditorRevision, setMappingEditorRevision] = useState(0)
+  const submitInFlight = useRef(false)
   const canUsePresets = shouldShowCreationPresets(showPresets, initialValues?.id)
 
   const selectedEntityMissing = Boolean(
@@ -76,6 +87,15 @@ const ProfileForm = ({
     }))
   }, [])
 
+  const handleResetMappings = useCallback(() => {
+    setValues((current) => ({
+      ...current,
+      config: getResetProfileMappings(initialFormValues.config),
+    }))
+    setMappingEditorRevision((current) => current + 1)
+    setError('')
+  }, [initialFormValues.config])
+
   const handlePresetChange = (event) => {
     const presetId = event.target.value
     const preset = getMappingProfilePreset(presetId)
@@ -92,7 +112,6 @@ const ProfileForm = ({
     setSelectedPresetId(presetId)
     setPresetNote(preset.note || preset.description || '')
     setValues({
-      name: preset.label,
       source_system: formValues.source_system,
       source_entity: formValues.source_entity,
       version: formValues.version,
@@ -102,8 +121,11 @@ const ProfileForm = ({
     setError('')
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
+
+    if (loading || submitInFlight.current) return
+
     setError('')
 
     const mappingErrors = getMappingValidationErrors(values.config, {
@@ -117,14 +139,21 @@ const ProfileForm = ({
       return
     }
 
-    onSubmit({
-      name: values.name,
-      source_system: values.source_system,
-      source_entity: values.source_entity,
-      version: values.version,
-      active: values.active,
-      config: values.config,
-    })
+    submitInFlight.current = true
+
+    try {
+      await onSubmit({
+        ...(!isEditing ? {
+          source_system: values.source_system,
+          source_entity: values.source_entity,
+        } : {}),
+        version: values.version,
+        active: values.active,
+        config: values.config,
+      })
+    } finally {
+      submitInFlight.current = false
+    }
   }
 
   return (
@@ -160,20 +189,34 @@ const ProfileForm = ({
         </div>
       ) : null}
 
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Identidad del MappingProfile
+        </p>
+        <p className="mt-1 font-medium text-slate-900">{getProfileDisplayName(values)}</p>
+      </div>
+
+      {isEditing ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-semibold">MappingProfile compartido</p>
+          <p className="mt-1">
+            Este MappingProfile es un recurso compartido del tenant. Los cambios pueden afectar
+            integraciones compatibles que utilicen esta configuración.
+          </p>
+        </div>
+      ) : null}
+
       <div className="grid gap-6 sm:grid-cols-2">
-        <Input
-          id="profile-name"
-          label="Nombre del perfil"
-          value={values.name}
-          onChange={handleChange('name')}
-          required
-        />
         <div>
           <Input
             id="profile-source-system"
             label="Sistema de origen"
             value={values.source_system}
             onChange={handleChange('source_system')}
+            readOnly={isEditing}
+            helperText={isEditing
+              ? 'Forma parte de la identidad y no se puede modificar al editar.'
+              : undefined}
             required
           />
           {values.source_system ? (
@@ -184,37 +227,48 @@ const ProfileForm = ({
             </p>
           ) : null}
         </div>
+        {isEditing ? (
+          <Input
+            id="profile-source-entity"
+            label="Entidad"
+            value={values.source_entity}
+            readOnly
+            helperText="Forma parte de la identidad y no se puede modificar al editar."
+            required
+          />
+        ) : (
+          <div className="space-y-2">
+            <label htmlFor="profile-source-entity" className="block text-sm font-semibold text-slate-900">
+              Entidad
+            </label>
+            <select
+              id="profile-source-entity"
+              value={values.source_entity}
+              onChange={handleChange('source_entity')}
+              className="form-input w-full"
+              disabled={metadataLoading || Boolean(metadataError)}
+              required
+            >
+              <option value="">{metadataLoading ? 'Cargando entidades...' : 'Seleccionar entidad'}</option>
+              {entityOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {selectedEntityMissing ? (
+              <p className="text-sm text-amber-700">
+                La entidad guardada ya no está disponible en los metadatos, pero se conserva para edición.
+              </p>
+            ) : null}
+            {metadataError ? (
+              <p className="text-sm text-red-600">No se pudieron cargar las entidades: {metadataError}</p>
+            ) : null}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="profile-source-entity" className="block text-sm font-semibold text-slate-900">
-            Entidad origen
-          </label>
-          <select
-            id="profile-source-entity"
-            value={values.source_entity}
-            onChange={handleChange('source_entity')}
-            className="form-input w-full"
-            disabled={metadataLoading || Boolean(metadataError)}
-            required
-          >
-            <option value="">{metadataLoading ? 'Cargando entidades...' : 'Seleccionar entidad'}</option>
-            {entityOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          {selectedEntityMissing ? (
-            <p className="text-sm text-amber-700">
-              La entidad guardada ya no está disponible en los metadatos, pero se conserva para edición.
-            </p>
-          ) : null}
-          {metadataError ? (
-            <p className="text-sm text-red-600">No se pudieron cargar las entidades: {metadataError}</p>
-          ) : null}
-        </div>
         <Input
           id="profile-version"
           label="Versión"
@@ -238,7 +292,7 @@ const ProfileForm = ({
       </div>
 
       <FieldMappingBuilder
-        key={selectedPresetId || initialValues?.id || 'profile-mappings'}
+        key={`${selectedPresetId || initialValues?.id || 'profile-mappings'}-${mappingEditorRevision}`}
         entityId={values.source_entity}
         fieldMappings={values.config}
         setFieldMappings={setFieldMappings}
@@ -249,19 +303,24 @@ const ProfileForm = ({
         metadataLoading={metadataLoading}
         metadataError={metadataError}
         autoMapEnabled={!initialValues?.id && !selectedPresetId}
+        onResetMappings={handleResetMappings}
       />
 
       {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+      {saveError ? (
+        <p role="alert" className="text-sm font-medium text-red-600">{saveError}</p>
+      ) : null}
 
       <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
           Cancelar
         </Button>
         <Button
           type="submit"
-          disabled={metadataLoading || Boolean(metadataError)}
+          loading={loading}
+          disabled={loading || metadataLoading || Boolean(metadataError)}
         >
-          {submitLabel}
+          {loading ? 'Guardando...' : submitLabel}
         </Button>
       </div>
     </form>

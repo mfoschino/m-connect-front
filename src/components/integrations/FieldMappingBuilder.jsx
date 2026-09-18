@@ -84,6 +84,7 @@ const FieldMappingBuilder = ({
   metadataLoading = false,
   metadataError = null,
   autoMapEnabled = true,
+  onResetMappings,
 }) => {
   const [expandedRows, setExpandedRows] = useState(() => new Set())
   const [rawMode, setRawMode] = useState(false)
@@ -324,8 +325,8 @@ const FieldMappingBuilder = ({
         <Button
           type="button"
           variant="outline"
-          onClick={() => setFieldMappings([])}
-          title="Restablecer mapeos"
+          onClick={onResetMappings}
+          title="Restablecer los mapeos al estado inicial"
         >
           <RotateCcw size={16} aria-hidden="true" />
           Restablecer

@@ -1,3 +1,5 @@
+import { getApiErrorMessage } from './apiErrorAdapter.js'
+
 export const LOOKUP_TABLE_CODE_PATTERN = /^[A-Za-z0-9_.-]+$/
 
 const isObject = (value) => (
@@ -64,44 +66,7 @@ export const buildLookupTablePayload = (formValues = {}) => {
   }
 }
 
-const formatValidationError = (validationError) => {
-  if (typeof validationError === 'string') return validationError
-  if (!isObject(validationError)) return ''
-
-  const location = Array.isArray(validationError.loc)
-    ? validationError.loc
-      .filter((segment) => segment !== 'body')
-      .map(String)
-      .join('.')
-    : ''
-  const message = typeof validationError.msg === 'string' ? validationError.msg : ''
-
-  if (location && message) return `${location}: ${message}`
-  return message || location
-}
-
 export const getLookupApiErrorMessage = (
   error,
   fallback = 'Error al guardar la tabla de consulta.',
-) => {
-  const detail = error?.response?.data?.detail
-
-  if (typeof detail === 'string' && detail.trim()) return detail
-
-  if (Array.isArray(detail)) {
-    const validationMessage = detail
-      .map(formatValidationError)
-      .filter(Boolean)
-      .join(' · ')
-
-    if (validationMessage) return validationMessage
-  }
-
-  if (isObject(detail)) {
-    const validationMessage = formatValidationError(detail)
-    if (validationMessage) return validationMessage
-  }
-
-  if (typeof error?.message === 'string' && error.message.trim()) return error.message
-  return fallback
-}
+) => getApiErrorMessage(error, fallback)

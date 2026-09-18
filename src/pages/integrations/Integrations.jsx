@@ -6,6 +6,7 @@ import lookupService from '../../services/api/lookupService'
 import executionService from '../../services/api/executionService'
 import finnegansCredentialsService from '../../services/api/finnegansCredentialsService'
 import {
+  getProfileDisplayName,
   getProfileFlowRole,
   mapBackendProfileToForm,
 } from '../../services/adapters/profileAdapter'
@@ -15,6 +16,8 @@ import {
 } from '../../services/adapters/tiendaNubeRunReadiness'
 import { redactSensitiveConfig } from '../../services/adapters/sensitiveConfigAdapter'
 import { getLookupApiErrorMessage } from '../../services/adapters/lookupTableAdapter'
+import { getApiErrorMessage } from '../../services/adapters/apiErrorAdapter'
+import { persistProfile } from '../../services/profileSaveFlow'
 import useIntegrationMetadata from '../../hooks/useIntegrationMetadata'
 import { useAuth } from '../../context/AuthContext'
 import Badge from '../../components/ui/Badge'
@@ -91,6 +94,7 @@ const Integrations = () => {
   const [profileModalMode, setProfileModalMode] = useState('create')
   const [selectedProfile, setSelectedProfile] = useState(null)
   const [profileModalLoading, setProfileModalLoading] = useState(false)
+  const profileSaveInFlightRef = useRef(false)
   const [profileModalError, setProfileModalError] = useState(null)
   const [profileDetailOpen, setProfileDetailOpen] = useState(false)
   const [detailProfile, setDetailProfile] = useState(null)
@@ -207,7 +211,7 @@ const Integrations = () => {
       if (statusFilter === 'inactive' && profile.active !== false) return false
       if (!searchTerm) return true
 
-      return [profile.name, profile.source_system, profile.source_entity, profile.version]
+      return [profile.source_system, profile.source_entity, profile.version]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(searchTerm))
     })
@@ -513,30 +517,52 @@ const Integrations = () => {
   }
 
   const closeProfileModal = () => {
+    if (profileSaveInFlightRef.current) return
+
     setProfileModalOpen(false)
     setSelectedProfile(null)
     setProfileModalError(null)
   }
 
   const handleProfileSave = async (payload) => {
-    setProfileModalLoading(true)
+    if (profileSaveInFlightRef.current) return
+
     setProfileModalError(null)
     setSuccessMessage('')
 
     try {
-      if (profileModalMode === 'create') {
-        await profileService.createProfile(payload)
-        setSuccessMessage('Perfil de mapeo creado correctamente.')
-      } else if (selectedProfile?.id) {
-        await profileService.updateProfile(selectedProfile.id, payload)
-        setSuccessMessage('Perfil de mapeo actualizado correctamente.')
+      const result = await persistProfile({
+        mode: profileModalMode,
+        profileId: selectedProfile?.id,
+        payload,
+        profileApi: profileService,
+        confirmEdit: (message) => window.confirm(message),
+        onBeforePersist: () => {
+          profileSaveInFlightRef.current = true
+          setProfileModalLoading(true)
+        },
+      })
+
+      if (!result.saved) {
+        if (result.reason === 'missing-profile') {
+          setProfileModalError('No se pudo identificar el perfil que se quiere editar.')
+        }
+        return
       }
+
+      setSuccessMessage(
+        profileModalMode === 'create'
+          ? 'Perfil de mapeo creado correctamente.'
+          : 'Perfil de mapeo actualizado correctamente.',
+      )
       await refreshData()
+      profileSaveInFlightRef.current = false
+      setProfileModalLoading(false)
       closeProfileModal()
     } catch (err) {
-      const backendMessage = err?.response?.data?.detail || err?.message
-      setProfileModalError(backendMessage || 'Error al guardar el perfil.')
+      setProfileModalError(getApiErrorMessage(err, 'Error al guardar el perfil.'))
     } finally {
+      profileSaveInFlightRef.current = false
       setProfileModalLoading(false)
     }
   }
@@ -699,7 +725,7 @@ const Integrations = () => {
           activeTab === 'integrations'
             ? 'Busca por nombre, tipo de conector y estado para encontrar integraciones rápidamente.'
             : activeTab === 'profiles'
-            ? 'Filtra perfiles por nombre, sistema o entidad de origen.'
+            ? 'Filtra perfiles por sistema, entidad de origen o versión.'
             : 'Buscá tablas de consulta por nombre o ID.'
         }
       >
@@ -713,7 +739,7 @@ const Integrations = () => {
               activeTab === 'integrations'
                 ? 'Nombre, entidad o conector...'
                 : activeTab === 'profiles'
-                ? 'Nombre, sistema o entidad...'
+                ? 'Sistema, entidad o versión...'
                 : 'Nombre o ID de tabla...'
             }
           />
@@ -823,7 +849,7 @@ const Integrations = () => {
             <Table>
               <thead>
                 <tr>
-                  <th>Nombre</th>
+                  <th>Perfil</th>
                 <th>Sistema de origen</th>
                   <th>Entidad</th>
                   <th>Versión</th>
@@ -841,7 +867,7 @@ const Integrations = () => {
                 ) : (
                   filteredProfiles.map((profile) => (
                     <tr key={profile.id} className="hover:bg-slate-50">
-                      <td className="font-medium text-slate-900">{profile.name || '—'}</td>
+                      <td className="font-medium text-slate-900">{getProfileDisplayName(profile)}</td>
                       <td>
                         <div className="flex flex-wrap items-center gap-2">
                           <span>{profile.source_system || '—'}</span>
@@ -1017,7 +1043,7 @@ const Integrations = () => {
                     <div key={profile.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="font-semibold text-slate-900">{profile.name}</p>
+                          <p className="font-semibold text-slate-900">{getProfileDisplayName(profile)}</p>
                           <p className="text-sm text-slate-500">
                             {profile.source_system || 'Sistema desconocido'} · {profile.source_entity}
                           </p>
@@ -1147,6 +1173,9 @@ const Integrations = () => {
             initialValues={selectedProfile || {}}
             onSubmit={handleProfileSave}
             onCancel={closeProfileModal}
+            isEditing={profileModalMode === 'edit'}
+            loading={profileModalLoading}
+            saveError={profileModalError}
             submitLabel={profileModalMode === 'create' ? 'Crear perfil' : 'Guardar cambios'}
             fieldTypes={integrationMetadata.fieldTypes}
             commonConfigFields={integrationMetadata.commonConfigFields}
@@ -1158,16 +1187,15 @@ const Integrations = () => {
             showPresets={profileModalMode === 'create'}
           />
         )}
-        {profileModalError ? <p className="mt-4 text-sm font-medium text-red-600">{profileModalError}</p> : null}
       </Modal>
 
-      <Modal open={profileDetailOpen} title={detailProfile ? `Perfil ${detailProfile.name}` : 'Detalle del perfil'} onClose={closeProfileDetail} footer={null}>
+      <Modal open={profileDetailOpen} title={detailProfile ? getProfileDisplayName(detailProfile) : 'Detalle del perfil'} onClose={closeProfileDetail} footer={null}>
         {detailProfile ? (
           <div className="space-y-6">
             <dl className="grid gap-4 sm:grid-cols-2 text-sm text-slate-700">
               <div>
-                <dt className="font-medium text-slate-900">Nombre</dt>
-                <dd>{detailProfile.name || '—'}</dd>
+                <dt className="font-medium text-slate-900">Identidad</dt>
+                <dd>{getProfileDisplayName(detailProfile)}</dd>
               </div>
               <div>
                 <dt className="font-medium text-slate-900">Sistema de origen</dt>
