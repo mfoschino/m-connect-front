@@ -6,7 +6,6 @@ import {
   CalendarClock,
   Check,
   CheckCircle2,
-  Circle,
   FileInput,
   FileOutput,
   Landmark,
@@ -17,13 +16,13 @@ import {
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import ConnectorConfigForm from './ConnectorConfigForm'
+import CanonicalFlowReadOnly from './CanonicalFlowReadOnly'
 import IntegrationReview from './IntegrationReview'
 import MappingProfileReadOnly from './MappingProfileReadOnly'
 import ScheduleBuilder from './ScheduleBuilder'
 import {
   SYSTEM_CATALOG,
   getConnectorSchema,
-  getEntityFieldSpec,
   getSystemPresetConfig,
 } from '../../constants/connectors'
 import {
@@ -251,10 +250,6 @@ const IntegrationForm = ({
   const canonicalEntity = useMemo(
     () => getCanonicalEntityDesign(entityId, entityOptions),
     [entityId, entityOptions],
-  )
-  const canonicalFields = useMemo(
-    () => getEntityFieldSpec(entityId).destinationFields,
-    [entityId],
   )
   const isFinnegansDocumentEnabled = isFinnegansDocumentConfigurable(entityId)
   const finnegansDocumentOptions = useMemo(() => {
@@ -709,39 +704,16 @@ const IntegrationForm = ({
         ) : null}
 
         {currentStep === 4 ? (
-          <div className="mt-6">
-            <div className="mx-auto max-w-3xl border-y border-sky-200 bg-sky-50 px-6 py-8 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white text-sky-700">
-                <Boxes size={23} aria-hidden="true" />
-              </div>
-              <p className="mt-4 text-xs font-semibold uppercase text-sky-700">Etapa fija</p>
-              <h4 className="mt-1 text-lg font-semibold text-slate-900">{canonicalEntity.label}</h4>
-              <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">
-                Esta entidad desacopla el sistema de origen de Finnegans y se deriva de la entidad seleccionada.
-              </p>
-            </div>
-
-            <section className="mx-auto mt-7 max-w-3xl">
-              <h4 className="text-sm font-semibold text-slate-900">Campos canónicos disponibles</h4>
-              {canonicalFields.length > 0 ? (
-                <div className="mt-3 grid gap-x-6 sm:grid-cols-2">
-                  {canonicalFields.map((field) => (
-                    <div key={field.id} className="flex items-center gap-3 border-b border-slate-200 py-3">
-                      <Circle size={8} className="fill-sky-600 text-sky-600" aria-hidden="true" />
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">{field.label}</p>
-                        <p className="text-xs text-slate-500">{field.id}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">
-                  La entidad se preservará, pero todavía no tiene un catálogo local de campos canónicos.
-                </p>
-              )}
-            </section>
-          </div>
+          <CanonicalFlowReadOnly
+            inboundProfiles={inboundProfiles}
+            outboundProfiles={outboundProfiles}
+            loading={profilesLoading}
+            sourceLabel={sourceSystem?.name || sourceSystemId}
+            canonicalEntityLabel={canonicalEntity.label}
+            destinationLabel={selectedFinnegansDocument?.label
+              ? `Finnegans ${selectedFinnegansDocument.label}`
+              : 'Finnegans'}
+          />
         ) : null}
 
         {currentStep === 5 ? (
