@@ -18,6 +18,13 @@ import { redactSensitiveConfig } from '../../services/adapters/sensitiveConfigAd
 import { getLookupApiErrorMessage } from '../../services/adapters/lookupTableAdapter'
 import { getApiErrorMessage } from '../../services/adapters/apiErrorAdapter'
 import { persistProfile } from '../../services/profileSaveFlow'
+import {
+  beginProfileLoadRequest,
+  createProfileLoadRequestState,
+  invalidateProfileLoadRequests,
+  loadProfileForEditRequest,
+  shouldRenderProfileForm,
+} from '../../services/profileModalLoadFlow'
 import useIntegrationMetadata from '../../hooks/useIntegrationMetadata'
 import { useAuth } from '../../context/AuthContext'
 import Badge from '../../components/ui/Badge'
@@ -95,7 +102,9 @@ const Integrations = () => {
   const [selectedProfile, setSelectedProfile] = useState(null)
   const [profileModalLoading, setProfileModalLoading] = useState(false)
   const profileSaveInFlightRef = useRef(false)
+  const profileLoadRequestRef = useRef(createProfileLoadRequestState())
   const [profileModalError, setProfileModalError] = useState(null)
+  const [profileModalTargetId, setProfileModalTargetId] = useState(null)
   const [profileDetailOpen, setProfileDetailOpen] = useState(false)
   const [detailProfile, setDetailProfile] = useState(null)
 
@@ -177,6 +186,10 @@ const Integrations = () => {
     return () => {
       mounted = false
     }
+  }, [])
+
+  useEffect(() => () => {
+    invalidateProfileLoadRequests(profileLoadRequestRef)
   }, [])
 
   const refreshData = async () => {
@@ -491,37 +504,65 @@ const Integrations = () => {
   }
 
   const openProfileCreate = () => {
+    invalidateProfileLoadRequests(profileLoadRequestRef)
     setProfileModalMode('create')
     setSelectedProfile(null)
     setProfileModalError(null)
+    setProfileModalLoading(false)
+    setProfileModalTargetId(null)
     setProfileModalOpen(true)
   }
 
   const openProfileEdit = async (profile) => {
+    const requestedProfileId = profile?.id
+    const request = beginProfileLoadRequest(profileLoadRequestRef, requestedProfileId)
+
     setProfileModalMode('edit')
     setProfileModalError(null)
     setProfileModalLoading(true)
     setSelectedProfile(null)
+    setProfileModalTargetId(requestedProfileId || null)
+    setProfileModalOpen(true)
 
-    try {
-      const response = await profileService.getProfile(profile.id)
-      setSelectedProfile(mapBackendProfileToForm(response.data || profile))
-      setProfileModalOpen(true)
-    } catch {
-      setProfileModalError('No se pudo cargar el perfil. Intenta de nuevo.')
-      setSelectedProfile(profile)
-      setProfileModalOpen(true)
-    } finally {
+    if (!requestedProfileId) {
+      setProfileModalError('No se pudo identificar el perfil que se quiere editar.')
       setProfileModalLoading(false)
+      return
     }
+
+    await loadProfileForEditRequest({
+      requestRef: profileLoadRequestRef,
+      request,
+      getProfile: (profileId) => profileService.getProfile(profileId),
+      normalizeProfile: mapBackendProfileToForm,
+      onSuccess: (loadedProfile) => {
+        setSelectedProfile(loadedProfile)
+        setProfileModalError(null)
+      },
+      onError: () => {
+        setSelectedProfile(null)
+        setProfileModalError('No se pudo cargar el perfil. Intenta de nuevo.')
+      },
+      onFinally: () => {
+        setProfileModalLoading(false)
+      },
+    })
+  }
+
+  const retryProfileEdit = () => {
+    if (!profileModalTargetId) return
+    openProfileEdit({ id: profileModalTargetId })
   }
 
   const closeProfileModal = () => {
     if (profileSaveInFlightRef.current) return
 
+    invalidateProfileLoadRequests(profileLoadRequestRef)
     setProfileModalOpen(false)
     setSelectedProfile(null)
     setProfileModalError(null)
+    setProfileModalLoading(false)
+    setProfileModalTargetId(null)
   }
 
   const handleProfileSave = async (payload) => {
@@ -1165,8 +1206,26 @@ const Integrations = () => {
       </Modal>
 
       <Modal open={profileModalOpen} title={profileModalMode === 'create' ? 'Crear nuevo perfil' : 'Editar perfil'} onClose={closeProfileModal} footer={null}>
-        {profileModalLoading && profileModalMode === 'edit' && !selectedProfile ? (
-          <div className="py-20 text-center text-slate-600">Cargando perfil...</div>
+        {!shouldRenderProfileForm(profileModalMode, selectedProfile) ? (
+          <div className="py-16 text-center">
+            {profileModalLoading ? (
+              <p className="text-slate-600">Cargando perfil...</p>
+            ) : (
+              <>
+                <p role="alert" className="font-medium text-red-600">
+                  {profileModalError || 'No se pudo cargar el perfil.'}
+                </p>
+                <div className="mt-6 flex justify-center gap-3">
+                  <Button type="button" variant="outline" onClick={closeProfileModal}>
+                    Cancelar
+                  </Button>
+                  <Button type="button" onClick={retryProfileEdit} disabled={!profileModalTargetId}>
+                    Reintentar
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         ) : (
           <ProfileForm
             key={selectedProfile?.id || profileModalMode}
