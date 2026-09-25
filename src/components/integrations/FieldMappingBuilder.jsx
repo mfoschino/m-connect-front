@@ -81,6 +81,8 @@ const FieldMappingBuilder = ({
   commonConfigFields = [],
   fieldTypeConfigFields = {},
   onErrorStrategies = [],
+  lookupTables = [],
+  lookupTablesLoading = false,
   metadataLoading = false,
   metadataError = null,
   autoMapEnabled = true,
@@ -454,6 +456,10 @@ const FieldMappingBuilder = ({
                             mapping={mapping}
                             onChange={(key, value) => handleConfigChange(index, key, value)}
                             validationMetadata={validationMetadata}
+                            lookupTables={lookupTables}
+                            lookupTablesLoading={lookupTablesLoading}
+                            metadataLoading={metadataLoading}
+                            mappingIndex={index}
                           />
                         ) : (
                           <p className="text-sm text-slate-500">

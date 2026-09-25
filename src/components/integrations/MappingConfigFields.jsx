@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Input from '../ui/Input'
 import { getMappingValidationErrors } from '../../services/adapters/mappingAdapter'
+import { buildLookupReferenceOptions } from '../../services/adapters/lookupReferenceOptions'
 
 const inferValueType = (value) => {
   if (value === null) return 'null'
@@ -156,10 +157,56 @@ const MappingConfigFields = ({
   mapping,
   onChange,
   validationMetadata,
+  lookupTables = [],
+  lookupTablesLoading = false,
+  metadataLoading = false,
+  mappingIndex = 0,
 }) => (
   <div className="grid gap-4 sm:grid-cols-2">
     {fields.map((field) => {
       const value = mapping[field.name]
+
+      if (mapping.field_type === 'lookup' && field.name === 'lookup_table_code') {
+        const options = buildLookupReferenceOptions(lookupTables, value)
+        const unavailable = options.some((option) => option.unavailable)
+        const available = options.some((option) => !option.unavailable)
+        const fieldId = `mapping-config-${field.name}-${mappingIndex}`
+        const hintId = `${fieldId}-hint`
+
+        return (
+          <div key={field.name} className="space-y-2">
+            <label htmlFor={fieldId} className="block text-sm font-semibold text-slate-900">
+              {field.label}{field.required ? ' *' : ''}
+            </label>
+            <select
+              id={fieldId}
+              value={value ?? ''}
+              onChange={(event) => onChange(field.name, event.target.value || undefined)}
+              disabled={lookupTablesLoading || metadataLoading}
+              aria-describedby={field.description || unavailable ? hintId : undefined}
+              className="form-input w-full"
+            >
+              <option value="">
+                {lookupTablesLoading
+                  ? 'Cargando LookupTables...'
+                  : available ? 'Seleccionar LookupTable' : 'No hay LookupTables disponibles'}
+              </option>
+              {options.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            {field.description || unavailable ? (
+              <p id={hintId} className="text-sm text-slate-500">
+                {field.description ? <span>{field.description}</span> : null}
+                {field.description && unavailable ? ' ' : null}
+                {unavailable
+                  ? 'La referencia configurada no está disponible entre las LookupTables cargadas.'
+                  : null}
+              </p>
+            ) : null}
+          </div>
+        )
+      }
 
       if (field.type === 'any') {
         return (

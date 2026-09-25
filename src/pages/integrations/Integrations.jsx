@@ -1241,6 +1241,8 @@ const Integrations = () => {
             fieldTypeConfigFields={integrationMetadata.fieldTypeConfigFields}
             onErrorStrategies={integrationMetadata.onErrorStrategies}
             entityTypes={integrationMetadata.entityTypes}
+            lookupTables={lookupTables}
+            lookupTablesLoading={loading}
             metadataLoading={integrationMetadata.loading}
             metadataError={integrationMetadata.error}
             showPresets={profileModalMode === 'create'}
