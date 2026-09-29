@@ -236,19 +236,19 @@ test('explica visiblemente que no representa schema ni payload de ejecución', (
   assert.match(html, /No es un payload de ejecución ni el schema oficial de la entidad/)
 })
 
-test('el paso 4 queda cableado al componente real y deja de leer ENTITY_FIELD_SPECS', async () => {
+test('el paso 6 queda cableado al componente real y deja de leer ENTITY_FIELD_SPECS', async () => {
   const source = await readFile(
     new URL('../src/components/integrations/IntegrationForm.jsx', import.meta.url),
     'utf8',
   )
-  const stepFourStart = source.indexOf('{currentStep === 4 ? (')
-  const stepFiveStart = source.indexOf('{currentStep === 5 ? (')
-  const stepFour = source.slice(stepFourStart, stepFiveStart)
+  const stepSixStart = source.indexOf('{currentStep === 6 ? (')
+  const stepSevenStart = source.indexOf('{currentStep === 7 ? (')
+  const stepSix = source.slice(stepSixStart, stepSevenStart)
 
-  assert.ok(stepFourStart >= 0 && stepFiveStart > stepFourStart)
-  assert.match(stepFour, /<CanonicalFlowReadOnly/)
-  assert.match(stepFour, /inboundProfiles=\{inboundProfiles\}/)
-  assert.match(stepFour, /outboundProfiles=\{outboundProfiles\}/)
+  assert.ok(stepSixStart >= 0 && stepSevenStart > stepSixStart)
+  assert.match(stepSix, /<CanonicalFlowReadOnly/)
+  assert.match(stepSix, /inboundProfiles=\{inboundProfiles\}/)
+  assert.match(stepSix, /outboundProfiles=\{outboundProfiles\}/)
   assert.doesNotMatch(source, /getEntityFieldSpec|canonicalFields/)
-  assert.doesNotMatch(stepFour, /OrderId|Email|Date|TotalAmount|Campos canónicos disponibles/)
+  assert.doesNotMatch(stepSix, /OrderId|Email|Date|TotalAmount|Campos canónicos disponibles/)
 })

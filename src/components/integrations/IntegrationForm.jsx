@@ -42,9 +42,9 @@ const STEPS = [
   { title: 'Información general', shortTitle: 'General', icon: Settings2 },
   { title: 'Sistema de origen', shortTitle: 'Origen', icon: PlugZap },
   { title: 'Mapeo de entrada', shortTitle: 'Entrada', icon: FileInput },
-  { title: 'Formato canónico', shortTitle: 'Canónico', icon: Boxes },
-  { title: 'Mapeo de salida', shortTitle: 'Salida', icon: FileOutput },
   { title: 'Destino Finnegans', shortTitle: 'Destino', icon: Landmark },
+  { title: 'Mapeo de salida', shortTitle: 'Salida', icon: FileOutput },
+  { title: 'Trazabilidad canónica', shortTitle: 'Trazabilidad', icon: Boxes },
   { title: 'Revisión', shortTitle: 'Revisión', icon: CheckCircle2 },
 ]
 
@@ -52,9 +52,9 @@ const STEP_DESCRIPTIONS = {
   1: 'Definí el nombre, el estado y la programación de la integración.',
   2: 'Configurá el sistema que entrega los datos y la entidad que se va a procesar.',
   3: 'Revisá el perfil de entrada real que transforma los datos hacia el formato canónico.',
-  4: 'Revisá la entidad central que desacopla el origen del destino.',
+  4: 'Confirmá el destino Finnegans y, cuando corresponda, elegí el documento.',
   5: 'Revisá el perfil de salida real detectado para Finnegans.',
-  6: 'Confirmá cómo queda configurado el destino Finnegans.',
+  6: 'Revisá cómo se relacionan los perfiles de entrada y salida en la configuración observada.',
   7: 'Confirmá la IntegrationConfig y los perfiles de mapeo que backend resolverá durante la ejecución.',
 }
 
@@ -128,7 +128,7 @@ const FlowOverview = ({
     {
       label: canonicalLabel,
       detail: 'M-Connect',
-      active: currentStep === 4,
+      active: currentStep === 6,
     },
     {
       label: 'Mapeo de salida',
@@ -138,7 +138,7 @@ const FlowOverview = ({
     {
       label: 'Finnegans',
       detail: finnegansDocumentLabel || 'Destino',
-      active: currentStep === 6,
+      active: currentStep === 4,
     },
   ]
 
@@ -374,7 +374,7 @@ const IntegrationForm = ({
       }
     }
 
-    if (stepToValidate === 6 && isFinnegansDocumentEnabled && !finnegansDocument) {
+    if (stepToValidate === 4 && isFinnegansDocumentEnabled && !finnegansDocument) {
       setStepError('Seleccioná el documento destino de Finnegans.')
       return false
     }
@@ -704,45 +704,6 @@ const IntegrationForm = ({
         ) : null}
 
         {currentStep === 4 ? (
-          <CanonicalFlowReadOnly
-            inboundProfiles={inboundProfiles}
-            outboundProfiles={outboundProfiles}
-            loading={profilesLoading}
-            sourceLabel={sourceSystem?.name || sourceSystemId}
-            canonicalEntityLabel={canonicalEntity.label}
-            destinationLabel={selectedFinnegansDocument?.label
-              ? `Finnegans ${selectedFinnegansDocument.label}`
-              : 'Finnegans'}
-          />
-        ) : null}
-
-        {currentStep === 5 ? (
-          <div className="mt-6 space-y-5">
-            <section className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900">
-                  {canonicalEntity.label} → Finnegans
-                </h4>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  El backend resuelve este perfil automáticamente según el documento Finnegans y la entidad.
-                  La IntegrationConfig no guarda una selección ni un ID de perfil.
-                </p>
-              </div>
-              <span className="text-xs font-semibold text-slate-500">
-                {outboundProfiles.length} candidatos activos
-              </span>
-            </section>
-
-            <MappingProfileReadOnly
-              profiles={outboundProfiles}
-              loading={profilesLoading}
-              emptyMessage={`No existe un MappingProfile outbound activo compatible con Finnegans ${selectedFinnegansDocument?.label || finnegansDocument || 'para el documento seleccionado'} y ${entityId || 'la entidad seleccionada'}.`}
-              emptyDescription="Debe crearse un profile compatible desde la sección Perfiles de mapeo. El wizard permanecerá abierto y no creará ni seleccionará uno automáticamente."
-            />
-          </div>
-        ) : null}
-
-        {currentStep === 6 ? (
           <div className="mt-6 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
             <div className="border-r-0 border-slate-200 lg:border-r lg:pr-8">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white">
@@ -792,6 +753,45 @@ const IntegrationForm = ({
               </section>
             )}
           </div>
+        ) : null}
+
+        {currentStep === 5 ? (
+          <div className="mt-6 space-y-5">
+            <section className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">
+                  {canonicalEntity.label} → Finnegans
+                </h4>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  El backend resuelve este perfil automáticamente según el documento Finnegans y la entidad.
+                  La IntegrationConfig no guarda una selección ni un ID de perfil.
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-slate-500">
+                {outboundProfiles.length} candidatos activos
+              </span>
+            </section>
+
+            <MappingProfileReadOnly
+              profiles={outboundProfiles}
+              loading={profilesLoading}
+              emptyMessage={`No existe un MappingProfile outbound activo compatible con Finnegans ${selectedFinnegansDocument?.label || finnegansDocument || 'para el documento seleccionado'} y ${entityId || 'la entidad seleccionada'}.`}
+              emptyDescription="Debe crearse un profile compatible desde la sección Perfiles de mapeo. El wizard permanecerá abierto y no creará ni seleccionará uno automáticamente."
+            />
+          </div>
+        ) : null}
+
+        {currentStep === 6 ? (
+          <CanonicalFlowReadOnly
+            inboundProfiles={inboundProfiles}
+            outboundProfiles={outboundProfiles}
+            loading={profilesLoading}
+            sourceLabel={sourceSystem?.name || sourceSystemId}
+            canonicalEntityLabel={canonicalEntity.label}
+            destinationLabel={selectedFinnegansDocument?.label
+              ? `Finnegans ${selectedFinnegansDocument.label}`
+              : 'Finnegans'}
+          />
         ) : null}
 
         {currentStep === 7 ? (
