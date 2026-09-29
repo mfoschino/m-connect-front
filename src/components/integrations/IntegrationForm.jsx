@@ -678,27 +678,19 @@ const IntegrationForm = ({
         ) : null}
 
         {currentStep === 3 ? (
-          <div className="mt-6 space-y-5">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900">
-                  {sourceSystem?.name || sourceSystemId || 'Origen'} → {canonicalEntity.label}
-                </h4>
-                <p className="mt-1 text-sm leading-6 text-slate-600">
-                  El backend resuelve este perfil automáticamente por source system, entity y estado activo.
-                  La IntegrationConfig no guarda una selección de perfil.
-                </p>
-              </div>
-              <span className="text-xs font-semibold text-slate-500">
-                {inboundProfiles.length} candidatos activos
-              </span>
-            </div>
-
+          <div className="mt-6">
             <MappingProfileReadOnly
               profiles={inboundProfiles}
               loading={profilesLoading}
-              emptyMessage={`No existe un MappingProfile inbound activo compatible con ${sourceSystem?.name || sourceSystemId || 'el origen seleccionado'} y ${entityId || 'la entidad seleccionada'}.`}
-              emptyDescription="Debe crearse un profile compatible desde la sección Perfiles de mapeo. El wizard permanecerá abierto y no creará ni seleccionará uno automáticamente."
+              presentation="wizard"
+              wizardContext={{
+                direction: 'inbound',
+                fromLabel: sourceSystem?.name || sourceSystemId || 'Sistema de origen',
+                toLabel: canonicalEntity.label,
+                matchSystemLabel: sourceSystem?.name || sourceSystemId,
+                matchSystemCode: sourceSystemId,
+                entity: entityId,
+              }}
             />
           </div>
         ) : null}
@@ -756,27 +748,23 @@ const IntegrationForm = ({
         ) : null}
 
         {currentStep === 5 ? (
-          <div className="mt-6 space-y-5">
-            <section className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900">
-                  {canonicalEntity.label} → Finnegans
-                </h4>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  El backend resuelve este perfil automáticamente según el documento Finnegans y la entidad.
-                  La IntegrationConfig no guarda una selección ni un ID de perfil.
-                </p>
-              </div>
-              <span className="text-xs font-semibold text-slate-500">
-                {outboundProfiles.length} candidatos activos
-              </span>
-            </section>
-
+          <div className="mt-6">
             <MappingProfileReadOnly
               profiles={outboundProfiles}
               loading={profilesLoading}
-              emptyMessage={`No existe un MappingProfile outbound activo compatible con Finnegans ${selectedFinnegansDocument?.label || finnegansDocument || 'para el documento seleccionado'} y ${entityId || 'la entidad seleccionada'}.`}
-              emptyDescription="Debe crearse un profile compatible desde la sección Perfiles de mapeo. El wizard permanecerá abierto y no creará ni seleccionará uno automáticamente."
+              presentation="wizard"
+              wizardContext={{
+                direction: 'outbound',
+                fromLabel: canonicalEntity.label,
+                toLabel: selectedFinnegansDocument?.label
+                  ? `Finnegans ${selectedFinnegansDocument.label}`
+                  : 'Finnegans',
+                matchSystemLabel: selectedFinnegansDocument?.label
+                  ? `Finnegans ${selectedFinnegansDocument.label}`
+                  : 'Finnegans',
+                matchSystemCode: outboundSourceSystem,
+                entity: entityId,
+              }}
             />
           </div>
         ) : null}

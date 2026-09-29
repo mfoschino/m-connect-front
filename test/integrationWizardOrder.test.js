@@ -65,6 +65,21 @@ test('wizard keeps seven steps in causal order and wires the three moved views',
   assert.match(flowOverview, /label: 'Finnegans'[\s\S]*active: currentStep === 4/)
 })
 
+test('inbound and outbound wizard views share presentation without editing or selecting profiles', async () => {
+  const source = await readWizard()
+  const inboundStep = getStepBlock(source, 3)
+  const outboundStep = getStepBlock(source, 5)
+  const validation = source.slice(source.indexOf('const validateStep ='), source.indexOf('const validateAllSteps ='))
+
+  assert.match(inboundStep, /profiles=\{inboundProfiles\}[\s\S]*presentation="wizard"[\s\S]*direction: 'inbound'/)
+  assert.match(outboundStep, /profiles=\{outboundProfiles\}[\s\S]*presentation="wizard"[\s\S]*direction: 'outbound'/)
+  assert.match(inboundStep, /fromLabel: sourceSystem\?\.name[\s\S]*toLabel: canonicalEntity\.label/)
+  assert.match(outboundStep, /fromLabel: canonicalEntity\.label[\s\S]*toLabel: selectedFinnegansDocument\?\.label/)
+  assert.doesNotMatch(inboundStep + outboundStep, /\bonChange\b|\bonClick\b|\bset[A-Z]\w*\(/)
+  assert.doesNotMatch(validation, /inboundProfiles|outboundProfiles/)
+  assert.doesNotMatch(inboundStep + outboundStep, /profile_id|inbound_profile_id|outbound_profile_id/)
+})
+
 test('new step indices keep document validation, Back/Continue and final submit aligned', async () => {
   const source = await readWizard()
   const validation = source.slice(source.indexOf('const validateStep ='), source.indexOf('const validateAllSteps ='))
