@@ -209,23 +209,22 @@ const CanonicalFieldNode = ({ field, depth = 0 }) => (
 const FlowOverview = ({ sourceLabel, canonicalEntityLabel, destinationLabel }) => {
   const stages = [
     sourceLabel || 'Sistema de origen',
-    'Mapping inbound',
-    canonicalEntityLabel || 'Campos canónicos observados',
-    'Mapping outbound',
+    canonicalEntityLabel || 'Datos intermedios M-Connect',
     destinationLabel || 'Sistema de destino',
   ]
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-2">
-      <div className="flex min-w-[760px] items-stretch">
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <p className="mb-3 text-xs font-medium text-slate-500">Flujo configurado en los MappingProfiles</p>
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
         {stages.map((stage, index) => (
           <div key={`${stage}-${index}`} className="contents">
-            <div className="min-w-0 flex-1 rounded-lg bg-white px-3 py-4 text-center">
-              <p className="truncate text-xs font-semibold text-slate-900">{stage}</p>
+            <div className="min-w-0 flex-1 rounded-lg bg-white px-3 py-3 text-center">
+              <p className="break-words text-xs font-semibold text-slate-900">{stage}</p>
             </div>
             {index < stages.length - 1 ? (
-              <div className="flex w-8 shrink-0 items-center justify-center text-slate-400">
-                <ArrowRight size={15} aria-hidden="true" />
+              <div className="flex shrink-0 items-center justify-center text-slate-400 sm:w-8">
+                <ArrowRight size={15} className="rotate-90 sm:rotate-0" aria-hidden="true" />
               </div>
             ) : null}
           </div>
@@ -234,6 +233,91 @@ const FlowOverview = ({ sourceLabel, canonicalEntityLabel, destinationLabel }) =
     </div>
   )
 }
+
+const getTraceMetrics = (trace) => ({
+  relatedCount: trace.fields.filter((field) => (
+    field.producers.length > 0 && field.consumers.length > 0
+  )).length,
+  producedOnlyCount: trace.fields.filter((field) => (
+    field.producers.length > 0 && field.consumers.length === 0
+  )).length,
+  consumedOnlyCount: trace.fields.filter((field) => (
+    field.producers.length === 0 && field.consumers.length > 0
+  )).length,
+  outboundConstantsCount: trace.outboundConstants.length,
+  unassociatedOutboundRulesCount: trace.unassociatedOutboundRules.length,
+})
+
+const TraceSummary = ({ trace }) => {
+  const metrics = getTraceMetrics(trace)
+  const hasExceptions = metrics.producedOnlyCount > 0
+    || metrics.consumedOnlyCount > 0
+    || metrics.unassociatedOutboundRulesCount > 0
+
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-5" aria-label="Resumen de trazabilidad canónica">
+      <p className="text-xs font-medium text-slate-500">
+        Campos canónicos principales observados en estos perfiles
+      </p>
+      <p className="mt-3 text-sm text-slate-700">
+        <span className="mr-2 text-2xl font-semibold text-sky-800">{metrics.relatedCount}</span>
+        {metrics.relatedCount === 1
+          ? ' campo relacionado entre entrada y salida'
+          : ' campos relacionados entre entrada y salida'}
+      </p>
+
+      {hasExceptions ? (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3">
+          <p className="text-xs font-semibold text-amber-900">También se observa:</p>
+          <ul className="mt-2 space-y-1 text-sm text-slate-700">
+            {metrics.producedOnlyCount > 0 ? (
+              <li>
+                {metrics.producedOnlyCount}
+                {metrics.producedOnlyCount === 1
+                  ? ' campo sólo producido por entrada'
+                  : ' campos sólo producidos por entrada'}
+              </li>
+            ) : null}
+            {metrics.consumedOnlyCount > 0 ? (
+              <li>
+                {metrics.consumedOnlyCount}
+                {metrics.consumedOnlyCount === 1
+                  ? ' campo sólo consumido por salida'
+                  : ' campos sólo consumidos por salida'}
+              </li>
+            ) : null}
+            {metrics.unassociatedOutboundRulesCount > 0 ? (
+              <li>
+                {metrics.unassociatedOutboundRulesCount}
+                {metrics.unassociatedOutboundRulesCount === 1
+                  ? ' regla de salida sin consumo canónico identificable'
+                  : ' reglas de salida sin consumo canónico identificable'}
+              </li>
+            ) : null}
+          </ul>
+        </div>
+      ) : null}
+
+      <p className="mt-4 border-t border-slate-100 pt-3 text-sm text-slate-700">
+        <span className="font-semibold">{metrics.outboundConstantsCount}</span>
+        {metrics.outboundConstantsCount === 1
+          ? ' valor agregado por la transformación de salida'
+          : ' valores agregados por la transformación de salida'}
+      </p>
+    </section>
+  )
+}
+
+const TraceDisclosure = ({ collapsed, children }) => (
+  collapsed ? (
+    <details className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+      <summary className="cursor-pointer text-sm font-semibold text-sky-800">
+        Ver trazabilidad completa
+      </summary>
+      <div className="mt-5 space-y-6 border-t border-slate-100 pt-5">{children}</div>
+    </details>
+  ) : children
+)
 
 const ProfileReference = ({ eyebrow, profile }) => (
   <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
@@ -246,10 +330,13 @@ const ProfileReference = ({ eyebrow, profile }) => (
 
 const MissingProfile = ({ direction }) => {
   const message = `No existe un MappingProfile ${direction} compatible observado.`
+  const guidance = direction === 'inbound'
+    ? 'Sin ese perfil no se puede reconstruir la producción canónica observada de entrada.'
+    : 'Sin ese perfil no se puede reconstruir el consumo canónico observado de salida.'
 
   return (
     <p className="rounded-lg border border-dashed border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-      {message}
+      {message} {guidance} Revisá los MappingProfiles compatibles.
     </p>
   )
 }
@@ -299,6 +386,9 @@ const CanonicalFlowReadOnly = ({
   const hasAmbiguousProfiles = (
     compatibleInboundProfiles.length > 1 || compatibleOutboundProfiles.length > 1
   )
+  const hasUniqueProfiles = (
+    compatibleInboundProfiles.length === 1 && compatibleOutboundProfiles.length === 1
+  )
   const inboundProfile = compatibleInboundProfiles.length === 1
     ? compatibleInboundProfiles[0]
     : undefined
@@ -316,19 +406,25 @@ const CanonicalFlowReadOnly = ({
           <Boxes size={20} aria-hidden="true" />
         </div>
         <div>
-          <h4 className="text-lg font-semibold text-slate-900">Trazabilidad canónica configurada</h4>
+          <h4 className="text-lg font-semibold text-slate-900">Trazabilidad canónica</h4>
           <p className="mt-1 text-sm leading-6 text-slate-600">
             Esta vista representa la configuración observada en los MappingProfiles compatibles.
-            No es un payload de ejecución ni el schema oficial de la entidad.
+            No es un payload de ejecución ni el schema oficial de la entidad, ni una validación
+            semántica completa.
           </p>
         </div>
       </div>
 
-      <FlowOverview
-        sourceLabel={sourceLabel}
-        canonicalEntityLabel={canonicalEntityLabel}
-        destinationLabel={destinationLabel}
-      />
+      {!loading && hasUniqueProfiles ? (
+        <>
+          <FlowOverview
+            sourceLabel={sourceLabel}
+            canonicalEntityLabel={canonicalEntityLabel}
+            destinationLabel={destinationLabel}
+          />
+          <TraceSummary trace={trace} />
+        </>
+      ) : null}
 
       {loading ? (
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-600">
@@ -340,7 +436,7 @@ const CanonicalFlowReadOnly = ({
           outboundProfiles={compatibleOutboundProfiles}
         />
       ) : (
-        <>
+        <TraceDisclosure collapsed={hasUniqueProfiles}>
           <div className="grid gap-3 lg:grid-cols-2">
             {inboundProfile ? (
               <ProfileReference eyebrow="MappingProfile inbound" profile={inboundProfile} />
@@ -441,7 +537,7 @@ const CanonicalFlowReadOnly = ({
               </ul>
             </section>
           ) : null}
-        </>
+        </TraceDisclosure>
       )}
     </div>
   )
