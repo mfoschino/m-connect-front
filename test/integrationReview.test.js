@@ -131,46 +131,59 @@ const renderReview = (overrides = {}) => renderToString(
   React.createElement(IntegrationReview, baseProps(overrides)),
 )
 
-test('Review shows IntegrationConfig and both real configured transformations', () => {
+const firstLevel = (html) => html.slice(0, html.indexOf('<details'))
+const technicalDetails = (html) => html.slice(html.indexOf('<details'))
+
+test('Review muestra primero la IntegrationConfig y los estados detectados; conserva el detalle técnico', () => {
   const html = renderReview()
+  const summary = firstLevel(html)
+  const technical = technicalDetails(html)
 
-  assert.match(html, /Resumen de la configuración/)
-  assert.match(html, /Tienda Nube → Finnegans/)
-  assert.match(html, /Sistema de origen/)
-  assert.match(html, /Tienda Nube/)
-  assert.match(html, /Tipo de conector/)
-  assert.match(html, /API/)
-  assert.match(html, /sales_order/)
-  assert.match(html, /Documento Finnegans/)
-  assert.match(html, /Pedido de Venta/)
-  assert.match(html, /Activa/)
-  assert.match(html, /Manual/)
+  assert.match(summary, /Revisión de integración/)
+  assert.match(summary, /Se guardará/)
+  assert.match(summary, /Tienda Nube → Finnegans/)
+  assert.match(summary, /Sistema de origen[\s\S]*Tienda Nube/)
+  assert.match(summary, /Destino[\s\S]*Finnegans Pedido de Venta/)
+  assert.match(summary, /Entidad[\s\S]*Pedido de venta canónico M-Connect/)
+  assert.match(summary, /Tipo de conector[\s\S]*API/)
+  assert.match(summary, /Documento Finnegans[\s\S]*Pedido de Venta/)
+  assert.match(summary, /Estado[\s\S]*Activa/)
+  assert.match(summary, /Programación[\s\S]*Manual/)
+  assert.match(summary, /Configuración adicional incluida; valores sensibles protegidos/)
+  assert.match(summary, /Detectado automáticamente/)
+  assert.match(summary, /Transformación de entrada[\s\S]*Perfil compatible detectado automáticamente/)
+  assert.match(summary, /Transformación de salida[\s\S]*Perfil compatible detectado automáticamente/)
+  assert.match(summary, /sus IDs no se guardan en la integración/)
+  assert.doesNotMatch(summary, /inbound-profile-id|outbound-profile-id|source_field|access_token|store_id/)
 
-  assert.match(html, /Entrada → Canónico/)
-  assert.match(html, /Canónico → Destino/)
-  assert.match(html, /inbound-profile-id/)
-  assert.match(html, /outbound-profile-id/)
+  assert.match(html, /<details(?![^>]*\bopen\b)[^>]*><summary[^>]*>Ver detalles técnicos<\/summary>/)
+  assert.equal(html.match(/<details\b/g)?.length, 1)
+  assert.match(technical, /MappingProfile inbound/)
+  assert.match(technical, /MappingProfile outbound/)
+  assert.match(technical, /inbound-profile-id/)
+  assert.match(technical, /outbound-profile-id/)
+  assert.match(technical, /Versión/)
+  assert.match(technical, /1\.0\.0/)
   assert.equal(
-    html.match(/Configuración JSON del MappingProfile/g)?.length,
+    technical.match(/Configuración JSON del MappingProfile/g)?.length,
     2,
   )
-  assert.match(html, /source_field/)
-  assert.match(html, /external_id/)
-  assert.match(html, /lookup_table_code/)
-  assert.match(html, /TiendaNubeStatusMap/)
-  assert.match(html, /IdentificacionExterna/)
-  assert.match(html, /constant_value/)
-  assert.match(html, /CF/)
-  assert.match(html, /FinnegansMonedaMap/)
-  assert.match(html, /Items/)
-  assert.match(html, /sub_mappings/)
+  assert.match(technical, /source_field/)
+  assert.match(technical, /external_id/)
+  assert.match(technical, /lookup_table_code/)
+  assert.match(technical, /TiendaNubeStatusMap/)
+  assert.match(technical, /IdentificacionExterna/)
+  assert.match(technical, /constant_value/)
+  assert.match(technical, /CF/)
+  assert.match(technical, /FinnegansMonedaMap/)
+  assert.match(technical, /Items/)
+  assert.match(technical, /sub_mappings/)
   assert.match(html, /ProductoCodigo/)
   assert.doesNotMatch(html, /Mapeos anidados/)
   assert.doesNotMatch(html, /Lookup:/)
   assert.doesNotMatch(html, /Constante /)
   assert.doesNotMatch(html, /Perfil de mapeo/)
   assert.doesNotMatch(html, /Ver configuración JSON del perfil/)
-  assert.doesNotMatch(html, /<details/)
   assert.match(html, /Esta vista representa las transformaciones configuradas\./)
   assert.match(html, /Los datos transformados reales se generan durante la ejecución\./)
 
@@ -183,15 +196,17 @@ test('Review shows IntegrationConfig and both real configured transformations', 
 
 test('Review redacts secrets recursively while retaining useful source configuration', () => {
   const html = renderReview()
+  const technical = technicalDetails(html)
 
-  assert.match(html, /store_id/)
-  assert.match(html, /123/)
-  assert.match(html, /endpoint/)
-  assert.match(html, /\/orders\?access_token=\[configurado\](?:&amp;|&amp;amp;)limit=20/)
-  assert.match(html, /https:\/\/\[configurado\]@example\.test/)
-  assert.match(html, /Content-Type/)
-  assert.match(html, /application\/json/)
-  assert.match(html, /\[configurado\]/)
+  assert.match(technical, /Configuración source segura/)
+  assert.match(technical, /store_id/)
+  assert.match(technical, /123/)
+  assert.match(technical, /endpoint/)
+  assert.match(technical, /\/orders\?access_token=\[configurado\](?:&amp;|&amp;amp;)limit=20/)
+  assert.match(technical, /https:\/\/\[configurado\]@example\.test/)
+  assert.match(technical, /Content-Type/)
+  assert.match(technical, /application\/json/)
+  assert.match(technical, /\[configurado\]/)
   assert.match(html, /Valores sensibles protegidos/)
   assert.doesNotMatch(html, /secret-token/)
   assert.doesNotMatch(html, /secret-key/)
@@ -210,12 +225,14 @@ test('Review renders inbound, outbound and combined missing-profile states', () 
   const withoutBoth = renderReview({ inboundProfiles: [], outboundProfiles: [] })
 
   assert.match(withoutInbound, /No existe un MappingProfile inbound activo compatible\./)
+  assert.match(firstLevel(withoutInbound), /Transformación de entrada[\s\S]*Requisito pendiente/)
   assert.doesNotMatch(withoutInbound, /No existe un MappingProfile outbound activo compatible\./)
   assert.match(withoutInbound, /Requisito pendiente/)
   assert.match(withoutInbound, /Sistema: tiendanube/)
   assert.match(withoutInbound, /Entidad: sales_order/)
 
   assert.match(withoutOutbound, /No existe un MappingProfile outbound activo compatible\./)
+  assert.match(firstLevel(withoutOutbound), /Transformación de salida[\s\S]*Requisito pendiente/)
   assert.doesNotMatch(withoutOutbound, /No existe un MappingProfile inbound activo compatible\./)
   assert.match(withoutOutbound, /Sistema: finnegans/)
   assert.match(withoutOutbound, /Documento: Pedido de Venta/)
@@ -224,6 +241,7 @@ test('Review renders inbound, outbound and combined missing-profile states', () 
     withoutBoth.match(/No existe un MappingProfile (?:inbound|outbound) activo compatible\./g)?.length,
     2,
   )
+  assert.equal(firstLevel(withoutBoth).match(/Requisito pendiente/g)?.length, 2)
   assert.doesNotMatch(withoutBoth, /<select|type="radio"|role="radio"/)
 })
 
@@ -264,6 +282,8 @@ test('Review shows every ambiguous candidate without choosing a version', () => 
   })
 
   assert.match(html, /Se encontraron múltiples MappingProfiles activos compatibles\./)
+  assert.match(firstLevel(html), /Transformación de entrada[\s\S]*2 perfiles compatibles detectados/)
+  assert.match(firstLevel(html), /Transformación de salida[\s\S]*2 perfiles compatibles detectados/)
   assert.match(html, /Backend determinará cuál resolver durante la ejecución\./)
   assert.match(html, /inbound-v1/)
   assert.match(html, /inbound-v2/)
@@ -276,9 +296,30 @@ test('Review shows every ambiguous candidate without choosing a version', () => 
   assert.equal(html.match(/Configuración JSON del MappingProfile/g)?.length, 4)
   assert.ok(html.indexOf('inbound-v1') < html.indexOf('inbound-v2'))
   assert.ok(html.indexOf('outbound-v1') < html.indexOf('outbound-v2'))
+  assert.doesNotMatch(firstLevel(html), /inbound-v1|inbound-v2|outbound-v1|outbound-v2/)
   assert.doesNotMatch(html, /<select|type="radio"|role="radio"|seleccionado/i)
   assert.doesNotMatch(html, /Mapeos anidados|Lookup:|Constante /)
 })
+
+for (const [direction, profilesProp, profileFactory] of [
+  ['entrada', 'inboundProfiles', inboundProfile],
+  ['salida', 'outboundProfiles', outboundProfile],
+]) {
+  test(`Review muestra múltiples candidatos sólo de ${direction} sin seleccionar uno`, () => {
+    const html = renderReview({
+      [profilesProp]: [
+        profileFactory({ id: `${direction}-v1`, version: '1.0.0' }),
+        profileFactory({ id: `${direction}-v2`, version: '2.0.0' }),
+      ],
+    })
+
+    assert.match(firstLevel(html), /2 perfiles compatibles detectados/)
+    assert.doesNotMatch(firstLevel(html), new RegExp(`${direction}-v[12]`))
+    assert.match(technicalDetails(html), new RegExp(`${direction}-v1`))
+    assert.match(technicalDetails(html), new RegExp(`${direction}-v2`))
+    assert.doesNotMatch(html, /<select|type="radio"|role="radio"/)
+  })
+}
 
 test('Review distinguishes manual/scheduled and active/inactive integrations', () => {
   const manualActive = renderReview({ schedule: null, isActive: true })
@@ -288,6 +329,16 @@ test('Review distinguishes manual/scheduled and active/inactive integrations', (
   assert.match(manualActive, /Activa/)
   assert.match(hourlyInactive, /Cada hora/)
   assert.match(hourlyInactive, /Inactiva/)
+  assert.match(firstLevel(hourlyInactive), /Cada hora/)
+})
+
+test('Review omite documento configurable cuando no aplica y mantiene la síntesis source honesta', () => {
+  const html = renderReview({ finnegansDocument: '', finnegansDocumentLabel: '', config: {} })
+
+  assert.match(firstLevel(html), /Destino[\s\S]*Finnegans/)
+  assert.doesNotMatch(firstLevel(html), /Documento Finnegans/)
+  assert.match(firstLevel(html), /Sin configuración adicional/)
+  assert.match(technicalDetails(html), /No hay configuración source adicional para mostrar/)
 })
 
 test('Review remains stable with empty, absent or loading profile data', () => {
@@ -300,6 +351,20 @@ test('Review remains stable with empty, absent or loading profile data', () => {
     outboundProfiles: [],
   })
   assert.match(loading, /Consultando perfiles de mapeo reales/)
+  assert.equal(firstLevel(loading).match(/Consultando perfiles/g)?.length, 2)
+})
+
+test('Review sigue siendo el paso 7 y usa el payloadPreview sin persistir IDs de perfiles', async () => {
+  const source = await readFile(
+    new URL('../src/components/integrations/IntegrationForm.jsx', import.meta.url),
+    'utf8',
+  )
+  const stepSeven = source.slice(source.indexOf('{currentStep === 7 ? ('), source.indexOf('<div className="mt-7 flex flex-col-reverse', source.indexOf('{currentStep === 7 ? (')))
+
+  assert.match(stepSeven, /<IntegrationReview/)
+  assert.match(stepSeven, /config=\{payloadPreview\.config\}/)
+  assert.match(source, /onSubmit\(payloadPreview\)/)
+  assert.doesNotMatch(stepSeven, /profile_id|inbound_profile_id|outbound_profile_id/)
 })
 
 test('wizard step validation no longer inspects hidden legacy field_mappings', async () => {
