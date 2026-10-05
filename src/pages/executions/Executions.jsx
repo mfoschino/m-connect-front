@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import executionService from '../../services/api/executionService'
 import { getExecutionIdentifier } from '../../services/adapters/executionAdapter'
@@ -8,6 +8,7 @@ import Card from '../../components/ui/Card'
 import Input from '../../components/ui/Input'
 import Table from '../../components/ui/Table'
 import { getExecutionStatusLabel } from '../../utils/presentationUtils'
+import { loadMonitorRequest } from './loadMonitorRequest'
 
 const variantForStatus = (status) => {
   const s = String(status || '').toLowerCase()
@@ -37,65 +38,72 @@ const getExecutionMessage = (execution) => {
   }
 }
 
-const loadExecutionsData = async () => {
-  const [executionsRes, integrationsRes] = await Promise.all([
-    executionService.listExecutions(),
-    executionService.listIntegrations(),
-  ])
-
-  return {
-    executions: Array.isArray(executionsRes.data) ? executionsRes.data : [],
-    integrations: Array.isArray(integrationsRes.data) ? integrationsRes.data : [],
-  }
-}
-
 const Executions = () => {
-  const [executions, setExecutions] = useState([])
-  const [integrations, setIntegrations] = useState([])
+  const [monitor, setMonitor] = useState({ data: [], loading: true, error: null })
+  const [options, setOptions] = useState({ data: [], loading: true, error: null })
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [refreshing, setRefreshing] = useState(false)
+  const [selectedIntegrationId, setSelectedIntegrationId] = useState('')
+  const executionRequestRef = useRef(0)
+  const integrationRequestRef = useRef(0)
 
-  const fetchExecutions = async () => {
-    setLoading(true)
-    setError(null)
+  const fetchExecutions = useCallback((integrationId) => loadMonitorRequest({
+    requestRef: executionRequestRef,
+    load: () => executionService.listExecutions({ integration_id: integrationId }),
+    onChange: setMonitor,
+    errorMessage: 'No se pudieron cargar las ejecuciones. Intenta recargar.',
+  }), [])
 
-    try {
-      const data = await loadExecutionsData()
-      setExecutions(data.executions)
-      setIntegrations(data.integrations)
-    } catch (err) {
-      console.error('Failed to load executions', err)
-      setError('No se pudieron cargar las ejecuciones. Intenta recargar.')
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
+  const fetchIntegrations = useCallback(() => loadMonitorRequest({
+    requestRef: integrationRequestRef,
+    load: () => executionService.listIntegrations(),
+    onChange: setOptions,
+    errorMessage: 'No se pudieron cargar las integraciones.',
+  }), [])
+
+  const handleIntegrationChange = (integrationId) => {
+    setSelectedIntegrationId(integrationId)
+    fetchExecutions(integrationId)
   }
 
   useEffect(() => {
-    let active = true
-
-    loadExecutionsData()
-      .then((data) => {
-        if (!active) return
-        setExecutions(data.executions)
-        setIntegrations(data.integrations)
-      })
-      .catch((err) => {
-        if (!active) return
-        console.error('Failed to load executions', err)
-        setError('No se pudieron cargar las ejecuciones. Intenta recargar.')
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
+    fetchExecutions()
+    fetchIntegrations()
 
     return () => {
-      active = false
+      executionRequestRef.current += 1
+      integrationRequestRef.current += 1
     }
-  }, [])
+  }, [fetchExecutions, fetchIntegrations])
+
+  return (
+    <ExecutionsContent
+      monitor={monitor}
+      options={options}
+      search={search}
+      selectedIntegrationId={selectedIntegrationId}
+      onSearchChange={setSearch}
+      onIntegrationChange={handleIntegrationChange}
+      onRefresh={() => {
+        fetchExecutions(selectedIntegrationId)
+        fetchIntegrations()
+      }}
+      onRetryIntegrations={fetchIntegrations}
+    />
+  )
+}
+
+export const ExecutionsContent = ({
+  monitor,
+  options,
+  search,
+  selectedIntegrationId,
+  onSearchChange,
+  onIntegrationChange,
+  onRefresh,
+  onRetryIntegrations,
+}) => {
+  const { data: executions, loading, error } = monitor
+  const { data: integrations, loading: integrationsLoading, error: integrationsError } = options
 
   const integrationMap = useMemo(() => {
     return integrations.reduce((map, integration) => {
@@ -128,6 +136,14 @@ const Executions = () => {
     })
   }, [executions, integrationMap, search])
 
+  const missingIntegration = selectedIntegrationId
+    && !integrations.some((integration) => integration.id === selectedIntegrationId)
+  const emptyMessage = search.trim()
+    ? 'No hay ejecuciones que coincidan con los filtros actuales.'
+    : selectedIntegrationId
+      ? 'No hay ejecuciones para la integración seleccionada.'
+      : 'No hay ejecuciones.'
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -142,7 +158,7 @@ const Executions = () => {
         title="Filtros"
         description="Buscá por ID de seguimiento, integración, entidad o sistema de origen."
         actions={
-          <Button onClick={() => { setRefreshing(true); fetchExecutions() }} loading={refreshing}>
+          <Button onClick={onRefresh} loading={loading}>
             Refrescar
           </Button>
         }
@@ -152,11 +168,41 @@ const Executions = () => {
             id="execution-search"
             label="Buscar ejecuciones"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
             placeholder="ID de seguimiento, integración, entidad..."
           />
+          <div className="space-y-2">
+            <label htmlFor="execution-integration" className="block text-sm font-semibold text-slate-900">
+              Integración
+            </label>
+            <select
+              id="execution-integration"
+              className="form-input w-full"
+              value={selectedIntegrationId}
+              onChange={(e) => onIntegrationChange(e.target.value)}
+              aria-busy={integrationsLoading}
+              aria-describedby={integrationsLoading || integrationsError ? 'execution-integration-status' : undefined}
+            >
+              <option value="">Todas las integraciones</option>
+              {missingIntegration ? (
+                <option value={selectedIntegrationId}>Integración no disponible — {selectedIntegrationId}</option>
+              ) : null}
+              {integrations.map((integration) => (
+                <option key={integration.id} value={integration.id}>
+                  {integration.name || integration.id}{integration.is_active === false ? ' — inactiva' : ''}
+                </option>
+              ))}
+            </select>
+            {integrationsLoading ? (
+              <p id="execution-integration-status" role="status" className="text-sm text-slate-500">Cargando integraciones...</p>
+            ) : integrationsError ? (
+              <div id="execution-integration-status" className="space-y-2">
+                <p role="alert" className="text-sm font-medium text-red-600">{integrationsError}</p>
+                <Button variant="outline" onClick={onRetryIntegrations}>Reintentar integraciones</Button>
+              </div>
+            ) : null}
+          </div>
         </div>
-        {error ? <p className="mt-3 text-sm font-medium text-red-600">{error}</p> : null}
       </Card>
 
       <Card title="Ejecuciones recientes" description="Flujos de procesamiento más recientes y su estado actual.">
@@ -174,14 +220,14 @@ const Executions = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredExecutions.length === 0 ? (
+            {loading || error || filteredExecutions.length === 0 ? (
               <tr>
                 <td colSpan="8" className="px-6 py-4 text-center text-sm text-slate-500">
-                  {loading
-                    ? 'Cargando ejecuciones...'
-                    : search.trim()
-                      ? 'No hay ejecuciones que coincidan con la búsqueda.'
-                      : 'Todavía no hay ejecuciones registradas. Si acabás de iniciar una ejecución, actualizá cuando el servidor haya creado sus mensajes.'}
+                  {loading ? (
+                    <span role="status">Cargando ejecuciones...</span>
+                  ) : error ? (
+                    <span role="alert" className="font-medium text-red-600">{error}</span>
+                  ) : emptyMessage}
                 </td>
               </tr>
             ) : (

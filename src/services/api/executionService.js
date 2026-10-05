@@ -1,8 +1,10 @@
 import apiClient from './client'
 import { normalizeExecutionsResponse } from '../adapters/executionAdapter'
 
-const listExecutions = async () => {
-  const response = await apiClient.get('/executions')
+const listExecutions = async ({ integration_id } = {}) => {
+  const response = await apiClient.get('/executions', {
+    params: integration_id ? { integration_id } : {},
+  })
   return {
     ...response,
     data: normalizeExecutionsResponse(response.data),
