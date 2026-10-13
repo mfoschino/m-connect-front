@@ -2,13 +2,14 @@
 
 IAM-1 implementa los contratos de `m-connect-back/docs/iam-frontend-integration.md`.
 IAM-2 conecta el gestor a `AuthContext`, las rutas React y el cliente Axios compartido.
+IAM-3A agrega cambio seguro de tenant al mismo gestor, sin selector visual.
 Importar el núcleo IAM-1 no restaura sesiones, instala interceptores ni hace requests.
 
-## Composición activa en IAM-2
+## Composición activa
 
 1. Crear una instancia Axios **separada** con la misma URL de la API actual.
 2. Pasarla a `createIamTransport(api)` para login, OTP, reenvío, refresh,
-   `/users/me` y logout.
+   switch-tenant, `/users/me` y logout.
 3. Crear `createIamStorage({ apiBaseUrl, temporaryStorage?, persistentStorage? })`
    y `createIamSession({ transport, storage, coordinator? })`.
 4. Esperar `manager.checkCapabilities()` y llamar `manager.startSync()` en el
@@ -36,6 +37,18 @@ mediante `useSyncExternalStore`, adquiere el runtime en un efecto y llama a
 ni sus requests antes de resolverlo. Sin tenant activo muestra un estado sin
 acceso de tenant, aunque `platform_role` sea `superadmin`. El selector de
 tenant y la consola de plataforma todavía no existen.
+
+`authController.switchTenant(tenantId)` y `AuthContext.switchTenant` exponen la
+operación a IAM-3B. Mientras ocurre, `status: 'switching'` deja `user: null` y
+`ProtectedRoute` desmonta el contenido privado. El gestor confirma el par nuevo
+para operaciones internas IAM, pero eso no habilita por sí solo la API de negocio.
+`authController.isBusinessReady(context)` comprueba sin esperar a React que el
+usuario y ese contexto estén validados; el interceptor Axios bloquea nuevas
+requests privadas y sus respuestas mientras esa condición no se cumple. El
+transporte IAM aislado sigue pudiendo consultar `/users/me`. Las rutas públicas
+mantienen su tratamiento habitual. Si el destino responde 403, el gestor conserva
+el contexto anterior y el controlador vuelve a consultar `/users/me` antes de
+habilitarlo; el error queda disponible en el estado.
 
 Un desmontaje y montaje inmediato de React StrictMode conserva el runtime y
 comparte el bootstrap en curso. Cuando la última referencia se libera de forma
@@ -82,8 +95,11 @@ automáticamente a `logout-all`; un logout tardío no borra un login posterior.
   devuelve `pending_restore` sin afirmar que el usuario está autenticado. Si el
   almacenamiento no concuerda con la marca, devuelve `recovery_required`.
 - `refresh()`: promesa compartida por las llamadas simultáneas de una pestaña.
+- `switchTenant(tenantId)`: promesa; usa el mismo Web Lock y reemplaza ambos
+  tokens. Un éxito crea un `contextId` nuevo incluso cuando el backend conserva
+  el mismo `sid`. Dos switches locales simultáneos no se ejecutan en paralelo.
 - `getAccessToken()`: sólo devuelve un access no vencido en memoria; durante
-  `logging_out` devuelve `null`.
+  `switching` o `logging_out` devuelve `null`.
 - `getState()`, `getContextSnapshot()`, `isSameContext()` y `subscribe()`:
   metadatos de ciclo de vida para IAM-2; no exponen el refresh a suscripciones.
 - `startSync(eventTarget?)`: escucha cambios de la marca en `localStorage` y
@@ -98,8 +114,10 @@ automáticamente a `logout-all`; un logout tardío no borra un login posterior.
   `{ revoked, localCleared, reason? }`.
 
 Los estados son `uninitialized`, `restoring`, `absent`, `pending_restore`,
-`tokens_available`, `logging_out` y `recovery_required`. `logging_out` es una
-vista temporal del contexto en cierre. Incluso con tokens disponibles,
+`tokens_available`, `switching`, `remote_switch`, `logging_out` y
+`recovery_required`. `remote_switch` es transitorio al recibir una marca de
+otra pestaña; el controlador intenta restaurar y validar de nuevo. `logging_out`
+es una vista temporal del contexto en cierre. Incluso con tokens disponibles,
 `userValidated` permanece en `false`: IAM-2 hará `/users/me` y publicará la
 identidad validada. Nunca se guardan usuario, rol ni tenant como credencial.
 
@@ -115,6 +133,14 @@ pestaña podría estar rotando.
 sin tokens) o `status=authenticated` (par Bearer, `expires_in` y, a veces,
 `device_token`). `/auth/login/otp/resend` sólo devuelve otro challenge.
 `/auth/refresh` devuelve un nuevo par.
+`POST /auth/switch-tenant` recibe Bearer y `{ "tenant_id": "<uuid>" }` y devuelve
+el mismo contrato de par (`access_token`, `refresh_token`, `token_type`,
+`expires_in`). Exige membresía activa y tenant no suspendido: sin acceso o con
+organización suspendida responde 403, sin rotar. El backend conserva el `sid`,
+cambia el tenant activo de la sesión y rota el refresh. El refresh viejo deja
+de servir, pero un access anterior puede seguir autorizado para el tenant de
+origen hasta que expire o la sesión se revoque. Por eso el frontend cambia su
+frontera de contexto y no reutiliza respuestas ni retries anteriores.
 
 `/users/me` serializa `id`, `email`, `full_name`, `is_active`, `is_verified`,
 `last_login`, `tenant_id`, `role`, `platform_role`, `created_at`, `updated_at`,
@@ -145,13 +171,29 @@ un solo reintento ante 401 y validación del contexto de respuesta.
 ## Exclusión y fallos
 
 La rotación usa Web Locks por alcance de API y una marca sin secretos en
-`localStorage`. Login, refresh y limpieza del contexto usan el mismo lock.
+`localStorage`. Login, refresh, switch y limpieza del contexto usan el mismo lock.
 Antes de enviar el refresh se marca `inflight`; una respuesta incierta de red,
 timeout o 5xx deja esa marca y lleva a `recovery_required`. Así ninguna pestaña
 vuelve a enviar una credencial posiblemente consumida. Un 401 definitivo borra
 la sesión. Un refresh válido reemplaza access y refresh juntos y verifica la
-generación del contexto antes de publicar la respuesta. IAM-3 debe reutilizar
-este mismo mecanismo para el cambio de tenant, que también rota tokens.
+generación del contexto antes de publicar la respuesta. El switch obtiene un
+access vigente mediante el refresh existente antes de tomar el lock del switch;
+un 401 definitivo permite un único refresh y reintento fuera de ese lock. Bajo
+exclusión relee contexto y revisión, marca `inflight` antes del request y
+confirma el par junto con la nueva marca. Si red, timeout, 5xx, respuesta
+inválida o persistencia dejan incierto el resultado, pasa a `recovery_required`
+sin reenviar el refresh anterior. No reintenta automáticamente el switch.
+
+Después de confirmar los tokens nuevos, el controlador consulta `/users/me`,
+exige que `user.tenant_id` coincida con el destino y sólo entonces publica el
+usuario y rol y habilita la API de negocio. Un valor inesperado deja la vista
+privada y sus requests bloqueadas. Si falla
+la red en `/users/me`, conserva el contexto nuevo protegido y `retry()` puede
+revalidarlo; no vuelve al contexto anterior. Logout o login posterior invalidan
+la intención del switch y descartan su respuesta tardía. El interceptor Axios
+descarta éxitos y errores de requests anteriores a la frontera; nunca reenvía
+una escritura vieja bajo el nuevo tenant. Una escritura ya recibida por el
+backend puede completar en el tenant original.
 
 Si Web Locks o el almacenamiento necesario no están disponibles, el camino de
 rotación falla cerrado. No hay mutex casero con un booleano de `localStorage`.
@@ -167,12 +209,34 @@ navegadores compatibles; `http://` en un host no local no lo es. Almacenamiento
 privado o bloqueado también puede impedir la sesión: manda el preflight real.
 
 `startSync()` observa el evento nativo `storage` de la marca. Sólo circulan
-metadatos de contexto y revisión, nunca access ni refresh. Otro contexto,
+metadatos de contexto, revisión, linaje y `transition: 'tenant_switch'`, nunca access
+ni refresh. Otro contexto,
 logout o marca de cierre invalidan la memoria local y avanzan su generación,
 por lo que una respuesta tardía se descarta. Una rotación normal del mismo
 contexto no provoca logout; el refresh relee la credencial bajo Web Locks.
 La notificación no reemplaza al lock y no hay polling. Los tests usan eventos
 y coordinadores inyectados, no validación E2E real entre navegadores.
+Un switch remoto retira inmediatamente el access y el usuario anterior. Con
+refresh persistente, el controlador restaura la credencial nueva bajo el lock,
+renueva y valida `/users/me`. Con una copia independiente en `sessionStorage`,
+la marca y la credencial no coinciden: se exige recuperación y no se reenvía
+el refresh obsoleto. Un refresh normal conserva el contexto de frontend.
+
+Cada login crea un `lineageId` aleatorio no secreto, derivado de su contexto
+inicial. Refresh y switch conservan ese linaje aunque switch cambie la frontera
+visual; un login nuevo crea otro. Los registros anteriores a este campo usan su
+`contextId` como linaje al rotar. Logout anuncia la intención de cierre, espera
+el mismo Web Lock, limpia el contexto inicial y cualquier contexto compartido
+del mismo linaje. Si confirma la limpieza, libera el lock antes de enviar la
+revocación remota. Si falla, mantiene ese lock durante un único intento de
+revocación y reintenta la limpieza antes de liberarlo. El transporte HTTP activo
+tiene timeout de 10 segundos; no se reenvía una revocación de resultado incierto.
+La marca cerrada impide que otra pestaña confirme un switch del linaje cerrado;
+los eventos de switch no inician `retry()` durante logout. Un login posterior de
+otro linaje se preserva. `localCleared: true` confirma la limpieza del linaje,
+no la revocación remota; `revoked: true` exige respuesta 204. Si fallan a la vez
+Storage y la revocación remota, el frontend no puede garantizar el cierre entre
+pestañas y devuelve ambos indicadores en `false`, sin publicar usuario.
 
 El access vive sólo en memoria. El refresh se guarda en `sessionStorage` por
 defecto y en `localStorage` sólo con `rememberSession: true`. La marca de
@@ -190,14 +254,16 @@ backend y su acción quedó retirada de la pantalla; listado, edición y
 desactivación conservan los alias deprecados `/users/…` mientras sigan
 disponibles. No hay alta con contraseña temporal ni flujo de invitaciones.
 
-IAM-3 queda reservado para el selector y cambio de tenant; IAM-4 integrará
-invitaciones y miembros mediante las rutas vigentes. La consola de plataforma
-y las sesiones de soporte tampoco forman parte de IAM-2. El cambio de tenant
-reemplazará el contexto con un par nuevo; los tokens de soporte necesitarán
-un contexto separado del normal.
+IAM-3A deja lista la API de cambio y la protección de sesión. IAM-3B agregará
+selector visual, permisos UI por rol y remount/recarga de datos de negocio por
+tenant. IAM-4 integrará invitaciones y miembros mediante las rutas vigentes.
+La consola de plataforma y las sesiones de soporte siguen fuera de esta etapa;
+sus tokens necesitarán un contexto separado del normal. Una sesión sin tenant
+activo conserva el estado protegido `no_tenant`; IAM-3A no elige uno implícito.
 
-Los tests actuales ejercitan gestor, almacenamiento, interceptores y
-controlador con adaptadores o eventos simulados. Todavía se requiere prueba
+Los tests actuales ejercitan gestor, almacenamiento, switch, readiness,
+logout entre pestañas, interceptores y controlador con adaptadores o eventos
+simulados. Todavía se requiere prueba
 de navegador con Web Locks y varias pestañas, cierre y reapertura, remount
 real de React, eventos DOM de OTP y cambios de membresía contra el backend
 actual. La suite no equivale a una validación E2E.

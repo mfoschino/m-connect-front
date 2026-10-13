@@ -17,8 +17,14 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
   let otpIntent = null
   let otpCancelPromise = null
   let forbiddenOperation = null
+  let pendingTenantId = null
+  let logoutIntent = null
 
   const getState = () => state
+  const isBusinessReady = (context) => state.status === 'authenticated'
+    && Boolean(state.user) && Boolean(validatedContext)
+    && manager.isSameContext(validatedContext)
+    && (!context || manager.isSameContext(context))
   const subscribe = (listener) => {
     listeners.add(listener)
     return () => listeners.delete(listener)
@@ -50,7 +56,7 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
     return publish('unavailable', null, error)
   }
 
-  const loadCurrentUser = async (started) => {
+  const loadCurrentUser = async (started, expectedTenantId = pendingTenantId) => {
     const before = manager.getContextSnapshot()
     let accessToken = manager.getAccessToken()
     if (!accessToken) accessToken = await manager.refresh()
@@ -75,6 +81,10 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
       }
     }
     ensureCurrent(started, context)
+    if (expectedTenantId && user.tenant_id !== expectedTenantId) {
+      throw new IamSessionError('switch_tenant_mismatch')
+    }
+    if (expectedTenantId) pendingTenantId = null
     validatedContext = context
     publish('authenticated', user)
     return user
@@ -93,6 +103,7 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
   }
 
   const bootstrap = () => {
+    if (logoutIntent) return Promise.resolve(state)
     if (bootstrapPromise) return bootstrapPromise
     const started = ++epoch
     validatedContext = null
@@ -119,12 +130,14 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
     ++epoch
     validatedContext = null
     otpIntent = null
+    pendingTenantId = null
     bootstrapPromise = null
     hasBootstrapped = false
     publish('bootstrapping')
   }
 
   const retry = async () => {
+    if (logoutIntent) return state
     const started = ++epoch
     validatedContext = null
     publish('bootstrapping')
@@ -155,9 +168,11 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
   }
 
   const beginLogin = async ({ email, password, rememberSession = false }) => {
+    logoutIntent = null
     const started = ++epoch
     validatedContext = null
     otpIntent = null
+    pendingTenantId = null
     publish('bootstrapping')
     clearLegacy?.()
     try {
@@ -285,10 +300,46 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
     }
   }
 
+  const switchTenant = async (tenantId) => {
+    if (state.status === 'switching') throw new IamSessionError('switch_in_progress')
+    if (state.status !== 'authenticated' || !state.user) {
+      throw new IamSessionError('no_validated_session')
+    }
+    if (typeof tenantId !== 'string' || !tenantId.trim()) {
+      throw new IamSessionError('invalid_tenant_id')
+    }
+    const previous = manager.getContextSnapshot()
+    const started = ++epoch
+    validatedContext = null
+    pendingTenantId = tenantId
+    publish('switching')
+    try {
+      await manager.switchTenant(tenantId)
+      ensureCurrent(started)
+      const user = await loadCurrentUser(started, tenantId)
+      return { status: 'authenticated', user }
+    } catch (error) {
+      if (started !== epoch) throw error
+      if ([403, 422].includes(error?.status) && manager.isSameContext(previous)) {
+        pendingTenantId = null
+        try {
+          const user = await loadCurrentUser(started)
+          publish('authenticated', user, error)
+        } catch (revalidationError) {
+          fail(revalidationError, started)
+        }
+      } else fail(error, started)
+      throw error
+    }
+  }
+
   const logout = async () => {
+    const intent = {}
+    logoutIntent = intent
     const started = ++epoch
     validatedContext = null
     otpIntent = null
+    pendingTenantId = null
     publish('anonymous')
     clearLegacy?.()
     try {
@@ -301,12 +352,15 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
     } catch (error) {
       if (started === epoch) publish('recovery_required', null, error)
       throw error
+    } finally {
+      if (logoutIntent === intent) logoutIntent = null
     }
   }
 
   const invalidateAfterPasswordReset = async (email) => {
     const started = ++epoch
     validatedContext = null
+    pendingTenantId = null
     publish('anonymous')
     deviceStore?.remove(email)
     clearLegacy?.()
@@ -318,16 +372,28 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
   }
 
   const stopManagerSubscription = manager.subscribe(() => {
+    const managerStatus = manager.getState().status
+    if (managerStatus === 'remote_switch') {
+      if (logoutIntent) return
+      validatedContext = null
+      pendingTenantId = null
+      ++epoch
+      publish('switching')
+      void retry()
+      return
+    }
     if (validatedContext && !manager.isSameContext(validatedContext)) {
       validatedContext = null
       ++epoch
-      const status = manager.getState().status === 'recovery_required'
-        ? 'recovery_required' : 'anonymous'
+      const status = managerStatus === 'recovery_required'
+        ? 'recovery_required' : managerStatus === 'switching' ? 'switching' : 'anonymous'
       publish(status)
     }
   })
 
-  return { getState, subscribe, bootstrap, suspend, retry, beginLogin, completeOtp,
-    resendOtp, cancelOtp, revalidateAfterForbidden, reloadUser, logout, invalidateAfterPasswordReset,
+  return { getState, isBusinessReady, subscribe, bootstrap, suspend, retry,
+    beginLogin, completeOtp,
+    resendOtp, cancelOtp, revalidateAfterForbidden, reloadUser, switchTenant,
+    logout, invalidateAfterPasswordReset,
     dispose: () => { stopManagerSubscription(); listeners.clear() } }
 }

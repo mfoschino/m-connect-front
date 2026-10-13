@@ -112,6 +112,12 @@ export const createIamTransport = (api) => {
       const response = await api.post('/auth/refresh', { refresh_token: refreshToken })
       return normalizeTokenPair(response?.data)
     }, [refreshToken]),
+    switchTenant: (tenantId, accessToken) => request(async () => {
+      const response = await api.post('/auth/switch-tenant', { tenant_id: tenantId }, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      return normalizeTokenPair(response?.data)
+    }, [accessToken]),
     getCurrentUser: (accessToken) => request(async () => {
       const response = await api.get('/users/me', {
         headers: { Authorization: `Bearer ${accessToken}` },

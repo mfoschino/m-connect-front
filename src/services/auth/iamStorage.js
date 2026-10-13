@@ -41,12 +41,15 @@ const parseStored = (raw, valid, area, key) => {
 const validCredential = (value) => value?.version === 1
   && ['temporary', 'persistent'].includes(value.mode)
   && hasText(value.contextId) && hasText(value.revision)
+  && (value.lineageId === undefined || hasText(value.lineageId))
   && hasText(value.refreshToken)
 
 const validMarker = (value) => value?.version === 1
   && hasText(value.contextId) && hasText(value.revision)
   && ['ready', 'inflight'].includes(value.phase)
   && (value.phase !== 'inflight' || hasText(value.attemptId))
+  && (value.lineageId === undefined || hasText(value.lineageId))
+  && (value.transition === undefined || value.transition === 'tenant_switch')
 
 export const createIamStorage = ({ apiBaseUrl, temporaryStorage, persistentStorage }) => {
   const scope = normalizeApiScope(apiBaseUrl)

@@ -10,7 +10,8 @@ const PUBLIC_ROUTES = new Set([
 ])
 const BYPASS_ROUTES = new Set([...PUBLIC_ROUTES, '/auth/logout'])
 
-export const installIamAxios = (client, { manager, apiBaseUrl, onForbidden }) => {
+export const installIamAxios = (client, { manager, apiBaseUrl, onForbidden,
+  isBusinessReady }) => {
   if (!client?.interceptors?.request || !client?.interceptors?.response || !manager) {
     throw new TypeError('Se requiere Axios aislado y un gestor IAM.')
   }
@@ -52,6 +53,12 @@ export const installIamAxios = (client, { manager, apiBaseUrl, onForbidden }) =>
       throw new IamSessionError('context_changed')
     }
     const context = manager.getContextSnapshot()
+    if (manager.getState().status === 'switching') {
+      throw new IamSessionError('switch_in_progress')
+    }
+    if (isBusinessReady && !isBusinessReady(context)) {
+      throw new IamSessionError('authorization_pending')
+    }
     let accessToken = manager.getAccessToken()
     if (!accessToken) {
       const status = manager.getState().status
@@ -63,6 +70,9 @@ export const installIamAxios = (client, { manager, apiBaseUrl, onForbidden }) =>
       accessToken = manager.getAccessToken()
       if (!accessToken) throw new IamSessionError('no_access_token')
     }
+    if (isBusinessReady && !isBusinessReady(context)) {
+      throw new IamSessionError('authorization_pending')
+    }
     requestContext.set(config, { ...manager.getContextSnapshot(), accessToken })
     config.headers.Authorization = `Bearer ${accessToken}`
     return config
@@ -70,15 +80,20 @@ export const installIamAxios = (client, { manager, apiBaseUrl, onForbidden }) =>
 
   const responseId = client.interceptors.response.use((response) => {
     const sent = requestContext.get(response?.config)
-    if (sent?.contextId && !manager.isSameContext(sent)) {
+    if (sent?.contextId && (!manager.isSameContext(sent)
+      || (isBusinessReady && !isBusinessReady(sent)))) {
       throw new IamSessionError('context_changed')
     }
     return response
   }, async (error) => {
     const config = error?.config
+    const sent = config && requestContext.get(config)
+    if (sent?.contextId && (!manager.isSameContext(sent)
+      || (isBusinessReady && !isBusinessReady(sent)))) {
+      throw new IamSessionError('context_changed')
+    }
     if (error?.response?.status === 403 && config) {
       const route = routeFor(config)
-      const sent = requestContext.get(config)
       if (route && route !== '/users/me' && !BYPASS_ROUTES.has(route)
         && sent?.contextId && manager.isSameContext(sent)) {
         try {
@@ -95,7 +110,6 @@ export const installIamAxios = (client, { manager, apiBaseUrl, onForbidden }) =>
     if (error?.response?.status !== 401 || !config) throw error
     const route = routeFor(config)
     if (!route || BYPASS_ROUTES.has(route)) throw error
-    const sent = requestContext.get(config)
     if (!sent?.contextId) throw error
     if (config._iamRetried) {
       await manager.invalidateRejected(sent)

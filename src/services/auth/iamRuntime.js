@@ -32,7 +32,8 @@ export const acquireIamRuntime = () => {
   if (disposeTimer) clearTimeout(disposeTimer)
   disposeTimer = null
   if (!uninstall) uninstall = installIamAxios(apiClient, { manager, apiBaseUrl,
-    onForbidden: iamAuth.revalidateAfterForbidden })
+    onForbidden: iamAuth.revalidateAfterForbidden,
+    isBusinessReady: iamAuth.isBusinessReady })
   references += 1
   return () => {
     references -= 1

@@ -11,7 +11,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     void auth.logout().catch(() => { /* El controlador publica el error recuperable. */ })
   }
   if (decision === 'loading') {
-    return <div role="status" className="p-8 text-center">Cargando sesión…</div>
+    return <div role="status" className="p-8 text-center">
+      {auth.switching ? 'Cambiando organización…' : 'Cargando sesión…'}
+    </div>
   }
   if (decision === 'login') {
     return <Navigate to="/login" replace state={{ from: location }} />

@@ -1,5 +1,5 @@
 export const routeDecision = ({ status, user }, allowedRoles = []) => {
-  if (status === 'bootstrapping') return 'loading'
+  if (status === 'bootstrapping' || status === 'switching') return 'loading'
   if (status === 'unsupported' || status === 'unavailable'
     || status === 'recovery_required') return 'error'
   if (status !== 'authenticated' || !user) return 'login'

@@ -22,6 +22,8 @@ export const AuthProvider = ({ children }) => {
     cancelOtp: iamAuth.cancelOtp,
     retry: iamAuth.retry,
     reloadUser: iamAuth.reloadUser,
+    switchTenant: iamAuth.switchTenant,
+    switching: snapshot.status === 'switching',
     logout: iamAuth.logout,
     invalidateAfterPasswordReset: iamAuth.invalidateAfterPasswordReset,
   }), [snapshot])
