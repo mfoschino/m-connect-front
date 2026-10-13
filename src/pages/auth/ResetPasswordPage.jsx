@@ -1,34 +1,37 @@
-import { useState } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useRef, useState } from 'react'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import AuthLayout from '../../layouts/AuthLayout'
 import FormInput from '../../components/auth/FormInput'
 import Button from '../../components/ui/Button'
 import Alert from '../../components/ui/Alert'
+import { useAuth } from '../../context/AuthContext'
+import { iamAccount } from '../../services/auth/iamRuntime.js'
+import { authErrorMessage, isSixDigitCode } from '../../services/auth/iamUi.js'
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const token = searchParams.get('token')
+  const location = useLocation()
+  const { invalidateAfterPasswordReset } = useAuth()
 
   const [formData, setFormData] = useState({
+    email: location.state?.email || '',
+    code: '',
     password: '',
     confirmPassword: '',
   })
   const [errors, setErrors] = useState({})
   const [generalError, setGeneralError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-
-  // Mock token validation
-  const isTokenValid = () => {
-    // In a real app, validate against backend
-    // For this mock, we accept any token format or no token
-    // and show expiration after multiple attempts
-    return true
-  }
+  const pending = useRef(false)
 
   const validateForm = () => {
     const nextErrors = {}
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      nextErrors.email = 'Ingresá un correo electrónico válido.'
+    }
+    if (!isSixDigitCode(formData.code)) {
+      nextErrors.code = 'Ingresá el código de seis dígitos.'
+    }
 
     if (!formData.password) {
       nextErrors.password = 'La nueva contraseña es obligatoria.'
@@ -40,6 +43,8 @@ const ResetPasswordPage = () => {
       nextErrors.password = 'Debe incluir al menos una letra minúscula.'
     } else if (!/[0-9]/.test(formData.password)) {
       nextErrors.password = 'Debe incluir al menos un número.'
+    } else if (new TextEncoder().encode(formData.password).length > 72) {
+      nextErrors.password = 'La contraseña no puede superar 72 bytes.'
     }
 
     if (!formData.confirmPassword) {
@@ -69,89 +74,37 @@ const ResetPasswordPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (pending.current) return
     setGeneralError('')
-
-    if (!isTokenValid()) {
-      setGeneralError(
-        'Su enlace de restablecimiento ha expirado. Solicite uno nuevo.'
-      )
-      return
-    }
 
     if (!validateForm()) {
       return
     }
 
+    pending.current = true
     setLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      setSubmitted(true)
-      setTimeout(() => {
-        navigate('/login')
-      }, 2000)
+      await iamAccount.resetPassword({ email: formData.email, code: formData.code,
+        newPassword: formData.password })
+      const cleanup = await invalidateAfterPasswordReset(formData.email)
+      navigate('/login', { replace: true, state: {
+        notice: cleanup.localCleared
+          ? 'Contraseña actualizada. Iniciá sesión nuevamente.'
+          : 'Contraseña actualizada, pero no se pudo confirmar la limpieza local. Borrá los datos de esta aplicación del navegador antes de ingresar.',
+      } })
     } catch (err) {
-      setGeneralError('Error al restablecer su contraseña. Intente de nuevo.')
+      setGeneralError(authErrorMessage(err, 'reset'))
     } finally {
+      pending.current = false
       setLoading(false)
     }
-  }
-
-  if (!isTokenValid()) {
-    return (
-      <AuthLayout
-        title="Enlace Expirado"
-        subtitle="Su enlace de restablecimiento no es válido o ha expirado."
-      >
-        <div className="space-y-6">
-          <Alert
-            variant="error"
-            title="Enlace no válido"
-            description="Los enlaces de restablecimiento son válidos por 24 horas. Solicite uno nuevo para continuar."
-          />
-
-          <div className="space-y-3">
-            <Link to="/forgot-password" className="block">
-              <Button className="w-full">
-                Solicitar Nuevo Enlace
-              </Button>
-            </Link>
-
-            <Link to="/login" className="block">
-              <Button variant="outline" className="w-full">
-                Volver a Iniciar Sesión
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </AuthLayout>
-    )
-  }
-
-  if (submitted) {
-    return (
-      <AuthLayout
-        title="¡Contraseña Restablecida!"
-        subtitle="Su contraseña ha sido actualizada exitosamente."
-      >
-        <div className="space-y-6 text-center">
-          <Alert
-            variant="success"
-            title="Éxito"
-            description="Será redirigido a la página de inicio de sesión."
-          />
-          <p className="text-sm text-slate-600">Redirigiendo...</p>
-        </div>
-      </AuthLayout>
-    )
   }
 
   return (
     <AuthLayout
       title="Restablezca su Contraseña"
-      subtitle="Ingrese su nueva contraseña."
+      subtitle="Ingresá tu correo, el código recibido y una nueva contraseña."
     >
       <form className="space-y-6" onSubmit={handleSubmit} noValidate>
         {generalError ? (
@@ -161,6 +114,15 @@ const ResetPasswordPage = () => {
             description={generalError}
           />
         ) : null}
+
+        <FormInput id="reset-email" label="Correo electrónico" type="email" name="email"
+          value={formData.email} onChange={handleChange} autoComplete="email"
+          disabled={loading} error={errors.email} />
+        <FormInput id="reset-code" label="Código de seis dígitos" name="code"
+          inputMode="numeric" autoComplete="one-time-code" maxLength={6}
+          value={formData.code} onChange={(event) => setFormData((prev) => ({ ...prev,
+            code: event.target.value.replace(/\D/g, '').slice(0, 6) }))}
+          disabled={loading} error={errors.code} />
 
         <FormInput
           id="new-password"

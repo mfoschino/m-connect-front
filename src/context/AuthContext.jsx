@@ -1,91 +1,38 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-
-const STORAGE_KEY = 'mconnect_session'
+import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from 'react'
+import { acquireIamRuntime, iamAuth } from '../services/auth/iamRuntime.js'
 
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [token, setToken] = useState(null)
+  const snapshot = useSyncExternalStore(iamAuth.subscribe, iamAuth.getState, iamAuth.getState)
 
   useEffect(() => {
-    try {
-      const savedSession = localStorage.getItem(STORAGE_KEY)
-
-      if (!savedSession) {
-        return
-      }
-
-      const parsedSession = JSON.parse(savedSession)
-
-      if (parsedSession?.user) {
-        setUser(parsedSession.user)
-      }
-
-      if (parsedSession?.token) {
-        setToken(parsedSession.token)
-      }
-    } catch (error) {
-      localStorage.removeItem(STORAGE_KEY)
-    }
+    const release = acquireIamRuntime()
+    void iamAuth.bootstrap()
+    return release
   }, [])
 
-  const login = (session) => {
-    setUser(session?.user ?? null)
-    setToken(session?.token ?? null)
-
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-    } catch (error) {
-      // Ignore storage errors in the browser session.
-    }
-  }
-
-  const logout = () => {
-    setUser(null)
-    setToken(null)
-
-    try {
-      localStorage.removeItem(STORAGE_KEY)
-    } catch (error) {
-      // Ignore storage errors in the browser session.
-    }
-  }
-
-  const updateUser = (userUpdates) => {
-    // Keep the user state and local storage session in sync after profile changes.
-    setUser((current) => {
-      const nextUser = { ...current, ...userUpdates }
-
-      try {
-        const savedSession = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({ ...savedSession, user: nextUser }),
-        )
-      } catch (error) {
-        // Ignore storage errors in the browser session.
-      }
-
-      return nextUser
-    })
-  }
-
-  const value = useMemo(
-    () => ({ user, token, login, logout, updateUser }),
-    [user, token],
-  )
+  const value = useMemo(() => ({
+    ...snapshot,
+    authenticated: snapshot.status === 'authenticated' && Boolean(snapshot.user),
+    bootstrapping: snapshot.status === 'bootstrapping',
+    login: iamAuth.beginLogin,
+    completeOtp: iamAuth.completeOtp,
+    resendOtp: iamAuth.resendOtp,
+    cancelOtp: iamAuth.cancelOtp,
+    retry: iamAuth.retry,
+    reloadUser: iamAuth.reloadUser,
+    logout: iamAuth.logout,
+    invalidateAfterPasswordReset: iamAuth.invalidateAfterPasswordReset,
+  }), [snapshot])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext)
-
-  if (!context) {
-    throw new Error('useAuth must be used inside AuthProvider')
-  }
-
+  if (!context) throw new Error('useAuth must be used inside AuthProvider')
   return context
 }
 

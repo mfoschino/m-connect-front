@@ -106,7 +106,7 @@ const NotificationsMenu = () => {
 
       setUnreadCount(apiUnreadCount ?? nextVisible.filter((notification) => !notification.readAt).length)
     } catch (err) {
-      console.error('Failed to load notifications', err)
+      console.error('Failed to load notifications', { status: err?.response?.status ?? null })
       setError('No se pudieron cargar las notificaciones.')
       setNotifications([])
       setUnreadCount(0)
@@ -161,7 +161,7 @@ const NotificationsMenu = () => {
       )
       setUnreadCount((current) => Math.max(current - 1, 0))
     } catch (err) {
-      console.error('Failed to mark notification as read', err)
+      console.error('Failed to mark notification as read', { status: err?.response?.status ?? null })
       setActionError('No se pudo marcar como leída. Intentá de nuevo.')
     } finally {
       setMarkingId(null)

@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import AuthLayout from '../../layouts/AuthLayout'
 import FormInput from '../../components/auth/FormInput'
 import Button from '../../components/ui/Button'
 import Alert from '../../components/ui/Alert'
+import { iamAccount } from '../../services/auth/iamRuntime.js'
+import { authErrorMessage } from '../../services/auth/iamUi.js'
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const pending = useRef(false)
 
   const validateEmail = (emailValue) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -19,6 +21,7 @@ const ForgotPasswordPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (pending.current) return
     setError('')
 
     if (!email.trim()) {
@@ -31,43 +34,24 @@ const ForgotPasswordPage = () => {
       return
     }
 
+    pending.current = true
     setLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Store email in session storage for next page
-      sessionStorage.setItem('forgotPasswordEmail', email)
-
-      setSubmitted(true)
-      setTimeout(() => {
-        navigate('/forgot-password-sent')
-      }, 1000)
+      await iamAccount.forgotPassword(email)
+      navigate('/forgot-password-sent', { state: { email: email.trim().toLowerCase() } })
     } catch (err) {
-      setError('Error al procesar su solicitud. Intente de nuevo.')
+      setError(authErrorMessage(err, 'forgot'))
     } finally {
+      pending.current = false
       setLoading(false)
     }
-  }
-
-  if (submitted) {
-    return (
-      <AuthLayout
-        title="¡Correo Enviado!"
-        subtitle="Hemos enviado un enlace de restablecimiento a su correo electrónico."
-      >
-        <div className="space-y-6 text-center">
-          <p className="text-sm text-slate-600">Redirigiendo...</p>
-        </div>
-      </AuthLayout>
-    )
   }
 
   return (
     <AuthLayout
       title="¿Olvidó su contraseña?"
-      subtitle="Ingrese su correo electrónico para recibir un enlace de restablecimiento."
+      subtitle="Ingresá tu correo electrónico para solicitar un código de recuperación."
     >
       <form className="space-y-6" onSubmit={handleSubmit} noValidate>
         {error ? (
@@ -91,7 +75,7 @@ const ForgotPasswordPage = () => {
           loading={loading}
           className="w-full"
         >
-          Enviar Enlace de Restablecimiento
+          Enviar código de recuperación
         </Button>
 
         <div className="text-center">

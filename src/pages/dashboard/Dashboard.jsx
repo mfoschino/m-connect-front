@@ -36,7 +36,7 @@ const Dashboard = () => {
         setExecutions(execRes?.data || [])
       } catch (err) {
         // keep existing static values if API unavailable
-        console.error('Dashboard fetch error', err)
+        console.error('Dashboard fetch error', { status: err?.response?.status ?? null })
       } finally {
         if (mounted) setLoading(false)
       }

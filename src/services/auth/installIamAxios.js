@@ -10,7 +10,7 @@ const PUBLIC_ROUTES = new Set([
 ])
 const BYPASS_ROUTES = new Set([...PUBLIC_ROUTES, '/auth/logout'])
 
-export const installIamAxios = (client, { manager, apiBaseUrl }) => {
+export const installIamAxios = (client, { manager, apiBaseUrl, onForbidden }) => {
   if (!client?.interceptors?.request || !client?.interceptors?.response || !manager) {
     throw new TypeError('Se requiere Axios aislado y un gestor IAM.')
   }
@@ -76,6 +76,22 @@ export const installIamAxios = (client, { manager, apiBaseUrl }) => {
     return response
   }, async (error) => {
     const config = error?.config
+    if (error?.response?.status === 403 && config) {
+      const route = routeFor(config)
+      const sent = requestContext.get(config)
+      if (route && route !== '/users/me' && !BYPASS_ROUTES.has(route)
+        && sent?.contextId && manager.isSameContext(sent)) {
+        try {
+          await onForbidden?.(sent)
+        } catch (revalidationError) {
+          console.warn('IAM revalidation failed', {
+            status: Number.isInteger(revalidationError?.status)
+              ? revalidationError.status : null,
+          })
+        }
+      }
+      throw error
+    }
     if (error?.response?.status !== 401 || !config) throw error
     const route = routeFor(config)
     if (!route || BYPASS_ROUTES.has(route)) throw error

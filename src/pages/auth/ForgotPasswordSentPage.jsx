@@ -1,19 +1,19 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import AuthLayout from '../../layouts/AuthLayout'
 import Button from '../../components/ui/Button'
 
 const ForgotPasswordSentPage = () => {
-  const email = sessionStorage.getItem('forgotPasswordEmail') || ''
+  const email = useLocation().state?.email || ''
 
   return (
     <AuthLayout
       title="Revise su correo electrónico"
-      subtitle="Hemos enviado instrucciones de restablecimiento de contraseña."
+      subtitle="Si la cuenta existe, recibirás un código de recuperación."
     >
       <div className="space-y-6">
         <div className="rounded-lg bg-slate-50 p-4 text-center">
           <p className="text-sm text-slate-700">
-            Se ha enviado un correo de restablecimiento a:
+            Revisá la casilla de correo indicada:
           </p>
           <p className="mt-2 font-medium text-slate-900">
             {email || 'su correo electrónico'}
@@ -22,8 +22,8 @@ const ForgotPasswordSentPage = () => {
 
         <div className="space-y-3 text-sm text-slate-600">
           <p>
-            Por favor, verifique su bandeja de entrada (y carpeta de spam) para el
-            correo de restablecimiento. El enlace es válido por 24 horas.
+            Si recibís el código, ingresalo en el formulario de restablecimiento.
+            Revisá también la carpeta de spam.
           </p>
           <p>
             Si no recibió el correo, puede intentar:
@@ -36,7 +36,7 @@ const ForgotPasswordSentPage = () => {
         </div>
 
         <div className="space-y-3">
-          <Link to="/reset-password" className="block">
+          <Link to="/reset-password" state={{ email }} className="block">
             <Button className="w-full">
               Tengo el Código de Restablecimiento
             </Button>

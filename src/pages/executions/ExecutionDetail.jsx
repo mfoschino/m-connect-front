@@ -65,7 +65,7 @@ const ExecutionDetail = () => {
       setLogs(logsRes.data || [])
       setIntegrations(integrationsRes.data || [])
     } catch (err) {
-      console.error('Execution detail fetch error', err)
+      console.error('Execution detail fetch error', { status: err?.response?.status ?? null })
       setError(
         err?.response?.status === 404
           ? 'No se encontró la ejecución solicitada.'

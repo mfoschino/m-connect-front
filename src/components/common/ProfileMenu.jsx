@@ -19,7 +19,7 @@ const ProfileMenu = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const displayName = user?.name || user?.email || 'Usuario'
+  const displayName = user?.full_name || user?.email || 'Usuario'
   const initials = displayName
     .split(' ')
     .filter(Boolean)
@@ -73,9 +73,8 @@ const ProfileMenu = () => {
           <button
             type="button"
             onClick={() => {
-              logout()
               setIsOpen(false)
-              navigate('/login')
+              void logout().catch(() => { /* El contexto informa recovery_required. */ })
             }}
             className="w-full px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
           >

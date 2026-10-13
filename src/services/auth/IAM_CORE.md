@@ -1,27 +1,71 @@
-# IAM-1: núcleo de sesión y transporte aislado
+# IAM: núcleo de sesión y conexión React
 
-IAM-1 implementa los contratos de `m-connect-back/docs/iam-frontend-integration.md`
-sin conectar todavía `AuthContext`, `LoginForm`, las rutas React ni el Axios legacy.
-Importar estos módulos no restaura sesiones, instala interceptores ni hace requests.
+IAM-1 implementa los contratos de `m-connect-back/docs/iam-frontend-integration.md`.
+IAM-2 conecta el gestor a `AuthContext`, las rutas React y el cliente Axios compartido.
+Importar el núcleo IAM-1 no restaura sesiones, instala interceptores ni hace requests.
 
-## Composición prevista para IAM-2
+## Composición activa en IAM-2
 
-1. Crear una instancia Axios **separada** con la URL de la API actualizada.
+1. Crear una instancia Axios **separada** con la misma URL de la API actual.
 2. Pasarla a `createIamTransport(api)` para login, OTP, reenvío, refresh,
    `/users/me` y logout.
 3. Crear `createIamStorage({ apiBaseUrl, temporaryStorage?, persistentStorage? })`
    y `createIamSession({ transport, storage, coordinator? })`.
-4. Esperar `manager.checkCapabilities()` y llamar `manager.startSync()` **antes** de
-   solicitar login, verificar OTP o aceptar tokens. Mostrar `IamCapabilityError.code`
-   si falla. `acceptTokens()` vuelve a comprobar las capacidades antes de mutar.
+4. Esperar `manager.checkCapabilities()` y llamar `manager.startSync()` en el
+   bootstrap y antes de iniciar login. El paso OTP continúa ese login. Mostrar
+   `IamCapabilityError.code` si falla. `acceptTokens()` vuelve a comprobar las
+   capacidades antes de mutar.
    Desmontar el listener con la función devuelta por `startSync()` o `stopSync()`.
-5. Sólo al activar IAM-2, instalar `installIamAxios(clienteAislado,
-   { manager, apiBaseUrl })`. Devuelve una función para quitar los interceptores.
+5. `iamRuntime.js` instala `installIamAxios(apiClient, { manager, apiBaseUrl,
+   onForbidden })` una sola vez mientras el proveedor React está montado y lo
+   desmonta tras una liberación efectiva.
 
-No pasar la instancia Axios compartida de `src/services/api/client.js` a este
-instalador mientras siga funcionando el auth anterior.
+El cliente compartido ya no lee `mconnect_session`. El transporte IAM usa otra
+instancia Axios para que refresh y `/users/me` no pasen por los interceptores.
 Si se inyecta un coordinador propio, éste debe ofrecer `assertAvailable()`
 además de `runExclusive()` para que el preflight lo detecte.
+
+## Ciclo React y acceso protegido
+
+`App` monta un único `AuthProvider`; éste observa el controlador compartido
+mediante `useSyncExternalStore`, adquiere el runtime en un efecto y llama a
+`bootstrap()`. El bootstrap comprueba capacidades, instala la escucha
+`storage`, restaura el refresh si existe, lo rota cuando hace falta y consulta
+`GET /users/me`. Sólo publica `authenticated` después de validar ese perfil.
+`ProtectedRoute` muestra carga durante ese proceso; no monta el layout privado
+ni sus requests antes de resolverlo. Sin tenant activo muestra un estado sin
+acceso de tenant, aunque `platform_role` sea `superadmin`. El selector de
+tenant y la consola de plataforma todavía no existen.
+
+Un desmontaje y montaje inmediato de React StrictMode conserva el runtime y
+comparte el bootstrap en curso. Cuando la última referencia se libera de forma
+efectiva, el runtime suspende el controlador, invalida el bootstrap cacheado,
+desinstala interceptores y detiene la escucha `storage`. El próximo montaje
+empieza en `bootstrapping`, reinstala una sola escucha y revalida el refresh y
+`/users/me` antes de volver a mostrar contenido privado. La generación del
+controlador descarta respuestas del bootstrap anterior.
+
+El login con `otp_required` deja el estado anónimo y guarda el desafío sólo
+en memoria del flujo. La UI exige seis dígitos, muestra vencimiento y aplica
+el cooldown visual del reenvío; el backend decide si el código sigue vigente.
+`cancelOtp()`, usado al volver al ingreso o desmontar el formulario con un
+desafío pendiente, invalida la intención, limpia la sesión local y descarta
+verificaciones o reenvíos tardíos. Una respuesta de un desafío anterior no
+puede completar otro login. El desmontaje provocado por una autenticación OTP
+ya validada no revoca esa sesión.
+
+Ante un 403 de un recurso protegido de negocio, el interceptor solicita al
+controlador una revalidación de `/users/me` del mismo contexto. Las respuestas
+403 concurrentes comparten la consulta mientras está en curso. El usuario y
+rol visibles se actualizan con la respuesta; si ésta falla, no se inventa un
+permiso. El request de negocio conserva su error original. Login, OTP,
+recuperación, rutas públicas, logout, refresh y `/users/me` no disparan esta
+revalidación. No hay polling global de permisos.
+
+El logout quita inmediatamente la identidad visible, intenta
+`POST /auth/logout` con Bearer y limpia la sesión local incluso si falla la
+red. `revoked: false` se informa como revocación no confirmada. No se llama
+automáticamente a `logout-all`; un logout tardío no borra un login posterior.
 
 ## API del gestor
 
@@ -136,12 +180,27 @@ rotación siempre usa `localStorage`; por eso su bloqueo también impide aceptar
 una sesión temporal segura. Las claves IAM incluyen el alcance de API y nunca
 leen ni migran `mconnect_session`. `sessionStorage` y `localStorage` siguen
 siendo accesibles a JavaScript: **no protegen los tokens frente a XSS**.
-`device_token` y su elección de usuario se conectarán por separado en IAM-2.
+`device_token` se guarda por email normalizado y alcance de API sólo si el backend
+lo devuelve tras elegir recordar dispositivo. El reset lo borra para ese email.
 
-IAM-2 también conectará bootstrap React, login y OTP visuales, `/users/me`,
-selector de tenant, recuperación, invitaciones y mensajes de error. El cambio
-de tenant reemplazará el contexto con un par nuevo. Los tokens de soporte
-requieren un contexto separado del normal.
+IAM-2 conecta bootstrap React, login y OTP, recuperación de contraseña,
+`/users/me`, perfil (nombre y contraseña) y errores. El cliente compartido ya
+no usa `mconnect_session`. La alta por `POST /users/` responde 410 en el
+backend y su acción quedó retirada de la pantalla; listado, edición y
+desactivación conservan los alias deprecados `/users/…` mientras sigan
+disponibles. No hay alta con contraseña temporal ni flujo de invitaciones.
+
+IAM-3 queda reservado para el selector y cambio de tenant; IAM-4 integrará
+invitaciones y miembros mediante las rutas vigentes. La consola de plataforma
+y las sesiones de soporte tampoco forman parte de IAM-2. El cambio de tenant
+reemplazará el contexto con un par nuevo; los tokens de soporte necesitarán
+un contexto separado del normal.
+
+Los tests actuales ejercitan gestor, almacenamiento, interceptores y
+controlador con adaptadores o eventos simulados. Todavía se requiere prueba
+de navegador con Web Locks y varias pestañas, cierre y reapertura, remount
+real de React, eventos DOM de OTP y cambios de membresía contra el backend
+actual. La suite no equivale a una validación E2E.
 
 Referencias de navegador: [contextos seguros](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts),
 [Web Locks](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API),

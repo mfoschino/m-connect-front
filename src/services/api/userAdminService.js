@@ -18,8 +18,6 @@ const listUsers = ({ skip = 0, limit = 50 } = {}) =>
 
 const getUser = (userId) => apiClient.get(`/users/${userId}`)
 
-const createUser = (payload) => apiClient.post('/users/', payload)
-
 const updateUser = (userId, payload) => apiClient.put(`/users/${userId}`, payload)
 
 const deactivateUser = (userId) => apiClient.delete(`/users/${userId}`)
@@ -27,7 +25,6 @@ const deactivateUser = (userId) => apiClient.delete(`/users/${userId}`)
 export default {
   listUsers,
   getUser,
-  createUser,
   updateUser,
   deactivateUser,
 }

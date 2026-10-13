@@ -1,25 +1,15 @@
 import Alert from '../ui/Alert'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
-import AvatarUploader from './AvatarUploader'
 
 const ProfileForm = ({ profile, onChange, onSave, status }) => {
   const handleFieldChange = (field) => (event) => {
     onChange({ ...profile, [field]: event.target.value })
   }
 
-  const onAvatarChange = (nextAvatarUrl) => {
-    onChange({ ...profile, avatarUrl: nextAvatarUrl })
-  }
-
   return (
-    <Card title="Información personal" description="Actualiza tu nombre, correo electrónico y avatar de perfil.">
+    <Card title="Información personal" description="Actualizá tu nombre de perfil.">
       <div className="space-y-6">
-        <AvatarUploader
-          avatarUrl={profile.avatarUrl}
-          displayName={profile.name || profile.email}
-          onChange={onAvatarChange}
-        />
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
@@ -38,12 +28,13 @@ const ProfileForm = ({ profile, onChange, onSave, status }) => {
             <input
               type="email"
               value={profile.email}
-              onChange={handleFieldChange('email')}
+              readOnly
               className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
               placeholder="correo@empresa.com"
             />
           </label>
         </div>
+        <p className="text-xs text-slate-500">El correo requiere un proceso de verificación separado.</p>
 
         {status.message ? (
           <Alert

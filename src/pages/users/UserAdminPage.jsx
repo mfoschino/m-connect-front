@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { RefreshCw, ShieldAlert, UserPlus } from 'lucide-react'
+import { RefreshCw, ShieldAlert } from 'lucide-react'
 import Alert from '../../components/ui/Alert'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
-import Input from '../../components/ui/Input'
-import Modal from '../../components/ui/Modal'
 import Table from '../../components/ui/Table'
 import { useAuth } from '../../context/AuthContext'
 import userAdminService, { normalizeRole, USER_ROLES } from '../../services/api/userAdminService'
@@ -32,8 +30,6 @@ const statusVariants = {
   pending: 'retrying',
   disabled: 'offline',
 }
-
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const roleLabel = (role) => roleOptions.find((option) => option.value === normalizeRole(role))?.label || 'Sin rol'
 
@@ -63,14 +59,6 @@ const formatLastAccess = (record) => {
   }).format(date)
 }
 
-const buildTemporaryPassword = () => {
-  if (window.crypto?.randomUUID) {
-    return `${window.crypto.randomUUID()}Aa1!`
-  }
-
-  return `${Date.now()}Aa1!${Math.random().toString(36).slice(2)}`
-}
-
 const resolveErrorMessage = (error, fallback) => {
   const detail = error?.response?.data?.detail
 
@@ -88,11 +76,6 @@ const UserAdminPage = () => {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-  const [inviteOpen, setInviteOpen] = useState(false)
-  const [inviteForm, setInviteForm] = useState({ email: '', role: 'viewer' })
-  const [inviteErrors, setInviteErrors] = useState({})
-  const [inviteLoading, setInviteLoading] = useState(false)
-  const [inviteError, setInviteError] = useState('')
   const [actionUserId, setActionUserId] = useState('')
 
   const currentUserRole = normalizeRole(user?.role)
@@ -115,7 +98,7 @@ const UserAdminPage = () => {
       const response = await userAdminService.listUsers()
       setUsers(Array.isArray(response.data) ? response.data : [])
     } catch (err) {
-      console.error('Failed to load tenant users', err)
+      console.error('Failed to load tenant users', { status: err?.response?.status ?? null })
       setError(resolveErrorMessage(err, 'No se pudieron cargar los usuarios de la organización.'))
     } finally {
       setLoading(false)
@@ -141,62 +124,6 @@ const UserAdminPage = () => {
 
   const wouldLeaveTenantWithoutAdmin = (record) =>
     normalizeRole(record?.role) === 'admin' && record?.is_active !== false && activeAdmins.length <= 1
-
-  const validateInvite = () => {
-    const nextErrors = {}
-    const email = inviteForm.email.trim().toLowerCase()
-    const role = normalizeRole(inviteForm.role)
-
-    if (!email) {
-      nextErrors.email = 'El correo electrónico es obligatorio.'
-    } else if (!emailPattern.test(email)) {
-      nextErrors.email = 'Ingresá un correo electrónico válido.'
-    }
-
-    if (!role) {
-      nextErrors.role = 'Seleccione un rol.'
-    } else if (!USER_ROLES.includes(role)) {
-      nextErrors.role = 'Seleccione un rol valido.'
-    }
-
-    setInviteErrors(nextErrors)
-    return Object.keys(nextErrors).length === 0
-  }
-
-  const closeInviteModal = ({ force = false } = {}) => {
-    if (inviteLoading && !force) return
-    setInviteOpen(false)
-    setInviteForm({ email: '', role: 'viewer' })
-    setInviteErrors({})
-    setInviteError('')
-  }
-
-  const handleInviteSubmit = async (event) => {
-    event.preventDefault()
-    setInviteError('')
-    setSuccessMessage('')
-
-    if (!validateInvite()) return
-
-    setInviteLoading(true)
-
-    try {
-      await userAdminService.createUser({
-        email: inviteForm.email.trim().toLowerCase(),
-        password: buildTemporaryPassword(),
-        full_name: null,
-        role: normalizeRole(inviteForm.role),
-      })
-      setSuccessMessage('Usuario creado correctamente en la organización.')
-      closeInviteModal({ force: true })
-      await loadUsers({ showRefreshing: true })
-    } catch (err) {
-      console.error('Failed to invite user', err)
-      setInviteError(resolveErrorMessage(err, 'No se pudo invitar/provisionar el usuario.'))
-    } finally {
-      setInviteLoading(false)
-    }
-  }
 
   const handleRoleChange = async (record, nextRoleValue) => {
     const nextRole = normalizeRole(nextRoleValue)
@@ -225,7 +152,7 @@ const UserAdminPage = () => {
       setSuccessMessage('Rol actualizado correctamente.')
       await loadUsers({ showRefreshing: true })
     } catch (err) {
-      console.error('Failed to update role', err)
+      console.error('Failed to update role', { status: err?.response?.status ?? null })
       setError(resolveErrorMessage(err, 'No se pudo actualizar el rol.'))
     } finally {
       setActionUserId('')
@@ -258,7 +185,7 @@ const UserAdminPage = () => {
       setSuccessMessage('Cuenta desactivada correctamente.')
       await loadUsers({ showRefreshing: true })
     } catch (err) {
-      console.error('Failed to deactivate user', err)
+      console.error('Failed to deactivate user', { status: err?.response?.status ?? null })
       setError(resolveErrorMessage(err, 'No se pudo desactivar la cuenta.'))
     } finally {
       setActionUserId('')
@@ -281,10 +208,6 @@ const UserAdminPage = () => {
               <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
               Refrescar
             </Button>
-            <Button onClick={() => setInviteOpen(true)}>
-              <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
-              Invitar usuario
-            </Button>
           </div>
         </div>
       </div>
@@ -297,11 +220,8 @@ const UserAdminPage = () => {
         />
       ) : null}
 
-      <Alert
-        variant="info"
-        title="Contrato de invitaciones"
-        description="La API documentada no expone una ruta de invitación por correo electrónico; esta pantalla usa POST /users/ para crear usuarios en la organización actual."
-      />
+      <Alert variant="info" title="Invitaciones pendientes"
+        description="Las invitaciones estarán disponibles cuando integremos el nuevo flujo de acceso." />
 
       {successMessage ? (
         <Alert
@@ -412,55 +332,6 @@ const UserAdminPage = () => {
         </Table>
       </Card>
 
-      <Modal open={inviteOpen} title="Invitar usuario" subtitle="Alta de cuenta dentro de la organización actual" onClose={closeInviteModal} footer={null}>
-        <form className="space-y-5" onSubmit={handleInviteSubmit} noValidate>
-          {inviteError ? (
-            <Alert variant="error" title="No se pudo enviar la invitación" description={inviteError} />
-          ) : null}
-          <Input
-            id="invite-email"
-            label="Correo electrónico"
-            type="email"
-            value={inviteForm.email}
-            onChange={(event) => setInviteForm((current) => ({ ...current, email: event.target.value }))}
-            error={inviteErrors.email}
-            placeholder="persona@empresa.com"
-            autoComplete="email"
-            disabled={inviteLoading}
-          />
-          <div className="space-y-2">
-            <label htmlFor="invite-role" className="block text-sm font-semibold text-slate-900">
-              Rol inicial
-            </label>
-            <select
-              id="invite-role"
-              className={`form-input ${inviteErrors.role ? 'input-error' : ''}`}
-              value={inviteForm.role}
-              onChange={(event) => setInviteForm((current) => ({ ...current, role: event.target.value }))}
-              disabled={inviteLoading}
-              required
-            >
-              {roleOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {inviteErrors.role ? <p className="text-sm font-medium text-red-600">{inviteErrors.role}</p> : null}
-          </div>
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            El contrato actual crea usuarios con una contraseña temporal; no confirma el envío del correo electrónico de invitación.
-          </div>
-          <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
-            <Button type="button" variant="outline" onClick={closeInviteModal} disabled={inviteLoading}>
-              Cancelar
-            </Button>
-            <Button type="submit" loading={inviteLoading}>
-              Invitar usuario
-            </Button>
-          </div>
-        </form>
-      </Modal>
     </div>
   )
 }

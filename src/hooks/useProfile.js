@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import userService from '../services/userService'
+import { authErrorMessage } from '../services/auth/iamUi.js'
 
 const idleStatus = { loading: false, message: '', type: 'idle' }
 
@@ -8,13 +9,13 @@ const idleStatus = { loading: false, message: '', type: 'idle' }
 // It keeps the authenticated user in sync with the shared auth context
 // and provides clean save/password APIs for the profile UI.
 const useProfile = () => {
-  const { user, updateUser } = useAuth()
+  const { user, reloadUser } = useAuth()
 
   const initialProfile = useMemo(
     () => ({
-      name: user?.name || '',
+      name: user?.full_name || '',
       email: user?.email || '',
-      avatarUrl: user?.avatarUrl || '',
+      avatarUrl: '',
     }),
     [user],
   )
@@ -23,22 +24,20 @@ const useProfile = () => {
   const [profileStatus, setProfileStatus] = useState(idleStatus)
   const [passwordStatus, setPasswordStatus] = useState(idleStatus)
 
-  useEffect(() => {
-    setProfile(initialProfile)
-  }, [initialProfile])
-
   const saveProfile = async (profileData) => {
     setProfileStatus({ loading: true, message: '', type: 'idle' })
 
     try {
-      const updatedUser = await userService.updateProfile(profileData)
-      updateUser(updatedUser)
-      setProfile(updatedUser)
+      await userService.updateProfile(profileData)
+      const refreshed = await reloadUser()
+      if (refreshed.status !== 'authenticated') throw new Error('profile_refresh_failed')
+      setProfile({ name: refreshed.user.full_name || '', email: refreshed.user.email,
+        avatarUrl: '' })
       setProfileStatus({ loading: false, message: 'Perfil actualizado correctamente.', type: 'success' })
     } catch (error) {
       setProfileStatus({
         loading: false,
-        message: error?.message || 'No se pudo actualizar el perfil.',
+        message: authErrorMessage(error),
         type: 'error',
       })
     }
@@ -58,7 +57,7 @@ const useProfile = () => {
     } catch (error) {
       setPasswordStatus({
         loading: false,
-        message: error?.message || 'No se pudo actualizar la contraseña.',
+        message: authErrorMessage(error),
         type: 'error',
       })
     }

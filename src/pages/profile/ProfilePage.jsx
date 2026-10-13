@@ -22,7 +22,7 @@ const ProfilePage = () => {
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Perfil</p>
         <h2 className="section-title">Tu cuenta personal</h2>
         <p className="section-subtitle">
-          Gestiona tu información de usuario, avatar y seguridad desde un único lugar.
+          Gestioná tu nombre y contraseña desde un único lugar.
         </p>
       </div>
 

@@ -1,48 +1,23 @@
-const PROFILE_DELAY_MS = 700
+import apiClient from './api/client.js'
+import { normalizeIamError } from './auth/iamTransport.js'
 
-// Mock service functions keep the profile flow isolated from the UI.
-// This is intentionally lightweight and respects the current app's mocked auth setup.
-const updateProfile = (profileData) =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const normalizedEmail = profileData.email?.trim().toLowerCase()
-
-      if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-        return reject({ message: 'Ingrese un correo electrónico válido.' })
-      }
-
-      if (!profileData.name?.trim()) {
-        return reject({ message: 'El nombre es requerido.' })
-      }
-
-      resolve({
-        name: profileData.name.trim(),
-        email: normalizedEmail,
-        avatarUrl: profileData.avatarUrl || '',
-      })
-    }, PROFILE_DELAY_MS)
-  })
-
-const changePassword = ({ currentPassword, newPassword }) =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (!currentPassword || !newPassword) {
-        return reject({ message: 'La contraseña actual y la nueva contraseña son requeridas.' })
-      }
-
-      if (newPassword.length < 8) {
-        return reject({ message: 'La nueva contraseña debe tener al menos 8 caracteres.' })
-      }
-
-      if (!/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-        return reject({ message: 'La contraseña debe incluir mayúsculas, minúsculas y números.' })
-      }
-
-      resolve({ message: 'Contraseña actualizada con éxito.' })
-    }, PROFILE_DELAY_MS)
-  })
-
-export default {
-  updateProfile,
-  changePassword,
+const updateProfile = async ({ name }) => {
+  try {
+    await apiClient.put('/users/me', { full_name: name.trim() })
+  } catch (error) {
+    throw normalizeIamError(error)
+  }
 }
+
+const changePassword = async ({ currentPassword, newPassword }) => {
+  try {
+    await apiClient.post('/users/me/change-password', {
+      current_password: currentPassword, new_password: newPassword,
+    })
+    return { message: 'Contraseña actualizada correctamente.' }
+  } catch (error) {
+    throw normalizeIamError(error, { sensitiveValues: [currentPassword, newPassword] })
+  }
+}
+
+export default { updateProfile, changePassword }

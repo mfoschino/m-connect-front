@@ -20,7 +20,7 @@ const AppRoutes = () => (
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/forgot-password-sent" element={<ForgotPasswordSentPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
-    <Route path="/" element={<MainLayout />}>
+    <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
       <Route
         index
         element={

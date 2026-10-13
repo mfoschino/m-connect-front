@@ -230,7 +230,7 @@ test('sin access ni refresh el opt-in no despacha la request ni el Bearer anteri
   assert.equal(authorization, undefined)
 })
 
-test('el cliente Axios activo conserva interceptor y sesión legacy', async () => {
+test('el cliente Axios activo no instala interceptor ni usa sesión legacy', async () => {
   const previousLocal = globalThis.localStorage
   const localStorage = new Map([['mconnect_session', JSON.stringify({ token: 'legacy-access' })]])
   globalThis.localStorage = { getItem: (key) => localStorage.get(key) ?? null }
@@ -240,11 +240,10 @@ test('el cliente Axios activo conserva interceptor y sesión legacy', async () =
     const active = (await vite.ssrLoadModule('/src/services/api/client.js')).default
     const requestCount = active.interceptors.request.handlers.filter(Boolean).length
     const responseCount = active.interceptors.response.handlers.filter(Boolean).length
-    const isolated = axios.create({ baseURL: base, adapter: async (config) => response(config, 200) })
-    installIamAxios(isolated, { manager: createManager(), apiBaseUrl: base })
     const result = await active.get('/legacy', { adapter: async (config) => response(config, 200,
       config.headers.get('Authorization')) })
-    assert.equal(result.data, 'Bearer legacy-access')
+    assert.equal(result.data, null)
+    assert.equal(requestCount, 0)
     assert.equal(active.interceptors.request.handlers.filter(Boolean).length, requestCount)
     assert.equal(active.interceptors.response.handlers.filter(Boolean).length, responseCount)
   } finally {
