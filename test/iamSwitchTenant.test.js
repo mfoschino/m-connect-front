@@ -100,9 +100,11 @@ test('switch crea frontera nueva y valida /users/me antes de publicar usuario', 
   } })
   await env.auth.beginLogin({ email: 'user@example.test', password: 'secret' })
   const before = env.manager.getContextSnapshot()
+  assert.equal(env.auth.getState().contextId, before.contextId)
   const switching = env.auth.switchTenant(tenantB)
   assert.equal(env.auth.getState().status, 'switching')
   assert.equal(env.auth.getState().user, null)
+  assert.equal(env.auth.getState().contextId, null)
   assert.equal(env.manager.getState().status, 'switching')
   assert.equal(env.manager.getAccessToken(), null)
   network.resolve(tokenPair('new'))
@@ -115,6 +117,8 @@ test('switch crea frontera nueva y valida /users/me antes de publicar usuario', 
   assert.equal(env.auth.getState().user.tenant_id, tenantB)
   assert.equal(env.auth.getState().user.role, 'viewer')
   assert.equal(env.auth.getState().status, 'authenticated')
+  assert.equal(env.auth.getState().contextId, env.manager.getContextSnapshot().contextId)
+  assert.notEqual(env.auth.getState().contextId, before.contextId)
 })
 
 test('Axios espera /users/me tras el 200: bloquea lecturas y escrituras privadas', async () => {
@@ -417,11 +421,15 @@ test('Axios bloquea privadas durante switching y descarta 200, 401 y retries vie
   const pending = deferred()
   const sent = deferred()
   const old200 = deferred()
+  const oldPost = deferred()
   const old401 = deferred()
   const seen = []
   const client = axios.create({ baseURL: base, adapter: async (config) => {
     seen.push({ url: config.url, bearer: config.headers.get('Authorization') })
     if (config.url === '/old-200') return old200.promise.then(() => response(config, 200, { old: true }))
+    if (config.url === '/old-post') {
+      return oldPost.promise.then(() => response(config, 200, { old: true }))
+    }
     if (config.url === '/old-401') {
       sent.resolve()
       return old401.promise.then(() => rejectStatus(config, 401))
@@ -432,6 +440,7 @@ test('Axios bloquea privadas durante switching y descarta 200, 401 y retries vie
   await env.manager.acceptTokens(tokenPair('old'))
   const uninstall = installIamAxios(client, { manager: env.manager, apiBaseUrl: base })
   const first = client.get('/old-200')
+  const write = client.post('/old-post', { name: 'Original' })
   const second = client.get('/old-401')
   await sent.promise
   const switching = env.manager.switchTenant(tenantB)
@@ -440,12 +449,14 @@ test('Axios bloquea privadas durante switching y descarta 200, 401 y retries vie
   pending.resolve(tokenPair('new'))
   await switching
   old200.resolve()
+  oldPost.resolve()
   old401.resolve()
   await assert.rejects(first, { code: 'context_changed' })
+  await assert.rejects(write, { code: 'context_changed' })
   await assert.rejects(second, { code: 'context_changed' })
-  assert.deepEqual(seen.map((item) => item.url), ['/old-200', '/old-401',
+  assert.deepEqual(seen.map((item) => item.url), ['/old-200', '/old-post', '/old-401',
     '/auth/forgot-password'])
-  assert.equal(seen[2].bearer, undefined)
+  assert.equal(seen[3].bearer, undefined)
   uninstall()
 })
 

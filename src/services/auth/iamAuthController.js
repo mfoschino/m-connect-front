@@ -1,7 +1,7 @@
 import { IamCapabilityError, IamSessionError } from './iamSession.js'
 
 const initialState = Object.freeze({ status: 'bootstrapping', user: null,
-  error: null, logoutResult: null, hasBootstrapped: false })
+  error: null, logoutResult: null, hasBootstrapped: false, contextId: null })
 
 export const createIamAuthController = ({ manager, transport, deviceStore, clearLegacy }) => {
   if (!manager?.restore || !transport?.getCurrentUser) {
@@ -30,7 +30,8 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
     return () => listeners.delete(listener)
   }
   const publish = (status, user = null, error = null, logoutResult = null) => {
-    state = { status, user, error, logoutResult, hasBootstrapped }
+    state = { status, user, error, logoutResult, hasBootstrapped,
+      contextId: status === 'authenticated' && user ? validatedContext?.contextId ?? null : null }
     listeners.forEach((listener) => listener())
     return state
   }

@@ -1,4 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { safePathAfterContextChange } from '../../services/auth/iamTenantUi.js'
 import MainLayout from '../../layouts/MainLayout'
 import Dashboard from '../../pages/dashboard/Dashboard'
 import Integrations from '../../pages/integrations/Integrations'
@@ -14,13 +17,41 @@ import ForgotPasswordSentPage from '../../pages/auth/ForgotPasswordSentPage'
 import ResetPasswordPage from '../../pages/auth/ResetPasswordPage'
 import ProtectedRoute from '../../components/common/ProtectedRoute'
 
-const AppRoutes = () => (
+const TenantLayout = () => {
+  const { contextId } = useAuth()
+  return <ProtectedRoute><MainLayout key={contextId} /></ProtectedRoute>
+}
+
+const TenantNavigation = ({ children }) => {
+  const { status, contextId, user } = useAuth()
+  const location = useLocation()
+  const [lastContextId, setLastContextId] = useState(null)
+  const [pendingDestination, setPendingDestination] = useState(null)
+
+  if (status === 'authenticated' && contextId && contextId !== lastContextId) {
+    setLastContextId(contextId)
+    setPendingDestination(lastContextId
+      ? safePathAfterContextChange(location.pathname, user?.role) : null)
+  }
+
+  if (status !== 'authenticated') {
+    if (pendingDestination) setPendingDestination(null)
+    return children
+  }
+  if (pendingDestination && location.pathname !== pendingDestination) {
+    return <Navigate to={pendingDestination} replace />
+  }
+  if (pendingDestination === location.pathname) setPendingDestination(null)
+  return children
+}
+
+const AppRoutes = () => <TenantNavigation>
   <Routes>
     <Route path="/login" element={<LoginPage />} />
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/forgot-password-sent" element={<ForgotPasswordSentPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
-    <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+    <Route path="/" element={<TenantLayout />}>
       <Route
         index
         element={
@@ -96,6 +127,6 @@ const AppRoutes = () => (
     </Route>
     <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes>
-)
+</TenantNavigation>
 
 export default AppRoutes

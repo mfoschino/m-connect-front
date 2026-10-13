@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { routeDecision } from '../../services/auth/iamRoutePolicy.js'
 import { authErrorMessage } from '../../services/auth/iamUi.js'
+import OrganizationSelector from './OrganizationSelector.jsx'
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const auth = useAuth()
@@ -27,9 +28,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     </div>
   }
   if (decision === 'no_tenant') {
-    return <div role="status" className="mx-auto max-w-lg p-8 text-center">
-      <p>Tu cuenta está activa, pero no tiene una organización seleccionada. Contactá a un administrador.</p>
-      <button type="button" className="btn btn-primary mt-4" onClick={handleLogout}>Cerrar sesión</button>
+    return <div className="min-h-screen bg-slate-100 px-4 py-12">
+      <OrganizationSelector standalone />
     </div>
   }
   if (decision === 'forbidden') {

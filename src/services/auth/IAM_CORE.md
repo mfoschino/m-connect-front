@@ -2,7 +2,8 @@
 
 IAM-1 implementa los contratos de `m-connect-back/docs/iam-frontend-integration.md`.
 IAM-2 conecta el gestor a `AuthContext`, las rutas React y el cliente Axios compartido.
-IAM-3A agrega cambio seguro de tenant al mismo gestor, sin selector visual.
+IAM-3A agrega cambio seguro de tenant al mismo gestor.
+IAM-3B.1 conecta esa operación con un selector visual y una frontera de remount.
 Importar el núcleo IAM-1 no restaura sesiones, instala interceptores ni hace requests.
 
 ## Composición activa
@@ -34,9 +35,10 @@ mediante `useSyncExternalStore`, adquiere el runtime en un efecto y llama a
 `storage`, restaura el refresh si existe, lo rota cuando hace falta y consulta
 `GET /users/me`. Sólo publica `authenticated` después de validar ese perfil.
 `ProtectedRoute` muestra carga durante ese proceso; no monta el layout privado
-ni sus requests antes de resolverlo. Sin tenant activo muestra un estado sin
-acceso de tenant, aunque `platform_role` sea `superadmin`. El selector de
-tenant y la consola de plataforma todavía no existen.
+ni sus requests antes de resolverlo. Sin tenant activo muestra el selector de
+organización fuera del layout privado, aunque `platform_role` sea `superadmin`.
+Si no hay membresías habilitadas, informa la situación y permite logout. La
+consola de plataforma todavía no existe.
 
 `authController.switchTenant(tenantId)` y `AuthContext.switchTenant` exponen la
 operación a IAM-3B. Mientras ocurre, `status: 'switching'` deja `user: null` y
@@ -254,19 +256,52 @@ backend y su acción quedó retirada de la pantalla; listado, edición y
 desactivación conservan los alias deprecados `/users/…` mientras sigan
 disponibles. No hay alta con contraseña temporal ni flujo de invitaciones.
 
-IAM-3A deja lista la API de cambio y la protección de sesión. IAM-3B agregará
-selector visual, permisos UI por rol y remount/recarga de datos de negocio por
-tenant. IAM-4 integrará invitaciones y miembros mediante las rutas vigentes.
+IAM-3A deja lista la API de cambio y la protección de sesión. IAM-3B.1 usa
+`AuthContext.switchTenant(tenantId)` desde el selector del Header. Las opciones
+se construyen exclusivamente con `user.memberships` de `/users/me`; se identifica
+la organización actual con `user.tenant_id`. Una membresía inactiva o un tenant
+suspendido se muestran como no seleccionables con su motivo. No se conserva un
+segundo tenant activo en React ni se manipulan tokens en el selector. El cambio
+bloquea la selección repetida. Durante `switching`, `ProtectedRoute` desmonta el
+layout privado y muestra el progreso. Un 403 sólo restituye el contexto anterior
+después de revalidar `/users/me`; un resultado incierto muestra la recuperación
+sin datos privados.
+
+El controlador publica `contextId` sólo junto con un usuario autenticado y
+validado. `MainLayout` usa ese identificador como clave de remount, sin desmontar
+`AuthProvider` ni el gestor de sesión. El nuevo montaje reinicia el estado local,
+los filtros, las selecciones, los modales y los formularios de Dashboard,
+Integrations (incluidos MappingProfiles y LookupTables), Executions, Settings,
+NotificationsMenu y UserAdminPage; sus efectos consultan de nuevo los datos del
+tenant nuevo. En particular, se descarta el borrador local de credenciales
+Finnegans, incluido `client_secret`. La protección Axios de IAM-3A rechaza las
+respuestas antiguas y bloquea requests privadas mientras `/users/me` siga
+pendiente. Una escritura ya enviada puede completarse en el tenant original;
+el frontend no la repite automáticamente en el nuevo.
+
+Al cambiar el contexto validado desde `/executions/:traceId`, la navegación va
+al listado de ejecuciones antes de montar el detalle con ese ID. Si el nuevo rol
+no es `admin`, `/settings/users` lleva a `/dashboard`. Las demás rutas generales
+se conservan. El selector sin tenant activo no monta recursos del tenant ni
+redirige repetidamente a login.
+
+`NotificationsMenu` reinicia su lista y contador por el remount, pero el backend
+actual no ofrece `/notifications`; su servicio existente no constituye una
+integración extremo a extremo verificable. IAM-3B.2 queda a cargo de la matriz
+completa de permisos visuales. IAM-4 integrará invitaciones y miembros mediante
+las rutas vigentes.
 La consola de plataforma y las sesiones de soporte siguen fuera de esta etapa;
 sus tokens necesitarán un contexto separado del normal. Una sesión sin tenant
-activo conserva el estado protegido `no_tenant`; IAM-3A no elige uno implícito.
+activo conserva el estado protegido `no_tenant`; IAM-3B.1 ofrece elegir uno
+explícitamente.
 
 Los tests actuales ejercitan gestor, almacenamiento, switch, readiness,
 logout entre pestañas, interceptores y controlador con adaptadores o eventos
 simulados. Todavía se requiere prueba
-de navegador con Web Locks y varias pestañas, cierre y reapertura, remount
-real de React, eventos DOM de OTP y cambios de membresía contra el backend
-actual. La suite no equivale a una validación E2E.
+de navegador con Web Locks y varias pestañas, cierre y reapertura, remount real
+de React (filtros, modales y borradores), eventos DOM de OTP, requests de negocio
+pendientes y cambios de membresía contra el backend actual. Los tests del selector
+renderizan React con perfiles simulados; la suite no equivale a una validación E2E.
 
 Referencias de navegador: [contextos seguros](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts),
 [Web Locks](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API),
