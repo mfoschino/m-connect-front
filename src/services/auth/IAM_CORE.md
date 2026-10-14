@@ -287,9 +287,23 @@ redirige repetidamente a login.
 
 `NotificationsMenu` reinicia su lista y contador por el remount, pero el backend
 actual no ofrece `/notifications`; su servicio existente no constituye una
-integración extremo a extremo verificable. IAM-3B.2 queda a cargo de la matriz
-completa de permisos visuales. IAM-4 integrará invitaciones y miembros mediante
-las rutas vigentes.
+integración extremo a extremo verificable. IAM-3B.2A aplica una política pura de
+presentación a Integraciones, MappingProfiles y LookupTables. Lee únicamente
+`user.role` y `user.tenant_id` del usuario validado por `/users/me`, junto con el
+estado autenticado. El rol de una sesión de soporte ya llega efectivo como
+`viewer` (`read_only`) o `admin` (`full`); `platform_role` y `memberships` no
+otorgan permisos en el tenant activo. Viewer consulta; operator crea y edita
+integraciones, perfiles y LookupTables, y ejecuta integraciones. Admin agrega
+la eliminación de integraciones y LookupTables y el POST de desactivación de
+perfiles. El PATCH de perfiles admite `is_active` para operator y admin; por
+eso el formulario existente permite cambiar ese valor a ambos roles. La
+acción separada de desactivación usa el POST reservado a admin. La
+visibilidad y las guardas de callbacks evitan envíos accidentales; cada endpoint
+sigue autorizando en el backend. Ante un cambio de rol validado, la pantalla se
+remonta y descarta modales y borradores locales; el cambio de tenant conserva
+el remount por `contextId` de IAM-3B.1. Un 403 continúa revalidando `/users/me`
+sin reintentar escrituras. IAM-3B.2B cubrirá las demás pantallas y navegación;
+IAM-4 integrará invitaciones y miembros mediante las rutas vigentes.
 La consola de plataforma y las sesiones de soporte siguen fuera de esta etapa;
 sus tokens necesitarán un contexto separado del normal. Una sesión sin tenant
 activo conserva el estado protegido `no_tenant`; IAM-3B.1 ofrece elegir uno
@@ -302,6 +316,9 @@ de navegador con Web Locks y varias pestañas, cierre y reapertura, remount real
 de React (filtros, modales y borradores), eventos DOM de OTP, requests de negocio
 pendientes y cambios de membresía contra el backend actual. Los tests del selector
 renderizan React con perfiles simulados; la suite no equivale a una validación E2E.
+Los tests de IAM-3B.2A verifican la política, el HTML estático de controles y el
+enlace de guardas; quedan pendientes interacciones DOM reales con un modal
+abierto y revocación de rol, además de la respuesta 403 del backend en navegador.
 
 Referencias de navegador: [contextos seguros](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts),
 [Web Locks](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API),

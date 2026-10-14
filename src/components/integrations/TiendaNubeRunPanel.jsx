@@ -12,6 +12,8 @@ const TiendaNubeRunPanel = ({
   runFeedback,
   onRun,
   onEditIntegration,
+  canRunIntegration = false,
+  canManageIntegration = false,
   onOpenProfiles,
   onOpenLookupTables,
 }) => {
@@ -67,7 +69,7 @@ const TiendaNubeRunPanel = ({
 
       {missingChecks.length > 0 ? (
         <div className="mt-4 flex flex-wrap gap-2">
-          {missingActions.has('integration') ? (
+          {missingActions.has('integration') && canManageIntegration ? (
             <Button type="button" variant="outline" onClick={onEditIntegration}>
               Editar integración
             </Button>
@@ -122,14 +124,16 @@ const TiendaNubeRunPanel = ({
       ) : null}
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-sky-200 pt-4">
-        <Button
-          type="button"
-          onClick={onRun}
-          loading={runLoading}
-          disabled={!canRun}
-        >
-          Ejecutar integración
-        </Button>
+        {canRunIntegration ? (
+          <Button
+            type="button"
+            onClick={onRun}
+            loading={runLoading}
+            disabled={!canRun}
+          >
+            Ejecutar integración
+          </Button>
+        ) : null}
         <Link className="text-sm font-semibold text-sky-700 underline" to="/executions">
           Abrir ejecuciones
         </Link>

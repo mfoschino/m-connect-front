@@ -34,9 +34,12 @@ const updateProfile = async (profileId, formData) => {
   return mapResponseData(response, mapBackendProfileToForm)
 }
 
+const deactivateProfile = (profileId) => apiClient.post(`/profiles/${profileId}/deactivate`)
+
 export default {
   listProfiles,
   getProfile,
   createProfile,
   updateProfile,
+  deactivateProfile,
 }

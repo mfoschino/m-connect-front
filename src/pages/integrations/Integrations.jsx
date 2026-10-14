@@ -27,6 +27,7 @@ import {
 } from '../../services/profileModalLoadFlow'
 import useIntegrationMetadata from '../../hooks/useIntegrationMetadata'
 import { useAuth } from '../../context/AuthContext'
+import { getIamPermissions } from '../../services/auth/iamPermissions'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
@@ -37,6 +38,9 @@ import IntegrationForm from '../../components/integrations/IntegrationForm'
 import ProfileForm from '../../components/integrations/ProfileForm'
 import LookupTableForm from '../../components/integrations/LookupTableForm'
 import TiendaNubeRunPanel from '../../components/integrations/TiendaNubeRunPanel'
+import {
+  IntegrationRowActions, ProfileRowActions, LookupRowActions,
+} from '../../components/integrations/TenantResourceActions'
 import { getExecutionStatusLabel } from '../../utils/presentationUtils'
 
 const tabOptions = [
@@ -61,10 +65,13 @@ const formatDateTime = (value) => {
   return date.toLocaleString()
 }
 
-const Integrations = () => {
+const IntegrationsContent = ({ permissions, tenantId }) => {
   const integrationMetadata = useIntegrationMetadata()
-  const { user } = useAuth()
-  const tenantId = user?.tenant_id
+  const {
+    canManageIntegrations, canRunIntegrations, canDeleteIntegrations,
+    canManageProfiles, canDeactivateProfiles,
+    canManageLookups, canDeleteLookups,
+  } = permissions
   const [activeTab, setActiveTab] = useState('integrations')
   const [integrations, setIntegrations] = useState([])
   const [profiles, setProfiles] = useState([])
@@ -81,6 +88,7 @@ const Integrations = () => {
   const [integrationModalMode, setIntegrationModalMode] = useState('create')
   const [selectedIntegration, setSelectedIntegration] = useState(null)
   const [integrationModalLoading, setIntegrationModalLoading] = useState(false)
+  const [integrationDeleteLoading, setIntegrationDeleteLoading] = useState(false)
   const [integrationModalError, setIntegrationModalError] = useState(null)
   const [integrationDetailOpen, setIntegrationDetailOpen] = useState(false)
   const [detailIntegration, setDetailIntegration] = useState(null)
@@ -101,6 +109,7 @@ const Integrations = () => {
   const [profileModalMode, setProfileModalMode] = useState('create')
   const [selectedProfile, setSelectedProfile] = useState(null)
   const [profileModalLoading, setProfileModalLoading] = useState(false)
+  const [profileDeactivateLoading, setProfileDeactivateLoading] = useState(false)
   const profileSaveInFlightRef = useRef(false)
   const profileLoadRequestRef = useRef(createProfileLoadRequestState())
   const [profileModalError, setProfileModalError] = useState(null)
@@ -274,6 +283,7 @@ const Integrations = () => {
   ])
 
   const openIntegrationCreate = () => {
+    if (!canManageIntegrations) return
     setIntegrationModalMode('create')
     setSelectedIntegration(null)
     setIntegrationModalError(null)
@@ -281,6 +291,7 @@ const Integrations = () => {
   }
 
   const openIntegrationEdit = async (integration) => {
+    if (!canManageIntegrations) return
     setIntegrationModalMode('edit')
     setIntegrationModalError(null)
     setIntegrationModalLoading(true)
@@ -386,6 +397,7 @@ const Integrations = () => {
   }
 
   const handleIntegrationSave = async (payload) => {
+    if (!canManageIntegrations) return
     setIntegrationModalLoading(true)
     setIntegrationModalError(null)
     setSuccessMessage('')
@@ -408,7 +420,25 @@ const Integrations = () => {
     }
   }
 
+  const handleDeleteIntegration = async (integration) => {
+    if (!canDeleteIntegrations || integrationDeleteLoading) return
+    if (!window.confirm(`¿Eliminar integración "${integration.name}"? Esta acción no se puede revertir.`)) return
+
+    setIntegrationDeleteLoading(true)
+    try {
+      await integrationService.deleteIntegration(integration.id)
+      setSuccessMessage('Integración eliminada correctamente.')
+      closeIntegrationDetail()
+      await refreshData()
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'No se pudo eliminar la integración.'))
+    } finally {
+      setIntegrationDeleteLoading(false)
+    }
+  }
+
   const handleRunIntegration = async () => {
+    if (!canRunIntegrations) return
     if (!detailIntegration?.id) return
     setTriggerLoading(true)
     setTriggerMessage('')
@@ -425,6 +455,7 @@ const Integrations = () => {
   }
 
   const handleGuidedRunIntegration = async () => {
+    if (!canRunIntegrations) return
     if (guidedRunInFlightRef.current || !detailIntegration?.id || !tiendaNubeRunReadiness) return
 
     if (!tiendaNubeRunReadiness.canRun) {
@@ -467,6 +498,7 @@ const Integrations = () => {
   }
 
   const openTriggerModal = () => {
+    if (!canRunIntegrations) return
     setTriggerMessage('')
     setTriggerModalOpen(true)
     setTriggerForm((previous) => ({
@@ -482,6 +514,7 @@ const Integrations = () => {
 
   const handleTriggerIntegration = async (event) => {
     event.preventDefault()
+    if (!canRunIntegrations) return
     if (!detailIntegration?.id) return
 
     setTriggerLoading(true)
@@ -504,6 +537,7 @@ const Integrations = () => {
   }
 
   const openProfileCreate = () => {
+    if (!canManageProfiles) return
     invalidateProfileLoadRequests(profileLoadRequestRef)
     setProfileModalMode('create')
     setSelectedProfile(null)
@@ -514,6 +548,7 @@ const Integrations = () => {
   }
 
   const openProfileEdit = async (profile) => {
+    if (!canManageProfiles) return
     const requestedProfileId = profile?.id
     const request = beginProfileLoadRequest(profileLoadRequestRef, requestedProfileId)
 
@@ -550,6 +585,7 @@ const Integrations = () => {
   }
 
   const retryProfileEdit = () => {
+    if (!canManageProfiles) return
     if (!profileModalTargetId) return
     openProfileEdit({ id: profileModalTargetId })
   }
@@ -566,6 +602,7 @@ const Integrations = () => {
   }
 
   const handleProfileSave = async (payload) => {
+    if (!canManageProfiles) return
     if (profileSaveInFlightRef.current) return
 
     setProfileModalError(null)
@@ -608,6 +645,22 @@ const Integrations = () => {
     }
   }
 
+  const handleDeactivateProfile = async (profile) => {
+    if (!canDeactivateProfiles || profileDeactivateLoading || profile.active === false) return
+    if (!window.confirm(`¿Desactivar perfil "${getProfileDisplayName(profile)}"?`)) return
+
+    setProfileDeactivateLoading(true)
+    try {
+      await profileService.deactivateProfile(profile.id)
+      setSuccessMessage('Perfil desactivado correctamente.')
+      await refreshData()
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'No se pudo desactivar el perfil.'))
+    } finally {
+      setProfileDeactivateLoading(false)
+    }
+  }
+
   const openProfileDetail = async (profile) => {
     setDetailProfile(null)
     setProfileDetailOpen(true)
@@ -625,6 +678,7 @@ const Integrations = () => {
   }
 
   const openLookupCreate = () => {
+    if (!canManageLookups) return
     setLookupModalMode('create')
     setSelectedLookup(null)
     setLookupModalError(null)
@@ -632,6 +686,7 @@ const Integrations = () => {
   }
 
   const openLookupEdit = async (lookup) => {
+    if (!canManageLookups) return
     setLookupModalMode('edit')
     setLookupModalError(null)
     setLookupModalLoading(true)
@@ -657,6 +712,7 @@ const Integrations = () => {
   }
 
   const handleLookupSave = async (payload) => {
+    if (!canManageLookups) return
     setLookupModalLoading(true)
     setLookupModalError(null)
     setSuccessMessage('')
@@ -695,6 +751,7 @@ const Integrations = () => {
   }
 
   const handleDeleteLookup = async (lookup) => {
+    if (!canDeleteLookups) return
     if (!window.confirm(`¿Eliminar tabla de consulta "${lookup.name}"? Esta acción no se puede revertir.`)) {
       return
     }
@@ -726,13 +783,13 @@ const Integrations = () => {
             <Button variant="outline" onClick={refreshData} loading={refreshing}>
               Refrescar datos
             </Button>
-            {activeTab === 'integrations' ? (
+            {activeTab === 'integrations' && canManageIntegrations ? (
               <Button onClick={openIntegrationCreate}>Crear integración</Button>
-            ) : activeTab === 'profiles' ? (
+            ) : activeTab === 'profiles' && canManageProfiles ? (
               <Button onClick={openProfileCreate}>Crear perfil</Button>
-            ) : (
+            ) : activeTab === 'lookupTables' && canManageLookups ? (
               <Button onClick={openLookupCreate}>Crear tabla</Button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -741,6 +798,12 @@ const Integrations = () => {
         <div className="rounded-3xl border border-emerald-100 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
           {successMessage}
         </div>
+      ) : null}
+
+      {!canManageIntegrations ? (
+        <p className="text-sm text-slate-600" role="status">
+          Acceso de sólo lectura a integraciones, perfiles de mapeo y tablas de consulta.
+        </p>
       ) : null}
 
       <div className="flex flex-wrap gap-2 rounded-3xl border border-slate-200 bg-slate-50 p-3">
@@ -870,12 +933,14 @@ const Integrations = () => {
                       <td>{formatDateTime(integration.last_run_at)}</td>
                       <td>{formatDateTime(integration.next_run_at)}</td>
                       <td className="flex flex-wrap gap-2">
-                        <Button variant="outline" className="rounded-full px-3 py-1 text-sm" onClick={() => openIntegrationDetail(integration)}>
-                          Detalles
-                        </Button>
-                        <Button variant="outline" className="rounded-full px-3 py-1 text-sm" onClick={() => openIntegrationEdit(integration)}>
-                          Editar
-                        </Button>
+                        <IntegrationRowActions
+                          canEdit={canManageIntegrations}
+                          canDelete={canDeleteIntegrations}
+                          deleting={integrationDeleteLoading}
+                          onDetail={() => openIntegrationDetail(integration)}
+                          onEdit={() => openIntegrationEdit(integration)}
+                          onDelete={() => handleDeleteIntegration(integration)}
+                        />
                       </td>
                     </tr>
                   ))
@@ -925,12 +990,14 @@ const Integrations = () => {
                         </Badge>
                       </td>
                       <td className="flex flex-wrap gap-2">
-                        <Button variant="outline" className="rounded-full px-3 py-1 text-sm" onClick={() => openProfileDetail(profile)}>
-                          Ver
-                        </Button>
-                        <Button variant="outline" className="rounded-full px-3 py-1 text-sm" onClick={() => openProfileEdit(profile)}>
-                          Editar
-                        </Button>
+                        <ProfileRowActions
+                          canEdit={canManageProfiles}
+                          canDeactivate={canDeactivateProfiles && profile.active !== false}
+                          deactivating={profileDeactivateLoading}
+                          onDetail={() => openProfileDetail(profile)}
+                          onEdit={() => openProfileEdit(profile)}
+                          onDeactivate={() => handleDeactivateProfile(profile)}
+                        />
                       </td>
                     </tr>
                   ))
@@ -963,20 +1030,14 @@ const Integrations = () => {
                       <td className="font-medium text-slate-900">{lookup.name || '—'}</td>
                       <td>{lookup.id || '—'}</td>
                       <td className="flex flex-wrap gap-2">
-                        <Button variant="outline" className="rounded-full px-3 py-1 text-sm" onClick={() => openLookupDetail(lookup)}>
-                          Ver
-                        </Button>
-                        <Button variant="outline" className="rounded-full px-3 py-1 text-sm" onClick={() => openLookupEdit(lookup)}>
-                          Editar
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="rounded-full px-3 py-1 text-sm text-rose-600"
-                          onClick={() => handleDeleteLookup(lookup)}
-                          disabled={lookupDeleteLoading}
-                        >
-                          Eliminar
-                        </Button>
+                        <LookupRowActions
+                          canEdit={canManageLookups}
+                          canDelete={canDeleteLookups}
+                          deleting={lookupDeleteLoading}
+                          onDetail={() => openLookupDetail(lookup)}
+                          onEdit={() => openLookupEdit(lookup)}
+                          onDelete={() => handleDeleteLookup(lookup)}
+                        />
                       </td>
                     </tr>
                   ))
@@ -987,7 +1048,7 @@ const Integrations = () => {
         </Card>
       )}
 
-      <Modal open={integrationModalOpen} size="large" title={integrationModalMode === 'create' ? 'Crear nueva integración' : 'Editar integración'} subtitle={integrationModalMode === 'create' ? 'Configurá una nueva integración en pocos pasos' : 'Actualizá la configuración de la integración'} onClose={closeIntegrationModal} footer={null}>
+      <Modal open={integrationModalOpen && canManageIntegrations} size="large" title={integrationModalMode === 'create' ? 'Crear nueva integración' : 'Editar integración'} subtitle={integrationModalMode === 'create' ? 'Configurá una nueva integración en pocos pasos' : 'Actualizá la configuración de la integración'} onClose={closeIntegrationModal} footer={null}>
         {integrationModalLoading && integrationModalMode === 'edit' && !selectedIntegration ? (
           <div className="py-20 text-center text-slate-600">Cargando integración...</div>
         ) : (
@@ -1071,6 +1132,8 @@ const Integrations = () => {
                 runFeedback={guidedRunFeedback}
                 onRun={handleGuidedRunIntegration}
                 onEditIntegration={openIntegrationEditFromDetail}
+                canRunIntegration={canRunIntegrations}
+                canManageIntegration={canManageIntegrations}
                 onOpenProfiles={() => openResourceTabFromDetail('profiles')}
                 onOpenLookupTables={() => openResourceTabFromDetail('lookupTables')}
               />
@@ -1109,12 +1172,12 @@ const Integrations = () => {
                   <p className="mt-1 text-sm text-slate-500">Últimas ejecuciones relacionadas con esta integración.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {!tiendaNubeRunReadiness ? (
+                  {!tiendaNubeRunReadiness && canRunIntegrations ? (
                     <Button variant="outline" onClick={handleRunIntegration} loading={triggerLoading}>
                       Ejecutar ahora
                     </Button>
                   ) : null}
-                  <Button onClick={openTriggerModal}>Prueba manual</Button>
+                  {canRunIntegrations ? <Button onClick={openTriggerModal}>Prueba manual</Button> : null}
                 </div>
               </div>
               {integrationExecutions.length === 0 ? (
@@ -1163,7 +1226,7 @@ const Integrations = () => {
         ) : null}
       </Modal>
 
-      <Modal open={triggerModalOpen} title="Enviar prueba manual" onClose={closeTriggerModal} footer={null}>
+      <Modal open={triggerModalOpen && canRunIntegrations} title="Enviar prueba manual" onClose={closeTriggerModal} footer={null}>
         <form onSubmit={handleTriggerIntegration} className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
@@ -1205,7 +1268,7 @@ const Integrations = () => {
         </form>
       </Modal>
 
-      <Modal open={profileModalOpen} title={profileModalMode === 'create' ? 'Crear nuevo perfil' : 'Editar perfil'} onClose={closeProfileModal} footer={null}>
+      <Modal open={profileModalOpen && canManageProfiles} title={profileModalMode === 'create' ? 'Crear nuevo perfil' : 'Editar perfil'} onClose={closeProfileModal} footer={null}>
         {!shouldRenderProfileForm(profileModalMode, selectedProfile) ? (
           <div className="py-16 text-center">
             {profileModalLoading ? (
@@ -1292,7 +1355,7 @@ const Integrations = () => {
         )}
       </Modal>
 
-      <Modal open={lookupModalOpen} title={lookupModalMode === 'create' ? 'Crear nueva tabla' : 'Editar tabla'} onClose={closeLookupModal} footer={null}>
+      <Modal open={lookupModalOpen && canManageLookups} title={lookupModalMode === 'create' ? 'Crear nueva tabla' : 'Editar tabla'} onClose={closeLookupModal} footer={null}>
         {lookupModalLoading && lookupModalMode === 'edit' && !selectedLookup ? (
           <div className="py-20 text-center text-slate-600">Cargando tabla...</div>
         ) : (
@@ -1333,6 +1396,19 @@ const Integrations = () => {
         )}
       </Modal>
     </div>
+  )
+}
+
+const Integrations = () => {
+  const { status, user, contextId } = useAuth()
+  const permissions = getIamPermissions({ status, user })
+
+  return (
+    <IntegrationsContent
+      key={`${contextId || ''}:${user?.tenant_id || ''}:${user?.role || ''}`}
+      permissions={permissions}
+      tenantId={user?.tenant_id}
+    />
   )
 }
 
