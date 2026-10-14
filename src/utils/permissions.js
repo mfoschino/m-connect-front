@@ -1,0 +1,1 @@
+export const isPlatformAdmin = (user) => user?.platform_role === 'superadmin'

@@ -2,6 +2,12 @@ import { useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { safePathAfterContextChange } from '../../services/auth/iamTenantUi.js'
+import { isPlatformAdmin } from '../../utils/permissions'
+import PlatformAdminRoute from '../../components/common/PlatformAdminRoute'
+import PlatformTenantsPage from '../../pages/platform/PlatformTenantsPage'
+import PlatformTenantDetailPage from '../../pages/platform/PlatformTenantDetailPage'
+import PlatformUsersPage from '../../pages/platform/PlatformUsersPage'
+
 import MainLayout from '../../layouts/MainLayout'
 import Dashboard from '../../pages/dashboard/Dashboard'
 import Integrations from '../../pages/integrations/Integrations'
@@ -18,7 +24,10 @@ import ResetPasswordPage from '../../pages/auth/ResetPasswordPage'
 import ProtectedRoute from '../../components/common/ProtectedRoute'
 
 const TenantLayout = () => {
-  const { contextId } = useAuth()
+  const { contextId, authenticated, user } = useAuth()
+  if (authenticated && isPlatformAdmin(user) && !user.tenant_id) {
+    return <Navigate to="/platform/tenants" replace />
+  }
   return <ProtectedRoute><MainLayout key={contextId} /></ProtectedRoute>
 }
 
@@ -121,6 +130,37 @@ const AppRoutes = () => <TenantNavigation>
         element={
           <ProtectedRoute allowedRoles={['admin']}>
             <UserAdminPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="platform" element={<Navigate to="/platform/tenants" replace />} />
+      <Route
+        path="platform/tenants"
+        element={
+          <ProtectedRoute>
+            <PlatformAdminRoute>
+              <PlatformTenantsPage />
+            </PlatformAdminRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="platform/tenants/:tenantId"
+        element={
+          <ProtectedRoute>
+            <PlatformAdminRoute>
+              <PlatformTenantDetailPage />
+            </PlatformAdminRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="platform/users"
+        element={
+          <ProtectedRoute>
+            <PlatformAdminRoute>
+              <PlatformUsersPage />
+            </PlatformAdminRoute>
           </ProtectedRoute>
         }
       />
