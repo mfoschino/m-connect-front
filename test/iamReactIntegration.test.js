@@ -590,7 +590,7 @@ test('revalidación actualiza ausencia de tenant y /users/me 403 no recurre', as
 test('alta retirada no tiene acción visible ni consumidor; aliases compatibles continúan', async () => {
   const page = await readFile(new URL('../src/pages/users/UserAdminPage.jsx', import.meta.url), 'utf8')
   assert.doesNotMatch(page, /createUser|buildTemporaryPassword|POST \/users\/|Invitar usuario/)
-  assert.match(page, /Invitaciones pendientes/)
+  assert.doesNotMatch(page, /Invitaciones pendientes/)
   const vite = await createServer({ appType: 'custom', logLevel: 'silent',
     server: { middlewareMode: true } })
   try {
@@ -606,7 +606,7 @@ test('alta retirada no tiene acción visible ni consumidor; aliases compatibles 
     await service.updateUser('one', { role: 'viewer' })
     await service.deactivateUser('one')
     assert.deepEqual(routes, [
-      { method: 'get', url: '/users/' },
+      { method: 'get', url: '/tenant/members' },
       { method: 'put', url: '/users/one' },
       { method: 'delete', url: '/users/one' },
     ])

@@ -11,12 +11,12 @@ export const ROLE_ALIASES = {
 
 export const normalizeRole = (role) => ROLE_ALIASES[String(role || '').toLowerCase()] || ''
 
-const listUsers = ({ skip = 0, limit = 50 } = {}) =>
-  apiClient.get('/users/', {
-    params: { skip, limit },
+const listUsers = ({ skip = 0, limit = 50, include_disabled = false } = {}) =>
+  apiClient.get('/tenant/members', {
+    params: { skip, limit, include_disabled },
   })
 
-const getUser = (userId) => apiClient.get(`/users/${userId}`)
+const getUser = (userId) => apiClient.get(`/tenant/members/${userId}`)
 
 const updateUser = (userId, payload) => apiClient.put(`/users/${userId}`, payload)
 

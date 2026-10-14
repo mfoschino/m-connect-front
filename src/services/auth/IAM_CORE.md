@@ -360,3 +360,30 @@ Referencias de navegador: [contextos seguros](https://developer.mozilla.org/en-U
 [Web Locks](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API),
 [`crypto.randomUUID()`](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)
 y [evento `storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event).
+
+## IAM-4B: lectura de miembros del tenant activo
+
+`UserAdminPage` consulta `GET /tenant/members` y `GET /tenant/members/{user_id}`
+mediante el cliente Axios IAM existente. Ambos GET exigen `admin` del tenant
+activo; el frontend no envía `tenant_id`. El `ProtectedRoute` de
+`/settings/users`, la revalidación de `/users/me` tras 403 y el remount de
+`MainLayout` por `contextId` siguen a cargo de IAM-2/IAM-3. El flujo de lectura
+descarta respuestas antiguas al cambiar filtro, refrescar, cerrar o cambiar el
+detalle y al desmontar la pantalla.
+
+El listado usa `skip`, `limit` e `include_disabled`, con botón «Cargar más».
+La respuesta es un array sin `total`: una página corta o vacía termina la
+paginación. `include_disabled=true` puede incluir también cuentas globalmente
+inactivas. `UserResponse.is_active` expresa acceso efectivo combinado de cuenta
+y membresía; no informa el motivo de inactividad. `is_verified=false` no
+significa invitación pendiente. `last_login` es global, no actividad del tenant.
+El detalle muestra sólo datos de `UserResponse` y trata 404 como miembro ausente
+de la organización activa.
+
+Las escrituras existentes conservan transitoriamente los alias deprecados
+`PUT /users/{id}` y `DELETE /users/{id}`. La regla de último administrador
+permanece en el backend (409), ya que una página parcial no permite calcularla.
+IAM-4C (invitaciones), IAM-4D (migración de escrituras) e IAM-4E siguen
+pendientes. Los tests comprueban servicio, flujo asíncrono y HTML estático;
+faltan interacciones DOM y cambios reales de tenant/rol contra el backend en
+navegador.

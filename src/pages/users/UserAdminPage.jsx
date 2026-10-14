@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { RefreshCw, ShieldAlert } from 'lucide-react'
 import Alert from '../../components/ui/Alert'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
+import Modal from '../../components/ui/Modal'
 import Table from '../../components/ui/Table'
 import { useAuth } from '../../context/AuthContext'
 import userAdminService, { normalizeRole, USER_ROLES } from '../../services/api/userAdminService'
+import { createMemberReadFlow, initialMemberReadState } from '../../services/memberReadFlow'
 
 const roleOptions = [
   { value: 'admin', label: 'Administrador' },
@@ -14,146 +16,122 @@ const roleOptions = [
   { value: 'viewer', label: 'Visualizador' },
 ]
 
-const statusLabels = {
-  active: 'Activa',
-  invited: 'Invitada',
-  pending: 'Pendiente',
-  disabled: 'Desactivada',
-  inactive: 'Inactiva',
-  suspended: 'Suspendida',
-  blocked: 'Bloqueada',
-}
-
-const statusVariants = {
-  active: 'online',
-  invited: 'pending',
-  pending: 'retrying',
-  disabled: 'offline',
-}
-
 const roleLabel = (role) => roleOptions.find((option) => option.value === normalizeRole(role))?.label || 'Sin rol'
 
-const normalizeStatus = (record) => {
-  if (record?.is_active === false) return 'disabled'
-  if (record?.status) return String(record.status).toLowerCase()
-  if (record?.is_verified === false) return 'pending'
-  return 'active'
-}
-
-const formatLastAccess = (record) => {
-  const value = record?.lastLoginAt
-    || record?.lastAccessAt
-    || record?.lastSeenAt
-    || record?.last_sign_in_at
-    || record?.last_login_at
-    || record?.last_login
-
-  if (!value) return 'Nunca'
-
+const formatDate = (value) => {
+  if (!value) return 'Sin registro'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'Sin registro'
-
-  return new Intl.DateTimeFormat('es', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
+  return new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
 }
 
 const resolveErrorMessage = (error, fallback) => {
   const detail = error?.response?.data?.detail
+  if (Array.isArray(detail)) return detail.map((item) => item.msg).filter(Boolean).join(' ') || fallback
+  return typeof detail === 'string' ? detail : fallback
+}
 
-  if (Array.isArray(detail)) {
-    return detail.map((item) => item.msg).filter(Boolean).join(' ')
-  }
+export const MemberAccessBadge = ({ member }) => (
+  <Badge variant={member.is_active ? 'online' : 'offline'}>
+    {member.is_active ? 'Acceso activo' : 'Acceso inactivo'}
+  </Badge>
+)
 
-  return detail || error?.message || fallback
+export const MemberDetailContent = ({ member }) => (
+  <dl className="grid gap-4 text-sm sm:grid-cols-2">
+    <div><dt className="font-semibold text-slate-500">Nombre</dt><dd>{member.full_name || 'Sin nombre'}</dd></div>
+    <div><dt className="font-semibold text-slate-500">Correo electrónico</dt><dd>{member.email}</dd></div>
+    <div><dt className="font-semibold text-slate-500">Rol en esta organización</dt><dd>{roleLabel(member.role)}</dd></div>
+    <div><dt className="font-semibold text-slate-500">Estado del acceso</dt><dd><MemberAccessBadge member={member} /></dd></div>
+    <div><dt className="font-semibold text-slate-500">Correo verificado</dt>
+      <dd>{member.is_verified ? 'Sí' : 'No'}</dd></div>
+    <div><dt className="font-semibold text-slate-500">Último inicio de sesión (global)</dt>
+      <dd>{formatDate(member.last_login)}</dd></div>
+    <div><dt className="font-semibold text-slate-500">Alta de la cuenta</dt>
+      <dd>{formatDate(member.created_at)}</dd></div>
+  </dl>
+)
+
+export const MemberRow = ({ record, actionUserId = '', isSelf = false,
+  onRoleChange, onDeactivate, onDetail }) => {
+  const disabled = actionUserId === record.id || record.is_active === false
+  return (
+    <tr>
+      <td className="font-medium text-slate-900">{record.full_name || 'Sin nombre'}</td>
+      <td>{record.email}</td>
+      <td>
+        <label className="sr-only" htmlFor={`role-${record.id}`}>Rol de {record.email}</label>
+        <select id={`role-${record.id}`} className="form-input min-w-36 py-2"
+          value={normalizeRole(record.role) || 'viewer'}
+          onChange={(event) => onRoleChange(record, event.target.value)}
+          disabled={disabled || isSelf}>
+          {roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select>
+      </td>
+      <td><MemberAccessBadge member={record} /></td>
+      <td>{formatDate(record.last_login)}</td>
+      <td>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="ghost" onClick={() => onDetail(record.id)}>Ver detalle</Button>
+          {isSelf ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+            <ShieldAlert className="h-4 w-4" aria-hidden="true" />Tu acceso</span> : (
+            <Button type="button" variant="ghost" className="rounded-full px-3 py-1 text-sm text-rose-600"
+              onClick={() => onDeactivate(record)} disabled={disabled}
+              loading={actionUserId === record.id}>Deshabilitar acceso</Button>
+          )}
+        </div>
+      </td>
+    </tr>
+  )
 }
 
 const UserAdminPage = () => {
-  const { user } = useAuth()
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState('')
+  const { user, contextId } = useAuth()
+  const flowRef = useRef(null)
+  const [directory, setDirectory] = useState(initialMemberReadState)
+  const [actionError, setActionError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [actionUserId, setActionUserId] = useState('')
-
   const currentUserRole = normalizeRole(user?.role)
 
-  const activeAdmins = useMemo(
-    () => users.filter((record) => normalizeRole(record.role) === 'admin' && record.is_active !== false),
-    [users],
-  )
-
-  const loadUsers = useCallback(async ({ showRefreshing = false } = {}) => {
-    if (showRefreshing) {
-      setRefreshing(true)
-    } else {
-      setLoading(true)
-    }
-
-    setError('')
-
-    try {
-      const response = await userAdminService.listUsers()
-      setUsers(Array.isArray(response.data) ? response.data : [])
-    } catch (err) {
-      console.error('Failed to load tenant users', { status: err?.response?.status ?? null })
-      setError(resolveErrorMessage(err, 'No se pudieron cargar los usuarios de la organización.'))
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [])
-
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      loadUsers()
-    }, 0)
+    if (!user?.tenant_id || currentUserRole !== 'admin') return undefined
+    const flow = createMemberReadFlow({
+      listMembers: userAdminService.listUsers,
+      getMember: userAdminService.getUser,
+      onChange: setDirectory,
+    })
+    flowRef.current = flow
+    flow.refresh()
+    return () => {
+      flow.dispose()
+      if (flowRef.current === flow) flowRef.current = null
+    }
+  }, [contextId, user?.tenant_id, currentUserRole])
 
-    return () => window.clearTimeout(timeoutId)
-  }, [loadUsers])
-
-  const isSelf = (record) => {
-    if (!record) return false
-    return Boolean(
-      (user?.id && record.id === user.id)
-      || (user?.email && record.email?.toLowerCase() === user.email.toLowerCase()),
-    )
-  }
-
-  const wouldLeaveTenantWithoutAdmin = (record) =>
-    normalizeRole(record?.role) === 'admin' && record?.is_active !== false && activeAdmins.length <= 1
+  const isSelf = (record) => Boolean(record && (
+    (user?.id && record.id === user.id)
+    || (user?.email && record.email?.toLowerCase() === user.email.toLowerCase())
+  ))
 
   const handleRoleChange = async (record, nextRoleValue) => {
     const nextRole = normalizeRole(nextRoleValue)
     if (!record?.id || !USER_ROLES.includes(nextRole) || nextRole === normalizeRole(record.role)) return
-
     if (isSelf(record)) {
-      setError('No puedes cambiar tu propio rol desde esta pantalla.')
+      setActionError('No podés cambiar tu propio rol desde esta pantalla.')
       return
     }
-
-    if (wouldLeaveTenantWithoutAdmin(record) && nextRole !== 'admin') {
-      setError('Debe quedar al menos un administrador activo en la organización.')
-      return
-    }
-
-    if (!window.confirm(`Cambiar rol de ${record.email} a ${roleLabel(nextRole)}?`)) {
-      return
-    }
-
+    if (!window.confirm(`¿Cambiar el rol de ${record.email} a ${roleLabel(nextRole)}?`)) return
     setActionUserId(record.id)
-    setError('')
+    setActionError('')
     setSuccessMessage('')
-
     try {
       await userAdminService.updateUser(record.id, { role: nextRole })
-      setSuccessMessage('Rol actualizado correctamente.')
-      await loadUsers({ showRefreshing: true })
-    } catch (err) {
-      console.error('Failed to update role', { status: err?.response?.status ?? null })
-      setError(resolveErrorMessage(err, 'No se pudo actualizar el rol.'))
+      setSuccessMessage('Rol en la organización actualizado correctamente.')
+      await flowRef.current?.refresh()
+    } catch (error) {
+      console.error('Failed to update member role', { status: error?.response?.status ?? null })
+      setActionError(resolveErrorMessage(error, 'No se pudo actualizar el rol.'))
     } finally {
       setActionUserId('')
     }
@@ -161,35 +139,29 @@ const UserAdminPage = () => {
 
   const handleDeactivate = async (record) => {
     if (!record?.id) return
-
     if (isSelf(record)) {
-      setError('No puedes desactivar tu propia cuenta.')
+      setActionError('No podés deshabilitar tu propio acceso.')
       return
     }
-
-    if (wouldLeaveTenantWithoutAdmin(record)) {
-      setError('No podés desactivar al único administrador activo de la organización.')
-      return
-    }
-
-    if (!window.confirm(`¿Desactivar la cuenta de ${record.email}? El usuario perderá acceso a la organización.`)) {
-      return
-    }
-
+    if (!window.confirm(`¿Deshabilitar el acceso de ${record.email} a esta organización?`)) return
     setActionUserId(record.id)
-    setError('')
+    setActionError('')
     setSuccessMessage('')
-
     try {
       await userAdminService.deactivateUser(record.id)
-      setSuccessMessage('Cuenta desactivada correctamente.')
-      await loadUsers({ showRefreshing: true })
-    } catch (err) {
-      console.error('Failed to deactivate user', { status: err?.response?.status ?? null })
-      setError(resolveErrorMessage(err, 'No se pudo desactivar la cuenta.'))
+      setSuccessMessage('Acceso a la organización deshabilitado correctamente.')
+      await flowRef.current?.refresh()
+    } catch (error) {
+      console.error('Failed to deactivate member access', { status: error?.response?.status ?? null })
+      setActionError(resolveErrorMessage(error, 'No se pudo deshabilitar el acceso.'))
     } finally {
       setActionUserId('')
     }
+  }
+
+  if (!user?.tenant_id || currentUserRole !== 'admin') {
+    return <Alert variant="warning" title="Acceso administrativo requerido"
+      description="Esta pantalla requiere un tenant activo y rol de administrador en esa organización." />
   }
 
   return (
@@ -198,140 +170,73 @@ const UserAdminPage = () => {
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Administración</p>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="section-title">Usuarios de la organización</h2>
+            <h2 className="section-title">Miembros de la organización</h2>
             <p className="section-subtitle">
-              Gestioná el acceso, los roles y el estado de las cuentas dentro de tu organización.
+              Consultá miembros y gestioná el acceso a la organización activa.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="outline" onClick={() => loadUsers({ showRefreshing: true })} loading={refreshing}>
-              <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
-              Refrescar
-            </Button>
-          </div>
+          <Button type="button" variant="outline" onClick={() => flowRef.current?.refresh()}
+            loading={directory.loading && directory.members.length > 0}>
+            <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+            Refrescar
+          </Button>
         </div>
       </div>
 
-      {currentUserRole !== 'admin' ? (
-        <Alert
-          variant="warning"
-          title="Acceso administrativo requerido"
-          description="Esta pantalla solo permite operar a usuarios con rol de administrador."
-        />
-      ) : null}
+      {successMessage ? <Alert variant="success" title="Operación completada"
+        description={successMessage} onClose={() => setSuccessMessage('')} /> : null}
+      {actionError ? <Alert variant="error" title="No se pudo completar la acción"
+        description={actionError} onClose={() => setActionError('')} /> : null}
 
-      <Alert variant="info" title="Invitaciones pendientes"
-        description="Las invitaciones estarán disponibles cuando integremos el nuevo flujo de acceso." />
-
-      {successMessage ? (
-        <Alert
-          variant="success"
-          title="Operación completada"
-          description={successMessage}
-          onClose={() => setSuccessMessage('')}
-        />
-      ) : null}
-
-      {error ? (
-        <Alert
-          variant="error"
-          title="No se pudo completar la acción"
-          description={error}
-          onClose={() => setError('')}
-        />
-      ) : null}
-
-      <Card
-        title="Cuentas"
-        description="El servidor filtra por la organización del administrador autenticado; la interfaz no envía tenant_id."
-      >
+      <Card title="Miembros" description="El servidor consulta sólo la organización activa de la sesión.">
+        <label className="mb-4 flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" checked={directory.includeDisabled}
+            onChange={(event) => flowRef.current?.setIncludeDisabled(event.target.checked)} />
+          Incluir miembros inactivos
+        </label>
+        {directory.error ? <Alert variant="error" title="No se pudo cargar el listado"
+          description={directory.error} /> : null}
         <Table>
           <thead>
             <tr>
               <th>Nombre</th>
               <th>Correo electrónico</th>
-              <th>Rol</th>
+              <th>Rol en esta organización</th>
               <th>Estado</th>
-              <th>Último acceso</th>
+              <th>Último inicio de sesión (global)</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan="6" className="text-center text-sm text-slate-500">
-                  Cargando usuarios...
-                </td>
-              </tr>
-            ) : users.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="text-center text-sm text-slate-500">
-                  Todavía no hay usuarios para mostrar.
-                </td>
-              </tr>
-            ) : (
-              users.map((record) => {
-                const status = normalizeStatus(record)
-                const disabled = actionUserId === record.id || record.is_active === false
-                const protectedSelf = isSelf(record)
-                const protectedLastAdmin = wouldLeaveTenantWithoutAdmin(record)
-
-                return (
-                  <tr key={record.id || record.email}>
-                    <td className="font-medium text-slate-900">{record.full_name || record.name || 'Sin nombre'}</td>
-                    <td>{record.email}</td>
-                    <td>
-                      <label className="sr-only" htmlFor={`role-${record.id || record.email}`}>
-                        Rol de {record.email}
-                      </label>
-                      <select
-                        id={`role-${record.id || record.email}`}
-                        className="form-input min-w-36 py-2"
-                        value={normalizeRole(record.role) || 'viewer'}
-                        onChange={(event) => handleRoleChange(record, event.target.value)}
-                        disabled={disabled || protectedSelf || protectedLastAdmin}
-                      >
-                        {roleOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <Badge variant={statusVariants[status] || 'pending'}>
-                        {statusLabels[status] || 'Estado desconocido'}
-                      </Badge>
-                    </td>
-                    <td>{formatLastAccess(record)}</td>
-                    <td>
-                      <div className="flex flex-wrap gap-2">
-                        {protectedSelf ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
-                            <ShieldAlert className="h-4 w-4" aria-hidden="true" />
-                            Tu cuenta
-                          </span>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            className="rounded-full px-3 py-1 text-sm text-rose-600"
-                            onClick={() => handleDeactivate(record)}
-                            disabled={disabled || protectedLastAdmin}
-                            loading={actionUserId === record.id}
-                          >
-                            Desactivar
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })
-            )}
+            {directory.loading ? (
+              <tr><td colSpan="6" className="text-center text-sm text-slate-500">Cargando miembros...</td></tr>
+            ) : directory.members.length === 0 ? (
+              <tr><td colSpan="6" className="text-center text-sm text-slate-500">
+                {directory.error ? 'Reintentá la consulta para ver los miembros.' : 'No hay miembros para mostrar.'}
+              </td></tr>
+            ) : directory.members.map((record) => <MemberRow key={record.id} record={record}
+              actionUserId={actionUserId} isSelf={isSelf(record)}
+              onRoleChange={handleRoleChange} onDeactivate={handleDeactivate}
+              onDetail={(id) => flowRef.current?.openDetail(id)} />)}
           </tbody>
         </Table>
+        {directory.hasMore && !directory.loading ? (
+          <div className="mt-4 flex justify-center">
+            <Button type="button" variant="outline" onClick={() => flowRef.current?.loadMore()}
+              loading={directory.loadingMore}>Cargar más</Button>
+          </div>
+        ) : null}
       </Card>
 
+      <Modal open={directory.detail.open} title="Detalle del miembro"
+        subtitle="Datos del miembro en la organización activa" onClose={() => flowRef.current?.closeDetail()}>
+        {directory.detail.loading ? <p>Cargando detalle...</p> : null}
+        {directory.detail.error ? <Alert variant="error" title="No se pudo cargar el detalle"
+          description={directory.detail.error} /> : null}
+        {directory.detail.error ? <Button type="button" variant="outline" className="mt-4"
+          onClick={() => flowRef.current?.openDetail(directory.detail.userId)}>Reintentar</Button> : null}
+        {directory.detail.member ? <MemberDetailContent member={directory.detail.member} /> : null}
+      </Modal>
     </div>
   )
 }
