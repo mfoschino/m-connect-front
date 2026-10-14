@@ -6,7 +6,6 @@ import { getIamPermissions } from '../../services/auth/iamPermissions'
 const platformLinks = [
   { label: 'Tenants', to: '/platform/tenants' },
   { label: 'Usuarios', to: '/platform/users' }
-  // Agregá Usuarios cuando exista su ruta
 ]
 
 const links = [

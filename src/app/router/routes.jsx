@@ -133,37 +133,19 @@ const AppRoutes = () => <TenantNavigation>
           </ProtectedRoute>
         }
       />
-      <Route path="platform" element={<Navigate to="/platform/tenants" replace />} />
-      <Route
-        path="platform/tenants"
-        element={
-          <ProtectedRoute>
-            <PlatformAdminRoute>
-              <PlatformTenantsPage />
-            </PlatformAdminRoute>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="platform/tenants/:tenantId"
-        element={
-          <ProtectedRoute>
-            <PlatformAdminRoute>
-              <PlatformTenantDetailPage />
-            </PlatformAdminRoute>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="platform/users"
-        element={
-          <ProtectedRoute>
-            <PlatformAdminRoute>
-              <PlatformUsersPage />
-            </PlatformAdminRoute>
-          </ProtectedRoute>
-        }
-      />
+    </Route>
+    <Route
+      path="/platform"
+      element={
+        <PlatformAdminRoute>
+          <MainLayout />
+        </PlatformAdminRoute>
+      }
+    >
+      <Route index element={<Navigate to="tenants" replace />} />
+      <Route path="tenants" element={<PlatformTenantsPage />} />
+      <Route path="tenants/:tenantId" element={<PlatformTenantDetailPage />} />
+      <Route path="users" element={<PlatformUsersPage />} />
     </Route>
     <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes>
