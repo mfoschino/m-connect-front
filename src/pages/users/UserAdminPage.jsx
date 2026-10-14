@@ -9,6 +9,7 @@ import Table from '../../components/ui/Table'
 import { useAuth } from '../../context/AuthContext'
 import userAdminService, { normalizeRole, USER_ROLES } from '../../services/api/userAdminService'
 import { createMemberReadFlow, initialMemberReadState } from '../../services/memberReadFlow'
+import InvitationAdminPanel from './InvitationAdminPanel'
 
 const roleOptions = [
   { value: 'admin', label: 'Administrador' },
@@ -92,10 +93,11 @@ const UserAdminPage = () => {
   const [actionError, setActionError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [actionUserId, setActionUserId] = useState('')
+  const [activeTab, setActiveTab] = useState('members')
   const currentUserRole = normalizeRole(user?.role)
 
   useEffect(() => {
-    if (!user?.tenant_id || currentUserRole !== 'admin') return undefined
+    if (!user?.tenant_id || currentUserRole !== 'admin' || activeTab !== 'members') return undefined
     const flow = createMemberReadFlow({
       listMembers: userAdminService.listUsers,
       getMember: userAdminService.getUser,
@@ -107,7 +109,7 @@ const UserAdminPage = () => {
       flow.dispose()
       if (flowRef.current === flow) flowRef.current = null
     }
-  }, [contextId, user?.tenant_id, currentUserRole])
+  }, [contextId, user?.tenant_id, currentUserRole, activeTab])
 
   const isSelf = (record) => Boolean(record && (
     (user?.id && record.id === user.id)
@@ -170,18 +172,37 @@ const UserAdminPage = () => {
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Administración</p>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="section-title">Miembros de la organización</h2>
+            <h2 className="section-title">Miembros e invitaciones de la organización</h2>
             <p className="section-subtitle">
-              Consultá miembros y gestioná el acceso a la organización activa.
+              Consultá los accesos y administrá las invitaciones de la organización activa.
             </p>
           </div>
-          <Button type="button" variant="outline" onClick={() => flowRef.current?.refresh()}
+          {activeTab === 'members' ? <Button type="button" variant="outline"
+            onClick={() => flowRef.current?.refresh()}
             loading={directory.loading && directory.members.length > 0}>
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
             Refrescar
-          </Button>
+          </Button> : null}
         </div>
       </div>
+
+      <div role="group" aria-label="Secciones de administración de la organización"
+        className="flex gap-2 border-b border-slate-200">
+        <button type="button" aria-pressed={activeTab === 'members'}
+          onClick={() => setActiveTab('members')}
+          className={`px-4 py-2 text-sm font-semibold ${activeTab === 'members'
+            ? 'border-b-2 border-sky-600 text-sky-700' : 'text-slate-600'}`}>
+          Miembros
+        </button>
+        <button type="button" aria-pressed={activeTab === 'invitations'}
+          onClick={() => setActiveTab('invitations')}
+          className={`px-4 py-2 text-sm font-semibold ${activeTab === 'invitations'
+            ? 'border-b-2 border-sky-600 text-sky-700' : 'text-slate-600'}`}>
+          Invitaciones
+        </button>
+      </div>
+
+      {activeTab === 'members' ? <>
 
       {successMessage ? <Alert variant="success" title="Operación completada"
         description={successMessage} onClose={() => setSuccessMessage('')} /> : null}
@@ -237,6 +258,7 @@ const UserAdminPage = () => {
           onClick={() => flowRef.current?.openDetail(directory.detail.userId)}>Reintentar</Button> : null}
         {directory.detail.member ? <MemberDetailContent member={directory.detail.member} /> : null}
       </Modal>
+      </> : <InvitationAdminPanel />}
     </div>
   )
 }

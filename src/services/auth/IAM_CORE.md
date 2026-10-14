@@ -383,7 +383,41 @@ de la organización activa.
 Las escrituras existentes conservan transitoriamente los alias deprecados
 `PUT /users/{id}` y `DELETE /users/{id}`. La regla de último administrador
 permanece en el backend (409), ya que una página parcial no permite calcularla.
-IAM-4C (invitaciones), IAM-4D (migración de escrituras) e IAM-4E siguen
-pendientes. Los tests comprueban servicio, flujo asíncrono y HTML estático;
-faltan interacciones DOM y cambios reales de tenant/rol contra el backend en
+IAM-4C agrega invitaciones por separado; IAM-4D (migración de escrituras) e
+IAM-4E siguen pendientes. Los tests comprueban servicio, flujo asíncrono y HTML
+estático; faltan interacciones DOM y cambios reales de tenant/rol contra el backend en
 navegador.
+
+## IAM-4C: administración de invitaciones
+
+La pestaña Invitaciones de `UserAdminPage` usa el cliente Axios IAM compartido
+para `GET`/`POST /tenant/invitations`,
+`POST /tenant/invitations/{id}/resend` y `DELETE /tenant/invitations/{id}`.
+Sólo el rol efectivo `admin` del tenant activo puede montarla y sus callbacks
+vuelven a comprobar `getIamPermissions` antes de escribir. No se envía
+`tenant_id`, token ni contraseña. `InvitationResponse` informa el estado
+efectivo (`pending`, `accepted`, `revoked`, `expired`); sólo `pending` permite
+reenviar o revocar. El listado pagina con `skip`/`limit` sin total, filtra por
+estado y descarta respuestas antiguas al cambiar filtro, refrescar, pestaña o
+contexto. La creación valida email y rol (`operator` inicial), bloquea envíos
+duplicados y sólo confirma éxito con 201; el reenvío exige 200 y la revocación
+204. El backend encola el correo: la UI informa registro para envío, no
+entrega al destinatario. Las tres escrituras de invitaciones optan por no
+repetirse automáticamente tras un 401. El interceptor puede renovar la sesión,
+pero deja el resultado sin confirmar y exige una nueva acción explícita. El
+refresh preventivo anterior al primer despacho sí permite enviarlas una vez.
+El GET conserva el retry IAM habitual. La revocación invalida el enlace
+pendiente y no deshabilita una membresía.
+
+Un 401 indica un problema de sesión; 403 deniega el acceso y dispara la
+revalidación IAM de `/users/me`; 404 indica invitación ausente o ajena al tenant;
+409 indica duplicado, estado incompatible o tenant suspendido; 422 señala datos
+inválidos; 429 indica límite de tasa o de reenvíos. Ante red o 5xx, el resultado
+de una escritura puede ser incierto: la UI no confirma éxito ni la reenvía
+automáticamente.
+
+IAM-4B sigue gestionando la pestaña Miembros y sus alias de escritura legacy;
+IAM-4D migrará esas escrituras. La aceptación de invitaciones y los demás
+flujos futuros de IAM-4E siguen pendientes. Los tests de IAM-4C ejercitan
+servicio, concurrencia y HTML estático; faltan interacciones DOM y validación
+con correo y cambio de tenant reales en navegador.

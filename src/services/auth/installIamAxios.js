@@ -123,6 +123,7 @@ export const installIamAxios = (client, { manager, apiBaseUrl, onForbidden,
       accessToken = await manager.refresh()
     }
     if (!manager.isSameContext(sent)) throw new IamSessionError('context_changed')
+    if (config._iamSkipAuthRetry) throw error
     config._iamRetried = true
     config._iamRetryContext = { contextId: sent.contextId, generation: sent.generation }
     config.headers.Authorization = `Bearer ${accessToken}`

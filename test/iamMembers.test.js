@@ -211,7 +211,7 @@ test('IAM-4B presentación estática identifica acceso efectivo y no infiere inv
         createElement(MemoryRouter, null, createElement(ProtectedRoute,
           { allowedRoles: ['admin'] }, createElement(UserAdminPage)))))
     }
-    assert.match(render('admin'), /Miembros de la organización/)
+    assert.match(render('admin'), /Miembros e invitaciones de la organización/)
     assert.match(render('admin'), /Incluir miembros inactivos/)
     assert.match(render('admin'), /Cargando miembros/)
     assert.match(render('admin'), /Último inicio de sesión \(global\)/)

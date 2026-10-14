@@ -92,6 +92,84 @@ test('Axios opt-in usa Bearer actual y reintenta una sola vez preservando reques
   uninstall()
 })
 
+test('opt-out explícito procesa 401 y refresh sin repetir POST ni DELETE', async () => {
+  const seen = []
+  const client = axios.create({ baseURL: base, adapter: (config) => {
+    seen.push({ method: config.method, url: config.url,
+      skip: config._iamSkipAuthRetry, headers: config.headers.toJSON(), data: config.data })
+    return rejectStatus(config, 401)
+  } })
+  const manager = createManager()
+  const uninstall = installIamAxios(client, { manager, apiBaseUrl: base })
+  for (const request of [
+    () => client.post('/resource', { value: 4 }, { _iamSkipAuthRetry: true }),
+    () => client.delete('/resource', { _iamSkipAuthRetry: true }),
+  ]) {
+    const before = seen.length
+    await assert.rejects(request(), (error) => error.response?.status === 401)
+    assert.equal(seen.length, before + 1)
+  }
+  assert.equal(manager.getRefreshCount(), 2)
+  assert.equal(manager.getState().status, 'tokens_available')
+  assert.deepEqual(seen.map((item) => item.method), ['post', 'delete'])
+  assert.equal(seen.every((item) => item.skip === true
+    && !('_iamSkipAuthRetry' in item.headers)), true)
+  assert.deepEqual(JSON.parse(seen[0].data), { value: 4 })
+  uninstall()
+})
+
+test('opt-out conserva refresh preventivo y despacha una sola vez', async () => {
+  const seen = []
+  const setup = createIntegrated(async (config) => {
+    seen.push({ url: config.url, bearer: config.headers.get('Authorization') })
+    if (config.url === '/auth/refresh') return response(config, 200, rawPair('two'))
+    return response(config, 201, { ok: true })
+  })
+  await setup.manager.acceptTokens(tokenPair())
+  setup.setTime(61001)
+  const result = await setup.client.post('/resource', { value: 4 },
+    { _iamSkipAuthRetry: true })
+  assert.equal(result.status, 201)
+  assert.deepEqual(seen.map((item) => item.url), ['/auth/refresh', '/resource'])
+  assert.equal(seen[1].bearer, 'Bearer access-two')
+  setup.uninstall()
+})
+
+test('opt-out conserva invalidación de sesión cuando refresh recibe 401', async () => {
+  const seen = []
+  const setup = createIntegrated(async (config) => {
+    seen.push(config.url)
+    return rejectStatus(config, 401)
+  })
+  await setup.manager.acceptTokens(tokenPair())
+  await assert.rejects(setup.client.post('/resource', {},
+    { _iamSkipAuthRetry: true }), { code: 'refresh_rejected' })
+  assert.deepEqual(seen, ['/resource', '/auth/refresh'])
+  assert.equal(setup.manager.getState().status, 'absent')
+  assert.equal(setup.storage.readCredentials(), null)
+  setup.uninstall()
+})
+
+test('opt-out no despacha en otro contexto tras un refresh por 401 pendiente', async () => {
+  const entered = deferred()
+  const waiting = deferred()
+  let calls = 0
+  const client = axios.create({ baseURL: base, adapter: (config) => {
+    calls += 1
+    return rejectStatus(config, 401)
+  } })
+  const manager = createManager()
+  manager.refresh = async () => { entered.resolve(); return waiting.promise }
+  const uninstall = installIamAxios(client, { manager, apiBaseUrl: base })
+  const pending = client.post('/resource', {}, { _iamSkipAuthRetry: true })
+  await entered.promise
+  manager.replaceContext()
+  waiting.resolve('access-two')
+  await assert.rejects(pending, { code: 'context_changed' })
+  assert.equal(calls, 1)
+  uninstall()
+})
+
 test('segundo 401 no produce loop de refresh', async () => {
   let calls = 0
   const client = axios.create({ baseURL: base, adapter: async (config) => {
