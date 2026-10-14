@@ -7,6 +7,10 @@ export const getIamPermissions = ({ status, user } = {}) => {
   const canView = role === 'viewer' || role === 'operator' || role === 'admin'
   const canManage = role === 'operator' || role === 'admin'
   const canAdminister = role === 'admin'
+  const support = user?.support_session
+  const validSupport = Boolean(canView && support && support.tenant_id === user.tenant_id)
+  const supportReadOnly = validSupport && support.access_level === 'read_only'
+  const supportFull = validSupport && support.access_level === 'full'
 
   return {
     canViewIntegrations: canView,
@@ -19,5 +23,10 @@ export const getIamPermissions = ({ status, user } = {}) => {
     canViewLookups: canView,
     canManageLookups: canManage,
     canDeleteLookups: canAdminister,
+    canViewExecutions: canView,
+    canViewSettings: canView,
+    canViewUserAdmin: canAdminister,
+    canViewFinnegansCredentials: canAdminister || supportReadOnly,
+    canManageFinnegansCredentials: canAdminister && (!support || supportFull),
   }
 }

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   getFinnegansDocument,
+  getGuidedRunErrorMessage,
   getTiendaNubeRunReadiness,
   isTiendaNubeSalesOrderIntegration,
 } from '../src/services/adapters/tiendaNubeRunReadiness.js'
@@ -322,4 +323,63 @@ test('missing Finnegans credentials block run', () => {
 
   assert.equal(readiness.canRun, false)
   assert.ok(readiness.missingChecks.some((check) => check.id === 'credentials'))
+})
+
+test('verified credentials distinguish configured from missing without using secret values', () => {
+  const configured = getReadiness({ credentialsStatus: {
+    has_credentials: true, client_id: 'public-id', client_secret: 'never-use-this',
+  } })
+  const missing = getReadiness({ credentialsStatus: { has_credentials: false } })
+  assert.equal(configured.fullyReady, true)
+  assert.equal(configured.canRun, true)
+  assert.match(configured.checks.find((check) => check.id === 'credentials').label, /cargadas \(sin validar conexión\)/)
+  assert.equal(missing.fullyReady, false)
+  assert.equal(missing.canRun, false)
+  assert.match(missing.checks.find((check) => check.id === 'credentials').label, /faltan datos requeridos/)
+  assert.doesNotMatch(JSON.stringify(configured), /never-use-this|public-id/)
+})
+
+test('lack of credential read permission is explicit, unverified and nonblocking by itself', () => {
+  const readiness = getReadiness({ credentialsStatus: null,
+    credentialsUnavailableByPermission: true })
+  const credentialCheck = readiness.checks.find((check) => check.id === 'credentials')
+  assert.equal(credentialCheck.ready, false)
+  assert.equal(credentialCheck.blocking, false)
+  assert.match(credentialCheck.label, /no verificable: sin permiso/)
+  assert.equal(readiness.fullyReady, false)
+  assert.equal(readiness.canRun, true)
+})
+
+test('permission diagnostic never overrides a verified missing result or a real failed check', () => {
+  const missing = getReadiness({ credentialsStatus: { has_credentials: false },
+    credentialsUnavailableByPermission: true })
+  const incomplete = getReadiness({ credentialsStatus: null,
+    credentialsUnavailableByPermission: true, integration: withoutConfigField('endpoint') })
+  assert.equal(missing.canRun, false)
+  assert.equal(missing.checks.find((check) => check.id === 'credentials').blocking, true)
+  assert.equal(incomplete.canRun, false)
+  assert.ok(incomplete.missingChecks.some((check) => check.id === 'endpoint' && check.blocking))
+})
+
+test('network/server failure and pending credential verification remain blocking', () => {
+  for (const options of [
+    { credentialsStatus: null, credentialsError: 'Error de red',
+      credentialsUnavailableByPermission: true },
+    { credentialsStatus: null, credentialsLoading: true,
+      credentialsUnavailableByPermission: true },
+  ]) {
+    const readiness = getReadiness(options)
+    assert.equal(readiness.canRun, false)
+    assert.equal(readiness.checks.find((check) => check.id === 'credentials').blocking, true)
+  }
+})
+
+test('rejected and failed POST /run responses have distinct, safe messages', () => {
+  assert.match(getGuidedRunErrorMessage({ response: { status: 403,
+    data: { detail: 'private-token' } } }), /backend rechazó.*no tenés permiso/)
+  assert.match(getGuidedRunErrorMessage({ response: { status: 500 } }), /backend no pudo iniciar/)
+  assert.match(getGuidedRunErrorMessage({ response: { status: 422 } }), /backend rechazó/)
+  assert.match(getGuidedRunErrorMessage({}), /No se pudo contactar/)
+  assert.doesNotMatch(getGuidedRunErrorMessage({ response: { status: 403,
+    data: { detail: 'private-token' } } }), /private-token/)
 })

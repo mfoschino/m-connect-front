@@ -302,8 +302,40 @@ visibilidad y las guardas de callbacks evitan envíos accidentales; cada endpoin
 sigue autorizando en el backend. Ante un cambio de rol validado, la pantalla se
 remonta y descarta modales y borradores locales; el cambio de tenant conserva
 el remount por `contextId` de IAM-3B.1. Un 403 continúa revalidando `/users/me`
-sin reintentar escrituras. IAM-3B.2B cubrirá las demás pantallas y navegación;
-IAM-4 integrará invitaciones y miembros mediante las rutas vigentes.
+sin reintentar escrituras.
+
+IAM-3B.2B reutiliza esa política en la navegación y en credenciales Finnegans.
+El Dashboard y el monitor/detalle de Ejecuciones conservan consultas, filtros y
+refresco para viewer, operator y admin: sus controles actuales no despachan
+escrituras. `POST /executions/{trace_id}/reprocess` exige operator, pero la UI
+actual no ofrece esa acción. El Sidebar muestra Usuarios sólo al admin del
+tenant activo; `/settings/users` conserva su `ProtectedRoute` por rol. Un
+superadmin sin tenant no adquiere enlaces ni rutas administrativas de tenant.
+
+El alias `GET /tenants/{tenant_id}/finnegans-credentials` permite admin y
+soporte `read_only`/`full`; devuelve estado, `client_id` y `base_url`, nunca
+`client_secret`. Su `PUT` y el PUT por integración exigen admin (el soporte
+`read_only` no escribe). La política usa el rol efectivo y el resumen de soporte
+validados por `/users/me`: viewer/operator no montan la consulta de credenciales,
+soporte `read_only` sólo ve el estado y admin/soporte `full` pueden guardar. El
+editor comprueba la capacidad antes del PUT y se remonta al cambiar contexto,
+tenant, rol o sesión de soporte, descartando el borrador incluido el secreto.
+Settings conserva sus demás tarjetas informativas. El servicio frontend sólo
+usa el alias por tenant; no se añadió un flujo por integración. El backend
+sigue autorizando cada request. IAM-4 queda a cargo de invitaciones y miembros.
+En el detalle de Tienda Nube, Integraciones consulta ese GET sólo cuando la
+política permite leer el estado de credenciales. Para operator y viewer no
+despacha la consulta: el chequeo queda explícitamente no verificado. Ese
+diagnóstico no bloquea por sí solo la ejecución de operator; faltantes
+confirmados, errores de red/servidor y demás requisitos críticos sí bloquean.
+El panel nunca presenta el estado no verificado como «listo». El botón usa
+`canRunIntegrations` y `POST /integrations/{id}/run` vuelve a exigir operator
+en el backend; un 202 indica corrida encolada, no entrega final exitosa. El
+`has_credentials` del GET sólo confirma que hay ID y secreto cargados en la
+instalación resuelta por el alias; no prueba autenticación remota. El
+rechazo 403 del POST no reintenta la ejecución. Admin conserva la verificación
+del estado y el enlace de configuración. No se muestran valores secretos.
+
 La consola de plataforma y las sesiones de soporte siguen fuera de esta etapa;
 sus tokens necesitarán un contexto separado del normal. Una sesión sin tenant
 activo conserva el estado protegido `no_tenant`; IAM-3B.1 ofrece elegir uno
@@ -319,6 +351,10 @@ renderizan React con perfiles simulados; la suite no equivale a una validación 
 Los tests de IAM-3B.2A verifican la política, el HTML estático de controles y el
 enlace de guardas; quedan pendientes interacciones DOM reales con un modal
 abierto y revocación de rol, además de la respuesta 403 del backend en navegador.
+Los tests de IAM-3B.2B comprueban la matriz, controles renderizados y cableado
+de las guardas. No ejercitan eventos DOM reales ni una revocación mientras el
+formulario de credenciales está abierto. La ausencia de `/notifications` en el
+backend sigue como pendiente independiente.
 
 Referencias de navegador: [contextos seguros](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts),
 [Web Locks](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API),

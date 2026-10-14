@@ -31,6 +31,20 @@ export const getFinnegansDocument = (integration) => {
   return FINNEGANS_DOCUMENTS[document] ? document : null
 }
 
+export const getGuidedRunErrorMessage = (error) => {
+  const status = error?.response?.status
+  if (status === 403) {
+    return 'El backend rechazó la ejecución: no tenés permiso para ejecutarla en esta organización.'
+  }
+  if (status >= 500) {
+    return 'El backend no pudo iniciar la ejecución. Intentá de nuevo más tarde.'
+  }
+  if (status >= 400) {
+    return 'El backend rechazó la ejecución. Revisá la configuración antes de intentar de nuevo.'
+  }
+  return 'No se pudo contactar al backend para iniciar la ejecución. Intentá de nuevo.'
+}
+
 const getActiveProfiles = (profiles, sourceSystem) => profiles.filter((profile) => (
   profile?.source_system === sourceSystem
   && getProfileEntity(profile) === 'sales_order'
@@ -59,6 +73,27 @@ export const getTiendaNubeRunReadiness = (options = {}) => {
     : {}
   const credentialsLoading = safeOptions.credentialsLoading === true
   const credentialsError = safeOptions.credentialsError || ''
+  const credentialsUnavailableByPermission = safeOptions.credentialsUnavailableByPermission === true
+  const credentialsVerified = typeof credentialsStatus.has_credentials === 'boolean'
+  const credentialsCheck = credentialsLoading
+    ? { label: 'Consultando credenciales Finnegans', ready: false, blocking: true }
+    : credentialsError
+      ? { label: credentialsError, ready: false, blocking: true }
+      : credentialsVerified
+        ? {
+            label: credentialsStatus.has_credentials
+              ? 'Estado consultado: credenciales Finnegans cargadas (sin validar conexión)'
+              : 'Estado consultado: faltan datos requeridos para credenciales Finnegans',
+            ready: credentialsStatus.has_credentials,
+            blocking: true,
+          }
+        : credentialsUnavailableByPermission
+          ? {
+              label: 'Estado de credenciales Finnegans no verificable: sin permiso de consulta',
+              ready: false,
+              blocking: false,
+            }
+          : { label: 'Estado de credenciales Finnegans aún no verificado', ready: false, blocking: true }
   const config = isObject(integration.config) ? integration.config : {}
   const document = getFinnegansDocument(integration)
   const documentDefinition = document ? FINNEGANS_DOCUMENTS[document] : null
@@ -153,15 +188,7 @@ export const getTiendaNubeRunReadiness = (options = {}) => {
     },
     {
       id: 'credentials',
-      label: credentialsLoading
-        ? 'Consultando credenciales Finnegans'
-        : credentialsError
-          ? 'No se pudo verificar las credenciales Finnegans'
-          : 'Credenciales Finnegans configuradas',
-      ready: !credentialsLoading
-        && !credentialsError
-        && credentialsStatus.has_credentials === true,
-      blocking: true,
+      ...credentialsCheck,
       action: 'credentials',
     },
   ]

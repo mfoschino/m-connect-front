@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { getIamPermissions } from '../../services/auth/iamPermissions'
 import finnegansCredentialsService from '../../services/api/finnegansCredentialsService'
 import Alert from '../ui/Alert'
 import Button from '../ui/Button'
@@ -25,9 +26,7 @@ const getRequestErrorMessage = (error, action) => {
     : 'No se pudieron guardar las credenciales Finnegans.'
 }
 
-const FinnegansCredentialsSettings = () => {
-  const { user } = useAuth()
-  const tenantId = user?.tenant_id
+const FinnegansCredentialsContent = ({ tenantId, canManage }) => {
   const [credentialsStatus, setCredentialsStatus] = useState(null)
   const [formValues, setFormValues] = useState(EMPTY_FORM)
   const [loading, setLoading] = useState(Boolean(tenantId))
@@ -82,6 +81,8 @@ const FinnegansCredentialsSettings = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+
+    if (!canManage) return
 
     if (!tenantId) {
       setSaveMessage({
@@ -155,7 +156,9 @@ const FinnegansCredentialsSettings = () => {
             <p className="mt-1 text-sm text-slate-600">
               {hasCredentials
                 ? 'El secreto es de solo escritura y no se muestra por seguridad.'
-                : 'Ingresá las credenciales para habilitar la entrega hacia Finnegans.'}
+                : canManage
+                  ? 'Ingresá las credenciales para habilitar la entrega hacia Finnegans.'
+                  : 'No hay credenciales Finnegans configuradas para esta organización.'}
             </p>
           </div>
           <Button
@@ -169,7 +172,7 @@ const FinnegansCredentialsSettings = () => {
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {canManage ? <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-5 md:grid-cols-2">
             <Input
               id="finnegans-client-id"
@@ -220,10 +223,33 @@ const FinnegansCredentialsSettings = () => {
               {hasCredentials ? 'Reemplazar credenciales' : 'Guardar credenciales'}
             </Button>
           </div>
-        </form>
+        </form> : (
+          <p role="status" className="text-sm text-slate-600">
+            Podés consultar el estado de las credenciales. La edición requiere acceso de administración.
+          </p>
+        )}
       </div>
     </Card>
   )
+}
+
+const FinnegansCredentialsSettings = () => {
+  const auth = useAuth()
+  const permissions = getIamPermissions(auth)
+
+  if (!permissions.canViewFinnegansCredentials) {
+    return <Card className="xl:col-span-2" title="Credenciales Finnegans">
+      <p role="status" className="text-sm text-slate-600">
+        No tenés permiso para consultar las credenciales de esta organización.
+      </p>
+    </Card>
+  }
+
+  return <FinnegansCredentialsContent
+    key={`${auth.contextId || ''}:${auth.user.tenant_id}:${auth.user.role}:${auth.user.support_session?.id || ''}`}
+    tenantId={auth.user.tenant_id}
+    canManage={permissions.canManageFinnegansCredentials}
+  />
 }
 
 export default FinnegansCredentialsSettings

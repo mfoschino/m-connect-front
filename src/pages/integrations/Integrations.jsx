@@ -11,6 +11,7 @@ import {
   mapBackendProfileToForm,
 } from '../../services/adapters/profileAdapter'
 import {
+  getGuidedRunErrorMessage,
   getTiendaNubeRunReadiness,
   isTiendaNubeSalesOrderIntegration,
 } from '../../services/adapters/tiendaNubeRunReadiness'
@@ -71,6 +72,7 @@ const IntegrationsContent = ({ permissions, tenantId }) => {
     canManageIntegrations, canRunIntegrations, canDeleteIntegrations,
     canManageProfiles, canDeactivateProfiles,
     canManageLookups, canDeleteLookups,
+    canViewFinnegansCredentials, canManageFinnegansCredentials,
   } = permissions
   const [activeTab, setActiveTab] = useState('integrations')
   const [integrations, setIntegrations] = useState([])
@@ -271,6 +273,7 @@ const IntegrationsContent = ({ permissions, tenantId }) => {
       credentialsStatus: finnegansCredentialsStatus,
       credentialsLoading: finnegansCredentialsLoading,
       credentialsError: finnegansCredentialsError,
+      credentialsUnavailableByPermission: Boolean(tenantId && !canViewFinnegansCredentials),
     })
   }, [
     detailIntegration,
@@ -280,6 +283,8 @@ const IntegrationsContent = ({ permissions, tenantId }) => {
     finnegansCredentialsStatus,
     finnegansCredentialsLoading,
     finnegansCredentialsError,
+    tenantId,
+    canViewFinnegansCredentials,
   ])
 
   const openIntegrationCreate = () => {
@@ -322,13 +327,26 @@ const IntegrationsContent = ({ permissions, tenantId }) => {
       return
     }
 
+    if (!canViewFinnegansCredentials) {
+      setFinnegansCredentialsLoading(false)
+      return
+    }
+
     setFinnegansCredentialsLoading(true)
 
     try {
       const status = await finnegansCredentialsService.getTenantFinnegansCredentials(tenantId)
-      setFinnegansCredentialsStatus(status)
-    } catch {
-      setFinnegansCredentialsError('No se pudo consultar el estado de las credenciales Finnegans.')
+      setFinnegansCredentialsStatus(
+        typeof status?.has_credentials === 'boolean'
+          ? { has_credentials: status.has_credentials }
+          : null,
+      )
+    } catch (err) {
+      setFinnegansCredentialsError(err?.response?.status === 403
+        ? 'El backend rechazó la consulta del estado de credenciales Finnegans (403).'
+        : err?.response?.status >= 400 && err?.response?.status < 500
+          ? 'El backend rechazó la consulta del estado de credenciales Finnegans.'
+          : 'No se pudo verificar el estado de credenciales Finnegans por un error de red o servidor.')
     } finally {
       setFinnegansCredentialsLoading(false)
     }
@@ -484,10 +502,10 @@ const IntegrationsContent = ({ permissions, tenantId }) => {
         traceId,
       })
       await refreshData()
-    } catch {
+    } catch (err) {
       setGuidedRunFeedback({
         type: 'error',
-        message: 'Error al iniciar la ejecución. Revisá la configuración e intentá de nuevo.',
+        message: getGuidedRunErrorMessage(err),
         taskId: '',
         traceId: '',
       })
@@ -1134,6 +1152,7 @@ const IntegrationsContent = ({ permissions, tenantId }) => {
                 onEditIntegration={openIntegrationEditFromDetail}
                 canRunIntegration={canRunIntegrations}
                 canManageIntegration={canManageIntegrations}
+                canManageCredentials={canManageFinnegansCredentials}
                 onOpenProfiles={() => openResourceTabFromDetail('profiles')}
                 onOpenLookupTables={() => openResourceTabFromDetail('lookupTables')}
               />

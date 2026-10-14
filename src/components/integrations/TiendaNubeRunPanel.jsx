@@ -14,6 +14,7 @@ const TiendaNubeRunPanel = ({
   onEditIntegration,
   canRunIntegration = false,
   canManageIntegration = false,
+  canManageCredentials = false,
   onOpenProfiles,
   onOpenLookupTables,
 }) => {
@@ -84,12 +85,19 @@ const TiendaNubeRunPanel = ({
               Ir a perfiles
             </Button>
           ) : null}
-          {missingActions.has('credentials') ? (
+          {missingActions.has('credentials') && canManageCredentials ? (
             <Link className="btn btn-outline" to="/settings">
               Configurar credenciales
             </Link>
           ) : null}
         </div>
+      ) : null}
+
+      {missingChecks.some((check) => check.id === 'credentials' && !check.blocking) ? (
+        <p className="mt-3 text-sm text-amber-900">
+          No tenés permiso para consultar ni administrar estas credenciales. Su estado no está verificado;
+          la ejecución puede encolarse y el backend determinará el resultado real.
+        </p>
       ) : null}
 
       {runFeedback?.message ? (

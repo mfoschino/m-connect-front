@@ -1,20 +1,19 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { normalizeRole } from '../../services/api/userAdminService'
+import { getIamPermissions } from '../../services/auth/iamPermissions'
 
 const links = [
-  { label: 'Panel', to: '/dashboard' },
-  { label: 'Integraciones', to: '/integrations' },
-  { label: 'Ejecuciones', to: '/executions' },
-  { label: 'Incidentes', to: '/errors' },
-  { label: 'Configuración', to: '/settings' },
-  { label: 'Usuarios', to: '/settings/users', roles: ['admin'] },
+  { label: 'Panel', to: '/dashboard', permission: 'canViewIntegrations' },
+  { label: 'Integraciones', to: '/integrations', permission: 'canViewIntegrations' },
+  { label: 'Ejecuciones', to: '/executions', permission: 'canViewExecutions' },
+  { label: 'Incidentes', to: '/errors', permission: 'canViewExecutions' },
+  { label: 'Configuración', to: '/settings', permission: 'canViewSettings' },
+  { label: 'Usuarios', to: '/settings/users', permission: 'canViewUserAdmin' },
 ]
 
 const Sidebar = () => {
-  const { user } = useAuth()
-  const userRole = normalizeRole(user?.role)
-  const visibleLinks = links.filter((link) => !link.roles || link.roles.includes(userRole))
+  const permissions = getIamPermissions(useAuth())
+  const visibleLinks = links.filter((link) => permissions[link.permission])
 
   return (
     <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-slate-950 px-4 py-6 text-sm text-slate-300 shadow-soft lg:block">
