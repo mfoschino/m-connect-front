@@ -587,7 +587,7 @@ test('revalidación actualiza ausencia de tenant y /users/me 403 no recurre', as
   assert.equal(denied.auth.getState().user, null)
 })
 
-test('alta retirada no tiene acción visible ni consumidor; aliases compatibles continúan', async () => {
+test('alta retirada no tiene consumidor y miembros usan rutas canónicas', async () => {
   const page = await readFile(new URL('../src/pages/users/UserAdminPage.jsx', import.meta.url), 'utf8')
   assert.doesNotMatch(page, /createUser|buildTemporaryPassword|POST \/users\/|Invitar usuario/)
   assert.doesNotMatch(page, /Invitaciones pendientes/)
@@ -600,15 +600,16 @@ test('alta retirada no tiene acción visible ni consumidor; aliases compatibles 
     const routes = []
     client.defaults.adapter = async (config) => {
       routes.push({ method: config.method, url: config.url })
-      return { config, status: 200, data: [], headers: {} }
+      return { config, status: config.method === 'delete' ? 204 : 200,
+        data: config.method === 'delete' ? undefined : [], headers: {} }
     }
     await service.listUsers()
     await service.updateUser('one', { role: 'viewer' })
     await service.deactivateUser('one')
     assert.deepEqual(routes, [
       { method: 'get', url: '/tenant/members' },
-      { method: 'put', url: '/users/one' },
-      { method: 'delete', url: '/users/one' },
+      { method: 'patch', url: '/tenant/members/one' },
+      { method: 'delete', url: '/tenant/members/one' },
     ])
   } finally {
     await vite.close()

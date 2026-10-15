@@ -20,7 +20,7 @@ const setupFlow = ({ listMembers = async () => ({ data: [] }),
   return { flow, snapshots }
 }
 
-test('IAM-4B lee miembros y detalle por rutas canónicas; escrituras legacy permanecen', async () => {
+test('IAM-4D lee y escribe miembros por rutas canónicas sin campos ajenos', async () => {
   const vite = await createServer({ appType: 'custom', logLevel: 'silent',
     configLoader: 'runner', server: { middlewareMode: true } })
   try {
@@ -28,22 +28,33 @@ test('IAM-4B lee miembros y detalle por rutas canónicas; escrituras legacy perm
     const client = (await vite.ssrLoadModule('/src/services/api/client.js')).default
     const calls = []
     client.defaults.adapter = async (config) => {
-      calls.push({ method: config.method, url: config.url, params: config.params })
-      return { config, status: 200, data: [], headers: {} }
+      calls.push({ method: config.method, url: config.url, params: config.params,
+        data: config.data, skipAuthRetry: config._iamSkipAuthRetry })
+      return { config, status: config.method === 'delete' ? 204 : 200,
+        data: config.method === 'delete' ? undefined : [], headers: {} }
     }
     await service.listUsers()
     await service.listUsers({ skip: 50, limit: 25, include_disabled: true, tenant_id: 'ignored' })
     await service.getUser('member-id')
-    await service.updateUser('member-id', { role: 'operator' })
+    await service.updateUser('member-id', { role: 'operator', tenant_id: 'ignored',
+      email: 'ignored@example.test', password: 'ignored' })
+    await service.reactivateUser('member-id')
     await service.deactivateUser('member-id')
     assert.deepEqual(calls, [
       { method: 'get', url: '/tenant/members',
-        params: { skip: 0, limit: 50, include_disabled: false } },
+        params: { skip: 0, limit: 50, include_disabled: false },
+        data: undefined, skipAuthRetry: undefined },
       { method: 'get', url: '/tenant/members',
-        params: { skip: 50, limit: 25, include_disabled: true } },
-      { method: 'get', url: '/tenant/members/member-id', params: undefined },
-      { method: 'put', url: '/users/member-id', params: undefined },
-      { method: 'delete', url: '/users/member-id', params: undefined },
+        params: { skip: 50, limit: 25, include_disabled: true },
+        data: undefined, skipAuthRetry: undefined },
+      { method: 'get', url: '/tenant/members/member-id', params: undefined,
+        data: undefined, skipAuthRetry: undefined },
+      { method: 'patch', url: '/tenant/members/member-id', params: undefined,
+        data: JSON.stringify({ role: 'operator' }), skipAuthRetry: true },
+      { method: 'patch', url: '/tenant/members/member-id', params: undefined,
+        data: JSON.stringify({ is_active: true }), skipAuthRetry: true },
+      { method: 'delete', url: '/tenant/members/member-id', params: undefined,
+        data: undefined, skipAuthRetry: true },
     ])
     assert.equal('createUser' in service, false)
     for (const status of [403, 404]) {
@@ -233,6 +244,7 @@ test('IAM-4B presentación estática identifica acceso efectivo y no infiere inv
     assert.match(detail, /Rol en esta organización/)
     assert.match(detail, /Correo verificado/)
     assert.match(detail, /Último inicio de sesión \(global\)/)
+    assert.match(detail, /Esta respuesta no distingue la causa/)
     assert.doesNotMatch(detail, /Invitada|Pendiente/)
     const rows = renderToStaticMarkup(createElement('table', null, createElement('tbody', null,
       createElement(MemberRow, { record: member('a'), onRoleChange: () => {},
@@ -245,7 +257,18 @@ test('IAM-4B presentación estática identifica acceso efectivo y no infiere inv
     assert.match(rows, /Acceso activo/)
     assert.match(rows, /Acceso inactivo/)
     assert.match(rows, /Ver detalle/)
-    assert.equal((rows.match(/Deshabilitar acceso/g) || []).length, 2)
+    assert.equal((rows.match(/Deshabilitar acceso/g) || []).length, 1)
+    assert.match(rows, /Habilitar membresía/)
+    assert.match(rows, /cuenta global/)
+    assert.match(rows, /Guardar rol/)
+    assert.match(rows, /Actual: Visualizador/)
+    const selfRow = renderToStaticMarkup(createElement('table', null,
+      createElement('tbody', null, createElement(MemberRow, { record: member('self'),
+        isSelf: true, onRoleChange: () => {}, onDeactivate: () => {},
+        onReactivate: () => {}, onDetail: () => {} }))))
+    assert.match(selfRow, /Tu acceso/)
+    assert.doesNotMatch(selfRow, /Deshabilitar acceso|Habilitar membresía/)
+    assert.match(selfRow, /No podés cambiar tu propio rol/)
     assert.doesNotMatch(rows, /Invitada|Pendiente/)
   } finally {
     await vite.close()

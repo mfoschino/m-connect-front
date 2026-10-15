@@ -84,6 +84,14 @@ export const createMemberReadFlow = ({ listMembers, getMember, onChange, limit =
     return refresh(Boolean(value))
   }
 
+  const refreshAfterMutation = async () => {
+    if (disposed) return
+    const openDetailId = state.detail.open ? state.detail.userId : null
+    const list = refresh()
+    if (openDetailId) await Promise.all([list, openDetail(openDetailId)])
+    else await list
+  }
+
   const openDetail = async (userId) => {
     if (disposed || !userId) return
     if (state.detail.open && state.detail.userId === userId
@@ -125,5 +133,6 @@ export const createMemberReadFlow = ({ listMembers, getMember, onChange, limit =
     detailVersion += 1
   }
 
-  return { getState: () => state, loadMore, refresh, setIncludeDisabled, openDetail, closeDetail, dispose }
+  return { getState: () => state, loadMore, refresh, refreshAfterMutation,
+    setIncludeDisabled, openDetail, closeDetail, dispose }
 }

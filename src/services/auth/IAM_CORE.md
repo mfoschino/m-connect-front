@@ -380,13 +380,11 @@ significa invitación pendiente. `last_login` es global, no actividad del tenant
 El detalle muestra sólo datos de `UserResponse` y trata 404 como miembro ausente
 de la organización activa.
 
-Las escrituras existentes conservan transitoriamente los alias deprecados
-`PUT /users/{id}` y `DELETE /users/{id}`. La regla de último administrador
-permanece en el backend (409), ya que una página parcial no permite calcularla.
-IAM-4C agrega invitaciones por separado; IAM-4D (migración de escrituras) e
-IAM-4E siguen pendientes. Los tests comprueban servicio, flujo asíncrono y HTML
-estático; faltan interacciones DOM y cambios reales de tenant/rol contra el backend en
-navegador.
+La regla de último administrador permanece en el backend (409), ya que una
+página parcial no permite calcularla. IAM-4C agrega invitaciones por separado;
+IAM-4D migra las escrituras de membresías. IAM-4E sigue pendiente. Los tests
+comprueban servicio, flujo asíncrono y HTML estático; faltan interacciones DOM
+y cambios reales de tenant/rol contra el backend en navegador.
 
 ## IAM-4C: administración de invitaciones
 
@@ -416,8 +414,34 @@ inválidos; 429 indica límite de tasa o de reenvíos. Ante red o 5xx, el result
 de una escritura puede ser incierto: la UI no confirma éxito ni la reenvía
 automáticamente.
 
-IAM-4B sigue gestionando la pestaña Miembros y sus alias de escritura legacy;
-IAM-4D migrará esas escrituras. La aceptación de invitaciones y los demás
-flujos futuros de IAM-4E siguen pendientes. Los tests de IAM-4C ejercitan
+IAM-4B sigue gestionando la lectura de la pestaña Miembros; IAM-4D migra sus
+escrituras. La aceptación de invitaciones y los demás flujos futuros de IAM-4E
+siguen pendientes. Los tests de IAM-4C ejercitan
 servicio, concurrencia y HTML estático; faltan interacciones DOM y validación
 con correo y cambio de tenant reales en navegador.
+
+## IAM-4D: administración de membresías
+
+La pestaña Miembros usa `PATCH /tenant/members/{user_id}` para cambiar el rol
+o pedir la reactivación (`{"is_active": true}`) y
+`DELETE /tenant/members/{user_id}` para deshabilitar la membresía del tenant
+activo. Ambas escrituras requieren admin efectivo, no envían `tenant_id` y
+optan por no repetir la solicitud tras un 401; el refresh preventivo anterior
+al primer despacho continúa disponible. La edición de `full_name` no existe
+en esta pantalla; si se agrega en el futuro, ese campo cambia la identidad
+global del usuario.
+
+Cambiar el propio rol y deshabilitar el propio acceso están prohibidos (403).
+El backend impide dejar al tenant sin admin activo (409); la UI no lo infiere
+de las páginas cargadas. DELETE confirma con 204 sin body, sólo deshabilita el
+acceso a esta organización y no borra la cuenta ni otras membresías. PATCH
+confirma con 200 y `UserResponse`. `is_active` representa acceso efectivo de
+cuenta y membresía; un valor `false` no identifica cuál está inactiva. La
+acción de habilitar modifica la membresía, pero puede devolver acceso efectivo
+inactivo si la cuenta global sigue inactiva.
+
+Tras una escritura confirmada se reinicia la paginación en la primera página,
+conservando `include_disabled`; se reconsulta el detalle si sigue abierto.
+Un resultado incierto no se anuncia como éxito ni dispara un nuevo intento de
+escritura. Faltan interacciones DOM y verificación de permisos, cambio de
+tenant y estado de cuenta global en navegador real. IAM-4E permanece pendiente.

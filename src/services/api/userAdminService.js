@@ -18,13 +18,22 @@ const listUsers = ({ skip = 0, limit = 50, include_disabled = false } = {}) =>
 
 const getUser = (userId) => apiClient.get(`/tenant/members/${userId}`)
 
-const updateUser = (userId, payload) => apiClient.put(`/users/${userId}`, payload)
+const updateUser = (userId, { full_name, role, is_active } = {}) =>
+  apiClient.patch(`/tenant/members/${userId}`, {
+    ...(full_name !== undefined ? { full_name } : {}),
+    ...(role !== undefined ? { role } : {}),
+    ...(is_active !== undefined ? { is_active } : {}),
+  }, { _iamSkipAuthRetry: true })
 
-const deactivateUser = (userId) => apiClient.delete(`/users/${userId}`)
+const deactivateUser = (userId) =>
+  apiClient.delete(`/tenant/members/${userId}`, { _iamSkipAuthRetry: true })
+
+const reactivateUser = (userId) => updateUser(userId, { is_active: true })
 
 export default {
   listUsers,
   getUser,
   updateUser,
   deactivateUser,
+  reactivateUser,
 }
