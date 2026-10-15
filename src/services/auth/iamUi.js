@@ -33,3 +33,61 @@ export const authErrorMessage = (error, flow = 'session') => {
   if (error?.status === 401) return 'La sesión dejó de estar vigente. Volvé a iniciar sesión.'
   return 'No se pudo completar la operación. Intentá de nuevo.'
 }
+
+export const validateNewPassword = ({ password, confirmPassword }) => {
+  const errors = {}
+  if (!password) {
+    errors.password = 'La nueva contraseña es obligatoria.'
+  } else if (password.length < 8) {
+    errors.password = 'La contraseña debe tener al menos 8 caracteres.'
+  } else if (!/[A-Z]/.test(password)) {
+    errors.password = 'Debe incluir al menos una letra mayúscula.'
+  } else if (!/[a-z]/.test(password)) {
+    errors.password = 'Debe incluir al menos una letra minúscula.'
+  } else if (!/[0-9]/.test(password)) {
+    errors.password = 'Debe incluir al menos un número.'
+  } else if (new TextEncoder().encode(password).length > 72) {
+    errors.password = 'La contraseña no puede superar 72 bytes.'
+  }
+
+  if (!confirmPassword) {
+    errors.confirmPassword = 'La confirmación de la contraseña es obligatoria.'
+  } else if (password !== confirmPassword) {
+    errors.confirmPassword = 'Las contraseñas no coinciden.'
+  }
+  return errors
+}
+
+const INVALID_INVITATION = 'La invitación no es válida o ya expiró. Pedile una nueva a quien te invitó.'
+const INVITATION_FIELDS = { password: 'password', full_name: 'fullName' }
+
+export const invitationAcceptErrorMessage = (error, { email } = {}) => {
+  const status = error?.status
+  if (status === 410) return { message: INVALID_INVITATION, fieldErrors: {} }
+  if (status === 409) {
+    return { message: error.detail || 'La invitación no se puede aceptar en este momento.',
+      fieldErrors: {} }
+  }
+  if (status === 422) {
+    const fieldErrors = {}
+    let invalidToken = false
+    for (const item of error.fieldErrors ?? []) {
+      const field = item.loc[item.loc.length - 1]
+      if (field === 'token') invalidToken = true
+      else if (INVITATION_FIELDS[field] && !fieldErrors[INVITATION_FIELDS[field]]) {
+        fieldErrors[INVITATION_FIELDS[field]] = item.message
+      }
+    }
+    if (invalidToken) return { message: INVALID_INVITATION, fieldErrors: {} }
+    return { message: 'Revisá los datos ingresados y volvé a intentar.', fieldErrors }
+  }
+  if (status === 403) {
+    return { message: `Esta invitación es para ${email || 'otra cuenta'}. Cerrá sesión e ingresá con esa cuenta.`,
+      fieldErrors: {} }
+  }
+  if (status === 400) {
+    return { message: 'Una cuenta de administración de plataforma no puede aceptar invitaciones de organización.',
+      fieldErrors: {} }
+  }
+  return { message: authErrorMessage(error), fieldErrors: {} }
+}

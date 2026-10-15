@@ -77,3 +77,27 @@ export const normalizeCurrentUser = (data) => {
   }
   return { ...data }
 }
+
+export const normalizeInvitationPreview = (data) => {
+  if (!isObject(data) || !nonEmpty(data.email) || typeof data.tenant_name !== 'string'
+    || typeof data.role !== 'string' || !nullableText(data.invited_by)
+    || !nonEmpty(data.expires_at) || typeof data.account_exists !== 'boolean') {
+    throw new IamContractError('invalid_invitation_preview')
+  }
+  return {
+    email: data.email,
+    tenant_name: data.tenant_name,
+    role: data.role,
+    invited_by: data.invited_by,
+    expires_at: data.expires_at,
+    account_exists: data.account_exists,
+  }
+}
+
+export const normalizeInvitationAcceptResult = (data) => {
+  if (!isObject(data) || !nonEmpty(data.tenant_id) || typeof data.tenant_name !== 'string'
+    || typeof data.role !== 'string') {
+    throw new IamContractError('invalid_invitation_accept_result')
+  }
+  return { tenant_id: data.tenant_id, tenant_name: data.tenant_name, role: data.role }
+}

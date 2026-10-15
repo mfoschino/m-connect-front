@@ -5,6 +5,7 @@ import { createIamStorage } from './iamStorage.js'
 import { createIamSession } from './iamSession.js'
 import { installIamAxios } from './installIamAxios.js'
 import { createIamDeviceStore } from './iamDeviceStore.js'
+import { createIamInviteTokenStore } from './iamInviteTokenStore.js'
 import { createIamAccountService } from './iamAccountService.js'
 import { createIamAuthController } from './iamAuthController.js'
 
@@ -22,7 +23,9 @@ const clearLegacy = () => {
   try { globalThis.localStorage?.removeItem('mconnect_session') } catch { /* Sin fallback legacy. */ }
 }
 
-export const iamAuth = createIamAuthController({ manager, transport, deviceStore, clearLegacy })
+export const iamInviteToken = createIamInviteTokenStore({ apiBaseUrl })
+export const iamAuth = createIamAuthController({ manager, transport, deviceStore,
+  inviteTokenStore: iamInviteToken, clearLegacy })
 export const iamAccount = createIamAccountService(apiClient)
 
 let references = 0
