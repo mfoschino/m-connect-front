@@ -4,6 +4,7 @@ import { createServer } from 'vite'
 import axios from 'axios'
 import { readFile } from 'node:fs/promises'
 import { createIamAuthController } from '../src/services/auth/iamAuthController.js'
+import { createIamTransport } from '../src/services/auth/iamTransport.js'
 import { installIamAxios } from '../src/services/auth/installIamAxios.js'
 import { createIamDeviceStore } from '../src/services/auth/iamDeviceStore.js'
 import { createIamAccountService } from '../src/services/auth/iamAccountService.js'
@@ -107,6 +108,34 @@ test('login authenticated valida /users/me, conserva roles y respeta sesión tem
   assert.equal(calls.login[0].email, 'user@example.test')
   assert.deepEqual(calls.profile, ['access'])
   assert.ok(calls.legacy >= 1)
+})
+
+test('login anterior sin status consulta /users/me antes de autenticar', async () => {
+  const routes = []
+  const legacyTransport = createIamTransport({
+    post: async (route) => {
+      routes.push(route)
+      return { data: { access_token: 'access', refresh_token: 'refresh',
+        token_type: 'bearer', expires_in: 1800 } }
+    },
+    get: async (route) => {
+      routes.push(route)
+      return { data: { id: user.id, email: user.email, full_name: 'Usuario',
+        is_active: true, is_verified: true, last_login: null,
+        created_at: '2026-10-01T12:00:00Z', updated_at: '2026-10-02T12:00:00Z',
+        tenant_id: user.tenant_id, role: user.role } }
+    },
+  })
+  const { auth } = setup({
+    loginResult: () => legacyTransport.login({ email: user.email, password: 'secret' }),
+    profile: () => legacyTransport.getCurrentUser('access'),
+  })
+  await auth.bootstrap()
+  await auth.beginLogin({ email: user.email, password: 'secret' })
+  assert.deepEqual(routes, ['/auth/login', '/users/me'])
+  assert.equal(auth.getState().status, 'authenticated')
+  assert.equal(auth.getState().user.role, user.role)
+  assert.deepEqual(auth.getState().user.memberships, [])
 })
 
 test('OTP no publica usuario antes de validar código; reenvío reemplaza challenge', async () => {
@@ -299,6 +328,8 @@ test('forgot/reset usan contrato real y normalizan 429/422 sin reflejar secretos
     new_password: 'Secret123' })
   assert.match(authErrorMessage({ status: 429 }), /Demasiados/)
   assert.match(authErrorMessage({ status: 422 }), /Revisá/)
+  assert.match(authErrorMessage({ name: 'IamContractError', code: 'unknown_login_status' }, 'login'), /autenticación.*incompatible/)
+  assert.match(authErrorMessage({ name: 'IamContractError', code: 'invalid_current_user' }, 'login'), /credenciales.*validar el perfil/)
   assert.equal(isSixDigitCode('123456'), true)
   assert.equal(isSixDigitCode('12345'), false)
   assert.equal(isSixDigitCode('12345a'), false)

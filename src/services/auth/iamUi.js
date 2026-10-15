@@ -11,6 +11,18 @@ export const safeDestination = (from) => {
 }
 
 export const authErrorMessage = (error, flow = 'session') => {
+  if (error?.name === 'IamContractError') {
+    if (error.code === 'unknown_login_status' || error.code === 'invalid_login_response') {
+      return 'El servicio de autenticación respondió con un formato incompatible. Contactá a soporte.'
+    }
+    if (error.code === 'invalid_token_pair') {
+      return 'El servicio de autenticación devolvió una sesión incompleta. Contactá a soporte.'
+    }
+    if (error.code === 'invalid_current_user') {
+      return 'Se recibieron credenciales, pero el servicio no pudo validar el perfil. Contactá a soporte.'
+    }
+    return 'El servicio devolvió una respuesta incompatible. Contactá a soporte.'
+  }
   if (error?.name === 'IamCapabilityError') {
     return 'Este navegador o conexión no permite una sesión segura. Usá HTTPS y un navegador con Web Locks y almacenamiento habilitados.'
   }

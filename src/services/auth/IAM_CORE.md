@@ -134,6 +134,10 @@ pestaña podría estar rotando.
 `/auth/login` y `/auth/login/otp` devuelven `status=otp_required` (challenge,
 sin tokens) o `status=authenticated` (par Bearer, `expires_in` y, a veces,
 `device_token`). `/auth/login/otp/resend` sólo devuelve otro challenge.
+Como compatibilidad con la API anterior, login también acepta un par completo
+sin `status` y lo valida con `/users/me` antes de publicar la sesión. El perfil
+anterior no trae `memberships`, `support_session` ni `platform_role`; esos campos
+se normalizan a `[]`, `null` y `null`, sin inventar otras organizaciones.
 `/auth/refresh` devuelve un nuevo par.
 `POST /auth/switch-tenant` recibe Bearer y `{ "tenant_id": "<uuid>" }` y devuelve
 el mismo contrato de par (`access_token`, `refresh_token`, `token_type`,

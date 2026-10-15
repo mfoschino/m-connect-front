@@ -74,7 +74,8 @@ const OrganizationSelector = ({ standalone = false }) => {
         onClick={() => { void select(onlyChoice.tenant_id) }}
         className="font-semibold text-sky-700 underline disabled:cursor-not-allowed disabled:opacity-60">
           Seleccionar {onlyChoice.tenant_name}
-        </button> : <span className="block text-slate-600">Sin organizaciones disponibles</span>}
+      </button> : <span className="block text-slate-600">{user?.tenant_id && user?.role
+        ? 'Organización actual' : 'Sin organizaciones disponibles'}</span>}
       {unavailableChoices.length > 0 ? <ul aria-label="Organizaciones no disponibles"
         className="mt-1 space-y-1 text-xs text-amber-700">
         {unavailableChoices.map((choice) => <li key={choice.tenant_id}>

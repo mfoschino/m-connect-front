@@ -25,7 +25,7 @@ const createSetup = ({ temporary = createMemoryStorage(), persistent = createMem
   return { manager, storage, temporary, persistent }
 }
 
-test('login distingue challenge de tokens y rechaza respuestas antiguas o incompletas', () => {
+test('login distingue challenge, acepta el par anterior y rechaza respuestas incompletas', () => {
   assert.deepEqual(normalizeLoginResponse({ status: 'otp_required', token_type: 'bearer',
     challenge_id: 'challenge-id', email_hint: 'a***@example.test', otp_expires_in: 599 }), {
     status: 'otp_required', tokenType: 'bearer', challengeId: 'challenge-id',
@@ -36,6 +36,8 @@ test('login distingue challenge de tokens y rechaza respuestas antiguas o incomp
     otp_expires_in: 0 }).otpExpiresIn, 0)
   assert.equal(normalizeLoginResponse({ status: 'authenticated', token_type: 'bearer',
     access_token: 'access', refresh_token: 'refresh', expires_in: 60 }).refreshToken, 'refresh')
+  assert.equal(normalizeLoginResponse({ token_type: 'bearer', access_token: 'access',
+    refresh_token: 'refresh', expires_in: 1800 }).status, 'authenticated')
   assert.throws(() => normalizeLoginResponse({ access_token: 'old' }), { code: 'unknown_login_status' })
   assert.throws(() => normalizeLoginResponse({ status: 'authenticated', access_token: 'only' }),
     { code: 'invalid_token_pair' })
@@ -659,6 +661,14 @@ test('/users/me exige el contrato serializado y conserva campos nullable', () =>
     created_at: '2026-10-01T12:00:00Z', updated_at: '2026-10-02T12:00:00Z',
     memberships: [], support_session: null }
   assert.deepEqual(normalizeCurrentUser(complete), complete)
+  const legacy = { ...complete }
+  delete legacy.memberships
+  delete legacy.support_session
+  delete legacy.platform_role
+  legacy.tenant_id = 'tenant'
+  legacy.role = 'viewer'
+  assert.deepEqual(normalizeCurrentUser(legacy), { ...complete, tenant_id: 'tenant',
+    role: 'viewer', platform_role: null })
   for (const key of Object.keys(complete)) {
     const missing = { ...complete }
     delete missing[key]

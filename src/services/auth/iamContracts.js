@@ -53,7 +53,10 @@ export const normalizeLoginResponse = (data) => {
     }
   }
 
-  if (data.status === 'authenticated') {
+  // La API anterior devuelve el par sin `status`; sigue requiriendo ambos tokens.
+  if (data.status === 'authenticated'
+    || (data.status === undefined && nonEmpty(data.access_token)
+      && nonEmpty(data.refresh_token))) {
     const pair = normalizeTokenPair(data)
     if (data.device_token != null && !nonEmpty(data.device_token)) {
       throw new IamContractError('invalid_device_token')
@@ -65,15 +68,20 @@ export const normalizeLoginResponse = (data) => {
 }
 
 export const normalizeCurrentUser = (data) => {
-  if (!isObject(data) || !nonEmpty(data.id) || !nonEmpty(data.email)
-    || typeof data.is_active !== 'boolean' || typeof data.is_verified !== 'boolean'
-    || !(data.last_login === null || nonEmpty(data.last_login))
-    || !nonEmpty(data.created_at) || !nonEmpty(data.updated_at)
-    || !Array.isArray(data.memberships) || !data.memberships.every(validMembership)
-    || !nullableText(data.full_name) || !nullableText(data.tenant_id)
-    || !nullableText(data.role) || !nullableText(data.platform_role)
-    || !validSupport(data.support_session)) {
+  // El perfil anterior no incluye estos tres campos; no se infieren membresías.
+  const legacy = isObject(data) && !('memberships' in data)
+    && !('support_session' in data) && !('platform_role' in data)
+  const user = legacy ? { ...data, memberships: [], support_session: null,
+    platform_role: null } : data
+  if (!isObject(user) || !nonEmpty(user.id) || !nonEmpty(user.email)
+    || typeof user.is_active !== 'boolean' || typeof user.is_verified !== 'boolean'
+    || !(user.last_login === null || nonEmpty(user.last_login))
+    || !nonEmpty(user.created_at) || !nonEmpty(user.updated_at)
+    || !Array.isArray(user.memberships) || !user.memberships.every(validMembership)
+    || !nullableText(user.full_name) || !nullableText(user.tenant_id)
+    || !nullableText(user.role) || !nullableText(user.platform_role)
+    || !validSupport(user.support_session)) {
     throw new IamContractError('invalid_current_user')
   }
-  return { ...data }
+  return { ...user }
 }
