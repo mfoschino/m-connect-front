@@ -7,7 +7,7 @@ const links = [
   { label: 'Integraciones', to: '/integrations', permission: 'canViewIntegrations' },
   { label: 'Ejecuciones', to: '/executions', permission: 'canViewExecutions' },
   { label: 'Incidentes', to: '/errors', permission: 'canViewExecutions' },
-  { label: 'Configuración', to: '/settings', permission: 'canViewSettings' },
+  { label: 'Configuración', to: '/settings', permission: 'canViewSettings', end: true },
   { label: 'Usuarios', to: '/settings/users', permission: 'canViewUserAdmin' },
 ]
 
@@ -26,6 +26,7 @@ const Sidebar = () => {
           <NavLink
             key={link.to}
             to={link.to}
+            end={link.end}
             className={({ isActive }) =>
               `block rounded-3xl px-4 py-3 transition ${
                 isActive
