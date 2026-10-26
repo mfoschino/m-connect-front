@@ -6,7 +6,8 @@ import Button from '../../components/ui/Button'
 import Alert from '../../components/ui/Alert'
 import { useAuth } from '../../context/AuthContext'
 import { iamAccount } from '../../services/auth/iamRuntime.js'
-import { authErrorMessage, isSixDigitCode } from '../../services/auth/iamUi.js'
+import { authErrorMessage, isSixDigitCode,
+  validateNewPassword } from '../../services/auth/iamUi.js'
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate()
@@ -32,26 +33,7 @@ const ResetPasswordPage = () => {
     if (!isSixDigitCode(formData.code)) {
       nextErrors.code = 'Ingresá el código de seis dígitos.'
     }
-
-    if (!formData.password) {
-      nextErrors.password = 'La nueva contraseña es obligatoria.'
-    } else if (formData.password.length < 8) {
-      nextErrors.password = 'La contraseña debe tener al menos 8 caracteres.'
-    } else if (!/[A-Z]/.test(formData.password)) {
-      nextErrors.password = 'Debe incluir al menos una letra mayúscula.'
-    } else if (!/[a-z]/.test(formData.password)) {
-      nextErrors.password = 'Debe incluir al menos una letra minúscula.'
-    } else if (!/[0-9]/.test(formData.password)) {
-      nextErrors.password = 'Debe incluir al menos un número.'
-    } else if (new TextEncoder().encode(formData.password).length > 72) {
-      nextErrors.password = 'La contraseña no puede superar 72 bytes.'
-    }
-
-    if (!formData.confirmPassword) {
-      nextErrors.confirmPassword = 'La confirmación de la contraseña es obligatoria.'
-    } else if (formData.password !== formData.confirmPassword) {
-      nextErrors.confirmPassword = 'Las contraseñas no coinciden.'
-    }
+    Object.assign(nextErrors, validateNewPassword(formData))
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0

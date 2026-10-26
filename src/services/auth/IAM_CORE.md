@@ -421,3 +421,92 @@ IAM-4D migrará esas escrituras. La aceptación de invitaciones y los demás
 flujos futuros de IAM-4E siguen pendientes. Los tests de IAM-4C ejercitan
 servicio, concurrencia y HTML estático; faltan interacciones DOM y validación
 con correo y cambio de tenant reales en navegador.
+
+## IAM-4E: aceptación de invitaciones
+
+Esta etapa agrega la capa de servicios de la pantalla pública `/invite`; la
+pantalla en sí todavía no existe. Los contratos son `InvitationPreview` e
+`InvitationAcceptResult` de `app/schemas/invitation.py` y §5.7 de
+`iam-frontend-integration.md`.
+
+- `iamAccount.inspectInvitation(token)`: `POST /auth/invitations/inspect`,
+  pública (el interceptor quita cualquier Bearer). Devuelve el preview
+  normalizado por `normalizeInvitationPreview` en snake_case: `email`,
+  `tenant_name`, `role`, `invited_by` (string o `null`), `expires_at` y
+  `account_exists`.
+- `AuthContext.acceptInvitation({ token, password, fullName?, rememberSession? })`:
+  crea la cuenta y abre sesión. El transporte aislado llama a
+  `POST /auth/invitations/accept` y exige `status: "authenticated"`; un OTP u
+  otra forma lanza `IamContractError('invalid_invitation_response')`. El
+  controlador sigue el esqueleto de `beginLogin`: anula la intención de
+  logout, avanza la generación, publica `bootstrapping`, espera la cancelación
+  OTP pendiente, comprueba capacidades e **invalida la sesión local previa antes
+  de enviar el token**, en el mismo orden que el login. Así una sesión de otra
+  cuenta nunca convive con la nueva. Después usa `acceptAndValidate`
+  (`rememberDevice: false`): sólo publica el usuario tras `/users/me`. Un logout
+  o login intermedio descarta la respuesta tardía (`context_changed`).
+- `iamAccount.acceptInvitationWithSession(token)`: `POST
+  /users/me/invitations/accept` con el cliente IAM compartido. Devuelve
+  `{ tenant_id, tenant_name, role }` sin cambiar el tenant activo; para operar
+  allí, la pantalla llama a `switchTenant(tenant_id)`. Usa `_iamSkipAuthRetry`
+  como las escrituras de IAM-4C: tras un 401 el interceptor puede renovar la
+  sesión, pero no reenvía la aceptación; el resultado queda sin confirmar y
+  exige otra acción explícita. Durante `bootstrapping` o `switching` el
+  interceptor la rechaza antes de despacharla (`authorization_pending`,
+  `switch_in_progress`); esos `IamSessionError` llegan tal cual, no como error
+  de red.
+
+Los tres usan `sensitiveValues` con el token (y la contraseña en el alta), por
+lo que ningún `detail` que los refleje llega a la UI.
+
+### Token pendiente
+
+`iamInviteToken` (`createIamInviteTokenStore`) guarda el token mientras el
+usuario pasa por el login. La clave sigue la convención de `iamStorage`:
+`mconnect:iam:v1:<alcance de API codificado>:invite-token`, con el mismo
+`normalizeApiScope`. Vive en `sessionStorage`: sólo esa pestaña lo ve y
+desaparece al cerrarla. `get()`, `save(token)` y `clear()` no lanzan: si el
+almacenamiento no está disponible devuelven `null`/`false` y la pantalla
+puede seguir con el token en memoria.
+
+Ciclo de vida: la pantalla lee el token del fragmento `#token=`, lo saca de la
+URL y lo guarda sólo si debe pasar por el login. Lo borra al aceptar, ante 410
+y al abandonar el flujo. El login lo conserva. **`logout()` del controlador lo
+borra siempre**, de forma síncrona al inicio, porque hay varios disparadores de
+logout (menú de perfil, selector de organización, `ProtectedRoute`) y ninguno
+debe dejar un token olvidado.
+
+Consecuencia para la pantalla: hay dos casos donde el usuario cierra sesión
+**para continuar con la misma invitación**:
+
+1. Cuenta existente con sesión de otro email (403 o detección previa): "Cerrá
+   sesión e ingresá con esa cuenta".
+2. Cuenta inexistente con otra sesión abierta: la pantalla pide cerrarla antes
+   de mostrar el formulario de alta.
+
+En ambos, la pantalla hace `await logout()` y **después** vuelve a guardar con
+`iamInviteToken.save(token)` el token que conserva en memoria. Guardarlo antes
+no sirve: el logout lo borra.
+
+### Contraseña y errores
+
+`validateNewPassword({ password, confirmPassword })` (en `iamUi.js`) contiene
+las reglas que antes estaban en `ResetPasswordPage`: requerida, al menos 8
+caracteres, mayúscula, minúscula, número, como máximo 72 bytes UTF-8 y
+confirmación igual. Devuelve `{ password?, confirmPassword? }` con los mismos
+mensajes; `ResetPasswordPage` la usa sin cambios de comportamiento. El backend
+sigue siendo la autoridad (422).
+
+`invitationAcceptErrorMessage(error, { email? })` devuelve
+`{ message, fieldErrors }` y decide sólo por `status` y `loc`, nunca por texto:
+410 o un 422 sobre `token` indican link inválido o vencido; 409 muestra el
+`detail` saneado (cuenta existente o tenant suspendido) o un texto genérico;
+422 mapea `password` y `full_name` a `fieldErrors.password`/`fieldErrors.fullName`;
+403 indica que la invitación es para otro email; 400 indica cuenta superadmin.
+Red, timeout, 429 y capacidades delegan en `authErrorMessage`. Es un helper
+aparte porque `authErrorMessage` sólo devuelve texto.
+
+Los tests de `test/iamInviteAccept.test.js` cubren normalizadores, transporte,
+controlador con respuestas tardías, interceptor, store, reglas de contraseña y
+mensajes sin secretos. Faltan la pantalla, interacciones DOM y la validación con
+correo y backend reales en navegador.

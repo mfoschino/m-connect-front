@@ -108,6 +108,17 @@ export const createIamTransport = (api) => {
       if (result.status !== 'otp_required') throw new IamContractError('invalid_otp_resend')
       return result
     }, [challengeId]),
+    acceptInvitation: ({ token, password, fullName } = {}) => request(async () => {
+      const body = { token, password }
+      if (typeof fullName === 'string' && fullName.trim()) body.full_name = fullName.trim()
+      const response = await api.post('/auth/invitations/accept', body)
+      const result = normalizeLoginResponse(response?.data)
+      // Aceptar una invitación nunca pide OTP: el link ya probó la casilla.
+      if (result.status !== 'authenticated') {
+        throw new IamContractError('invalid_invitation_response')
+      }
+      return result
+    }, [token, password]),
     refresh: (refreshToken) => request(async () => {
       const response = await api.post('/auth/refresh', { refresh_token: refreshToken })
       return normalizeTokenPair(response?.data)

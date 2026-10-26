@@ -3,7 +3,8 @@ import { IamCapabilityError, IamSessionError } from './iamSession.js'
 const initialState = Object.freeze({ status: 'bootstrapping', user: null,
   error: null, logoutResult: null, hasBootstrapped: false, contextId: null })
 
-export const createIamAuthController = ({ manager, transport, deviceStore, clearLegacy }) => {
+export const createIamAuthController = ({ manager, transport, deviceStore, inviteTokenStore,
+  clearLegacy }) => {
   if (!manager?.restore || !transport?.getCurrentUser) {
     throw new TypeError('Se requieren gestor y transporte IAM.')
   }
@@ -207,6 +208,37 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
     }
   }
 
+  const acceptInvitation = async ({ token, password, fullName, rememberSession = false }) => {
+    logoutIntent = null
+    const started = ++epoch
+    validatedContext = null
+    otpIntent = null
+    pendingTenantId = null
+    publish('bootstrapping')
+    clearLegacy?.()
+    try {
+      if (otpCancelPromise) {
+        const cleanup = await otpCancelPromise
+        ensureCurrent(started)
+        if (!cleanup.localCleared) throw new IamSessionError('local_cleanup_uncertain')
+      }
+      await checkReady()
+      ensureCurrent(started)
+      if (manager.getContextSnapshot().contextId) {
+        const cleanup = await manager.invalidateLocal()
+        ensureCurrent(started)
+        if (!cleanup.localCleared) throw new IamSessionError('local_cleanup_uncertain')
+      }
+      const result = await transport.acceptInvitation({ token, password, fullName })
+      ensureCurrent(started)
+      return await acceptAndValidate(result,
+        { email: null, rememberSession, rememberDevice: false }, started)
+    } catch (error) {
+      fail(error, started)
+      throw error
+    }
+  }
+
   const cancelOtp = () => {
     // La navegación por un login ya validado desmonta el formulario OTP.
     if (state.status === 'authenticated') return Promise.resolve({ localCleared: true })
@@ -343,6 +375,7 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
     pendingTenantId = null
     publish('anonymous')
     clearLegacy?.()
+    inviteTokenStore?.clear()
     try {
       const result = await manager.logout()
       if (started !== epoch) return result
@@ -393,7 +426,7 @@ export const createIamAuthController = ({ manager, transport, deviceStore, clear
   })
 
   return { getState, isBusinessReady, subscribe, bootstrap, suspend, retry,
-    beginLogin, completeOtp,
+    beginLogin, completeOtp, acceptInvitation,
     resendOtp, cancelOtp, revalidateAfterForbidden, reloadUser, switchTenant,
     logout, invalidateAfterPasswordReset,
     dispose: () => { stopManagerSubscription(); listeners.clear() } }

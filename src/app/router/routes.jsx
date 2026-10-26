@@ -7,6 +7,7 @@ import PlatformAdminRoute from '../../components/common/PlatformAdminRoute'
 import PlatformTenantsPage from '../../pages/platform/PlatformTenantsPage'
 import PlatformTenantDetailPage from '../../pages/platform/PlatformTenantDetailPage'
 import PlatformUsersPage from '../../pages/platform/PlatformUsersPage'
+import InvitePage from '../../pages/auth/InvitePage'
 
 import MainLayout from '../../layouts/MainLayout'
 import Dashboard from '../../pages/dashboard/Dashboard'
@@ -60,6 +61,7 @@ const AppRoutes = () => <TenantNavigation>
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/forgot-password-sent" element={<ForgotPasswordSentPage />} />
     <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <Route path="/invite" element={<InvitePage />} />
     <Route path="/" element={<TenantLayout />}>
       <Route
         index

@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
     login: iamAuth.beginLogin,
     completeOtp: iamAuth.completeOtp,
     resendOtp: iamAuth.resendOtp,
+    acceptInvitation: iamAuth.acceptInvitation,
     cancelOtp: iamAuth.cancelOtp,
     retry: iamAuth.retry,
     reloadUser: iamAuth.reloadUser,
