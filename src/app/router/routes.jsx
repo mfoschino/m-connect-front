@@ -5,6 +5,7 @@ import { safePathAfterContextChange } from '../../services/auth/iamTenantUi.js'
 import MainLayout from '../../layouts/MainLayout'
 import Dashboard from '../../pages/dashboard/Dashboard'
 import Integrations from '../../pages/integrations/Integrations'
+import ConnectorsPage from '../../pages/connectors/ConnectorsPage'
 import Executions from '../../pages/executions/Executions'
 import ExecutionDetail from '../../pages/executions/ExecutionDetail'
 import Errors from '../../pages/errors/Errors'
@@ -73,6 +74,14 @@ const AppRoutes = () => <TenantNavigation>
         element={
           <ProtectedRoute>
             <Integrations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="connectors"
+        element={
+          <ProtectedRoute allowedRoles={['viewer', 'operator', 'admin']}>
+            <ConnectorsPage />
           </ProtectedRoute>
         }
       />

@@ -13,6 +13,7 @@ export const getIamPermissions = ({ status, user } = {}) => {
   const supportFull = validSupport && support.access_level === 'full'
 
   return {
+    canViewConnectors: canView,
     canViewIntegrations: canView,
     canManageIntegrations: canManage,
     canRunIntegrations: canManage,

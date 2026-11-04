@@ -5,6 +5,7 @@ import { getIamPermissions } from '../../services/auth/iamPermissions'
 const links = [
   { label: 'Panel', to: '/dashboard', permission: 'canViewIntegrations' },
   { label: 'Integraciones', to: '/integrations', permission: 'canViewIntegrations' },
+  { label: 'Conectores', to: '/connectors', permission: 'canViewConnectors' },
   { label: 'Ejecuciones', to: '/executions', permission: 'canViewExecutions' },
   { label: 'Incidentes', to: '/errors', permission: 'canViewExecutions' },
   { label: 'Configuración', to: '/settings', permission: 'canViewSettings', end: true },
