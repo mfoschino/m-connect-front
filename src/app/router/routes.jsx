@@ -8,6 +8,7 @@ import PlatformTenantsPage from '../../pages/platform/PlatformTenantsPage'
 import PlatformTenantDetailPage from '../../pages/platform/PlatformTenantDetailPage'
 import PlatformUsersPage from '../../pages/platform/PlatformUsersPage'
 import InvitePage from '../../pages/auth/InvitePage'
+import PlatformUserDetailPage from '../../pages/platform/PlatformUserDetailPage'
 
 import MainLayout from '../../layouts/MainLayout'
 import Dashboard from '../../pages/dashboard/Dashboard'
@@ -23,6 +24,7 @@ import ForgotPasswordPage from '../../pages/auth/ForgotPasswordPage'
 import ForgotPasswordSentPage from '../../pages/auth/ForgotPasswordSentPage'
 import ResetPasswordPage from '../../pages/auth/ResetPasswordPage'
 import ProtectedRoute from '../../components/common/ProtectedRoute'
+import PlatformAuditPage from '../../pages/platform/PlatformAuditPage.jsx'
 
 const TenantLayout = () => {
   const { contextId, authenticated, user } = useAuth()
@@ -148,6 +150,8 @@ const AppRoutes = () => <TenantNavigation>
       <Route path="tenants" element={<PlatformTenantsPage />} />
       <Route path="tenants/:tenantId" element={<PlatformTenantDetailPage />} />
       <Route path="users" element={<PlatformUsersPage />} />
+      <Route path="users/:userId" element={<PlatformUserDetailPage />} />
+      <Route path="audit" element={<PlatformAuditPage />} />
     </Route>
     <Route path="*" element={<Navigate to="/login" replace />} />
   </Routes>

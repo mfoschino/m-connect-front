@@ -8,6 +8,7 @@ import Input from '../../components/ui/Input'
 import Table from '../../components/ui/Table'
 import Pagination from '../../components/platform/Pagination'
 import platformService from '../../services/api/platformService'
+import { Link } from 'react-router-dom'
 import { PAGE_SIZE, cleanParams, formatDate, getErrorMessage } from './platformUtils'
 
 const accountStatusOptions = [
@@ -169,7 +170,11 @@ const PlatformUsersPage = () => {
             ) : (
               page.items.map((account) => (
                 <tr key={account.id}>
-                  <td className="font-medium text-slate-900">{account.full_name || 'Sin nombre'}</td>
+                  <td> 
+                    <Link to={`/platform/users/${account.id}`} className="font-medium text-slate-900 hover:underline">
+                      {account.full_name || 'Sin nombre'} 
+                    </Link>
+                  </td>
                   <td>{account.email}</td>
                   <td>
                     {account.platform_role === 'superadmin' ? <Badge variant="pending">Superadmin</Badge> : '—'}

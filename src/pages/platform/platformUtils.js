@@ -36,3 +36,18 @@ export const ROLE_LABELS = {
 }
 
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// "2026-11-04" → el inicio de ese día (hora local), en el formato que espera el backend
+export const startOfDayIso = (dateText) => {
+  if (!dateText) return ''
+  return new Date(`${dateText}T00:00:00`).toISOString()
+}
+
+// "2026-11-04" → el inicio del día SIGUIENTE.
+// El filtro "until" no incluye ese instante, así que el 4 de noviembre entra completo.
+export const startOfNextDayIso = (dateText) => {
+  if (!dateText) return ''
+  const date = new Date(`${dateText}T00:00:00`)
+  date.setDate(date.getDate() + 1)
+  return date.toISOString()
+}

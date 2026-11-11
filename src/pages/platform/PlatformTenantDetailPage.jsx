@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { useParams, Link } from 'react-router-dom'
+import BackLink from '../../components/platform/BackLink'
 import Alert from '../../components/ui/Alert'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -12,19 +12,12 @@ import { formatDate, getErrorMessage } from './platformUtils'
 import TenantMembersCard from './TenantMembersCard'
 import TenantInvitationsCard from './TenantInvitationsCard'
 
-const backLink = (
-  <Link
-    to="/platform/tenants"
-    className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900"
-  >
-    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-    Volver a tenants
-  </Link>
-)
 
 const PlatformTenantDetailPage = () => {
   // Lee la parte variable de la URL: /platform/tenants/:tenantId
   const { tenantId } = useParams()
+
+  const backLink = <BackLink fallbackTo="/platform/tenants" fallbackLabel="Volver a tenants" />
 
   const [tenant, setTenant] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -124,6 +117,9 @@ const PlatformTenantDetailPage = () => {
           <Button variant={tenant.is_active ? 'danger' : 'primary'} onClick={() => setStatusOpen(true)}>
             {tenant.is_active ? 'Suspender' : 'Reactivar'}
           </Button>
+          <Link to={`/platform/audit?tenant=${tenantId}`} className="btn btn-outline">
+            Ver actividad
+          </Link>
         </div>
       </div>
 

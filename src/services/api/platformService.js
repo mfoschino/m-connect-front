@@ -30,6 +30,9 @@ const revokeUserSessions = (userId) => apiClient.post(`/platform/users/${userId}
 const forcePasswordReset = (userId) => apiClient.post(`/platform/users/${userId}/force-password-reset`)
 const unlockUser = (userId) => apiClient.post(`/platform/users/${userId}/unlock`)
 
+// Mensajero
+const listAuditLogs = (params) => apiClient.get('/platform/audit-logs', {params})
+
 
 export default {
   listTenants,
@@ -48,4 +51,5 @@ export default {
   revokeUserSessions,
   forcePasswordReset,
   unlockUser,
+  listAuditLogs,
 }

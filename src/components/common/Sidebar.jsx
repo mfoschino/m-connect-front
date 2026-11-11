@@ -5,7 +5,8 @@ import { getIamPermissions } from '../../services/auth/iamPermissions'
 
 const platformLinks = [
   { label: 'Tenants', to: '/platform/tenants' },
-  { label: 'Usuarios', to: '/platform/users' }
+  { label: 'Usuarios', to: '/platform/users' },
+  { label: 'Auditoría', to: '/platform/audit'}
 ]
 
 const links = [
